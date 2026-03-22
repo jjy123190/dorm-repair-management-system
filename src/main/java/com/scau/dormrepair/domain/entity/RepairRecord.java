@@ -11,27 +11,42 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 
-@Entity
-@Table(name = "repair_records")
 /**
  * 工单处理记录实体。
  */
+@Entity
+@Table(name = "repair_records")
 public class RepairRecord extends BaseTimeEntity {
 
+    /**
+     * 主键 ID。
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * 对应工单 ID。
+     */
     @Column(nullable = false)
     private Long workOrderId;
 
+    /**
+     * 当前操作人的用户 ID。
+     */
     @Column(nullable = false)
     private Long operatorId;
 
+    /**
+     * 本条记录对应的工单状态。
+     */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
     private WorkOrderStatus status;
 
+    /**
+     * 本次处理说明，例如“已接单”“已更换水龙头”。
+     */
     @Lob
     private String recordNote;
 

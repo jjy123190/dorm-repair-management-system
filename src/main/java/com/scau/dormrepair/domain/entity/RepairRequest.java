@@ -14,6 +14,9 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
+/**
+ * 报修单实体。
+ */
 @Entity
 @Table(
         name = "repair_requests",
@@ -22,55 +25,100 @@ import java.time.LocalDateTime;
                 @Index(name = "idx_repair_request_status", columnList = "status")
         }
 )
-/**
- * 报修单实体。
- */
 public class RepairRequest extends BaseTimeEntity {
 
+    /**
+     * 主键 ID。
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * 报修单号。
+     * 业务上用于给学生、管理员、维修人员追踪问题。
+     */
     @Column(nullable = false, unique = true, length = 64)
     private String requestNo;
 
+    /**
+     * 报修学生姓名。
+     */
     @Column(nullable = false, length = 64)
     private String studentName;
 
+    /**
+     * 联系电话。
+     */
     @Column(nullable = false, length = 32)
     private String contactPhone;
 
+    /**
+     * 提交时的楼栋号快照。
+     * 当前骨架阶段先直接保存在报修单中。
+     */
     @Column(nullable = false, length = 32)
     private String buildingNo;
 
+    /**
+     * 提交时的房间号快照。
+     */
     @Column(nullable = false, length = 32)
     private String roomNo;
 
+    /**
+     * 故障类型。
+     */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
     private FaultCategory faultCategory;
 
+    /**
+     * 故障详细描述。
+     */
     @Lob
     @Column(nullable = false)
     private String description;
 
+    /**
+     * 图片地址集合。
+     * 当前阶段使用字符串拼接保存，后续正式数据库设计会拆成独立图片表。
+     */
     @Lob
     private String imageUrls;
 
+    /**
+     * 报修单状态。
+     */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
     private RepairRequestStatus status;
 
+    /**
+     * 审核或派单管理员 ID。
+     */
     private Long reviewerId;
 
+    /**
+     * 当前负责的维修人员 ID。
+     */
     private Long workerId;
 
+    /**
+     * 催办次数。
+     */
     @Column(nullable = false)
     private Integer urgeCount = 0;
 
+    /**
+     * 学生提交报修的时间。
+     */
     @Column(nullable = false)
     private LocalDateTime submittedAt;
 
+    /**
+     * 报修完成时间。
+     */
     private LocalDateTime completedAt;
 
     public Long getId() {

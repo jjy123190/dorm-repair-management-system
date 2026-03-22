@@ -10,6 +10,8 @@ public interface StatisticsService {
 
     /**
      * 统计指定月份的报修汇总。
+     * @param month 统计月份，为空时默认当前月
+     * @return 月度汇总结果
      */
     MonthlyStatisticsResponse monthlySummary(YearMonth month);
 }

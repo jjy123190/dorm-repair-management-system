@@ -25,17 +25,29 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
 /**
  * 工单服务实现。
  */
+@Service
 public class WorkOrderServiceImpl implements WorkOrderService {
 
     private static final DateTimeFormatter NUMBER_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
+    /**
+     * 工单数据访问对象。
+     */
     private final WorkOrderRepository workOrderRepository;
+    /**
+     * 报修单数据访问对象。
+     */
     private final RepairRequestRepository repairRequestRepository;
+    /**
+     * 工单流水数据访问对象。
+     */
     private final RepairRecordRepository repairRecordRepository;
+    /**
+     * 评价数据访问对象。
+     */
     private final RepairFeedbackRepository repairFeedbackRepository;
 
     public WorkOrderServiceImpl(
@@ -50,9 +62,15 @@ public class WorkOrderServiceImpl implements WorkOrderService {
         this.repairFeedbackRepository = repairFeedbackRepository;
     }
 
+    /**
+     * 管理员创建并派发工单。
+     * @param command 派单数据
+     * @return 创建后的工单信息
+     */
     @Override
     @Transactional
     public WorkOrderResponse assign(AssignWorkOrderCommand command) {
+        // 1. 先检查报修单是否存在。
         RepairRequest repairRequest = repairRequestRepository.findById(command.repairRequestId())
                 .orElseThrow(() -> new ResourceNotFoundException("未找到报修单，ID=" + command.repairRequestId()));
 
@@ -60,6 +78,7 @@ public class WorkOrderServiceImpl implements WorkOrderService {
             throw new IllegalArgumentException("已完成的报修单不能再次派单");
         }
 
+        // 2. 尝试按报修单找到已有工单，防止重复创建。
         WorkOrder workOrder = workOrderRepository.findByRepairRequestId(command.repairRequestId())
                 .orElseGet(WorkOrder::new);
         if (workOrder.getId() == null) {
@@ -68,6 +87,7 @@ public class WorkOrderServiceImpl implements WorkOrderService {
             workOrder.setRepairRequestId(command.repairRequestId());
         }
 
+        // 3. 写入派单基础数据。
         workOrder.setAdminId(command.adminId());
         workOrder.setWorkerId(command.workerId());
         workOrder.setPriority(command.priority());
@@ -77,6 +97,7 @@ public class WorkOrderServiceImpl implements WorkOrderService {
 
         WorkOrder savedWorkOrder = workOrderRepository.save(workOrder);
 
+        // 4. 同步更新报修单的负责人和状态。
         repairRequest.setReviewerId(command.adminId());
         repairRequest.setWorkerId(command.workerId());
         repairRequest.setStatus(RepairRequestStatus.ASSIGNED);
@@ -87,6 +108,11 @@ public class WorkOrderServiceImpl implements WorkOrderService {
         return toResponse(savedWorkOrder);
     }
 
+    /**
+     * 查询工单详情。
+     * @param id 工单 ID
+     * @return 工单详情
+     */
     @Override
     @Transactional(readOnly = true)
     public WorkOrderResponse getById(Long id) {
@@ -95,6 +121,14 @@ public class WorkOrderServiceImpl implements WorkOrderService {
         return toResponse(workOrder);
     }
 
+    /**
+     * 分页查询工单。
+     * @param status 可选状态
+     * @param workerId 可选维修人员 ID
+     * @param page 页码
+     * @param size 每页条数
+     * @return 工单分页结果
+     */
     @Override
     @Transactional(readOnly = true)
     public Page<WorkOrderResponse> page(WorkOrderStatus status, Long workerId, int page, int size) {
@@ -121,6 +155,12 @@ public class WorkOrderServiceImpl implements WorkOrderService {
         return workOrderPage.map(this::toResponse);
     }
 
+    /**
+     * 更新工单状态。
+     * @param workOrderId 工单 ID
+     * @param command 状态更新数据
+     * @return 更新后的工单信息
+     */
     @Override
     @Transactional
     public WorkOrderResponse updateStatus(Long workOrderId, UpdateWorkOrderStatusCommand command) {
@@ -129,6 +169,7 @@ public class WorkOrderServiceImpl implements WorkOrderService {
         RepairRequest repairRequest = repairRequestRepository.findById(workOrder.getRepairRequestId())
                 .orElseThrow(() -> new ResourceNotFoundException("未找到工单关联的报修单，ID=" + workOrder.getRepairRequestId()));
 
+        // 1. 更新工单当前状态。
         workOrder.setStatus(command.status());
         if (command.status() == WorkOrderStatus.ACCEPTED && workOrder.getAcceptedAt() == null) {
             workOrder.setAcceptedAt(LocalDateTime.now());
@@ -144,11 +185,16 @@ public class WorkOrderServiceImpl implements WorkOrderService {
         repairRequest.setStatus(mapRequestStatus(command.status()));
         workOrderRepository.save(workOrder);
         repairRequestRepository.save(repairRequest);
+        // 2. 把本次处理动作写进流水表。
         createRecord(workOrderId, command.operatorId(), command.status(), defaultNote(command.note(), "工单状态更新为 " + command.status().name()));
 
         return toResponse(workOrder);
     }
 
+    /**
+     * 提交学生评价。
+     * @param command 评价数据
+     */
     @Override
     @Transactional
     public void submitFeedback(SubmitRepairFeedbackCommand command) {

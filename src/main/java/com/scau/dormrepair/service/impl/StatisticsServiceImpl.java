@@ -12,13 +12,19 @@ import java.time.YearMonth;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
 /**
  * 报表统计服务实现。
  */
+@Service
 public class StatisticsServiceImpl implements StatisticsService {
 
+    /**
+     * 报修单数据访问对象。
+     */
     private final RepairRequestRepository repairRequestRepository;
+    /**
+     * 评价数据访问对象。
+     */
     private final RepairFeedbackRepository repairFeedbackRepository;
 
     public StatisticsServiceImpl(
@@ -29,6 +35,11 @@ public class StatisticsServiceImpl implements StatisticsService {
         this.repairFeedbackRepository = repairFeedbackRepository;
     }
 
+    /**
+     * 统计指定月份的报修汇总。
+     * @param month 统计月份
+     * @return 月度汇总结果
+     */
     @Override
     @Transactional(readOnly = true)
     public MonthlyStatisticsResponse monthlySummary(YearMonth month) {

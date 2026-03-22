@@ -5,14 +5,19 @@ import io.swagger.v3.oas.models.info.Info;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration
 /**
  * OpenAPI / Swagger 基础配置。
  * 作用是让前端和测试同学可以直接从在线文档查看接口。
  */
+@Configuration
 public class OpenApiConfig {
 
     @Bean
+    /**
+     * 生成 OpenAPI 文档的基础信息。
+     * 后续如果项目名、版本号变化，优先改这里。
+     * @return OpenAPI 配置对象
+     */
     public OpenAPI dormRepairOpenAPI() {
         return new OpenAPI()
                 .info(new Info()

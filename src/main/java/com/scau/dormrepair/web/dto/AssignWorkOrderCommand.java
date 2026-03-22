@@ -6,6 +6,11 @@ import jakarta.validation.constraints.Size;
 
 /**
  * 创建工单并派单的请求体。
+ * @param repairRequestId 报修单 ID
+ * @param adminId 管理员 ID
+ * @param workerId 维修人员 ID
+ * @param priority 工单优先级
+ * @param assignmentNote 派单备注
  */
 public record AssignWorkOrderCommand(
         @NotNull(message = "报修单ID不能为空")

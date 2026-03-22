@@ -7,6 +7,10 @@ import jakarta.validation.constraints.Size;
 
 /**
  * 提交评价的请求体。
+ * @param repairRequestId 报修单 ID
+ * @param rating 评分
+ * @param feedbackComment 评价内容
+ * @param anonymous 是否匿名
  */
 public record SubmitRepairFeedbackCommand(
         @NotNull(message = "报修单ID不能为空")

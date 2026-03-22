@@ -7,6 +7,11 @@ import jakarta.validation.constraints.Size;
 
 /**
  * 宿舍房间新增 / 修改请求体。
+ * @param campusName 校区名称
+ * @param buildingNo 楼栋号
+ * @param roomNo 房间号
+ * @param floorNo 楼层
+ * @param bedCount 床位数
  */
 public record SaveDormRoomCommand(
         @NotBlank(message = "校区名称不能为空")

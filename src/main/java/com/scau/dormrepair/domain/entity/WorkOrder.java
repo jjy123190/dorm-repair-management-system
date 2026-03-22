@@ -14,6 +14,9 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
+/**
+ * 工单实体。
+ */
 @Entity
 @Table(
         name = "work_orders",
@@ -22,43 +25,73 @@ import java.time.LocalDateTime;
                 @Index(name = "idx_work_order_request_id", columnList = "repairRequestId", unique = true)
         }
 )
-/**
- * 工单实体。
- */
 public class WorkOrder extends BaseTimeEntity {
 
+    /**
+     * 主键 ID。
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * 工单号。
+     */
     @Column(nullable = false, unique = true, length = 64)
     private String workOrderNo;
 
+    /**
+     * 对应的报修单 ID。
+     */
     @Column(nullable = false, unique = true)
     private Long repairRequestId;
 
+    /**
+     * 派单管理员 ID。
+     */
     @Column(nullable = false)
     private Long adminId;
 
+    /**
+     * 当前负责的维修人员 ID。
+     */
     @Column(nullable = false)
     private Long workerId;
 
+    /**
+     * 工单状态。
+     */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
     private WorkOrderStatus status;
 
+    /**
+     * 工单优先级。
+     */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 16)
     private WorkOrderPriority priority;
 
+    /**
+     * 派单备注。
+     */
     @Lob
     private String assignmentNote;
 
+    /**
+     * 派单时间。
+     */
     @Column(nullable = false)
     private LocalDateTime assignedAt;
 
+    /**
+     * 维修人员接单时间。
+     */
     private LocalDateTime acceptedAt;
 
+    /**
+     * 工单完成时间。
+     */
     private LocalDateTime completedAt;
 
     public Long getId() {

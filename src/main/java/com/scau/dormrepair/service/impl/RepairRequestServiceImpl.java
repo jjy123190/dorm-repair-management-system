@@ -19,21 +19,29 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
 /**
  * 报修单服务实现。
  */
+@Service
 public class RepairRequestServiceImpl implements RepairRequestService {
 
     private static final String IMAGE_SEPARATOR = "||";
     private static final DateTimeFormatter NUMBER_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
+    /**
+     * 报修单数据访问对象。
+     */
     private final RepairRequestRepository repairRequestRepository;
 
     public RepairRequestServiceImpl(RepairRequestRepository repairRequestRepository) {
         this.repairRequestRepository = repairRequestRepository;
     }
 
+    /**
+     * 提交报修申请。
+     * @param command 报修申请数据
+     * @return 新建后的报修单详情
+     */
     @Override
     @Transactional
     public RepairRequestDetailResponse create(CreateRepairRequestCommand command) {
@@ -53,6 +61,11 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         return toDetailResponse(repairRequestRepository.save(repairRequest));
     }
 
+    /**
+     * 查询报修单详情。
+     * @param id 报修单 ID
+     * @return 报修单详情
+     */
     @Override
     @Transactional(readOnly = true)
     public RepairRequestDetailResponse getById(Long id) {
@@ -61,6 +74,13 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         return toDetailResponse(repairRequest);
     }
 
+    /**
+     * 分页查询报修单。
+     * @param status 可选状态筛选
+     * @param page 页码
+     * @param size 每页条数
+     * @return 报修单分页结果
+     */
     @Override
     @Transactional(readOnly = true)
     public Page<RepairRequestSummaryResponse> page(RepairRequestStatus status, int page, int size) {

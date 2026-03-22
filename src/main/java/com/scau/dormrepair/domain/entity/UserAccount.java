@@ -10,30 +10,48 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-@Entity
-@Table(name = "user_accounts")
 /**
  * 用户账号实体。
  */
+@Entity
+@Table(name = "user_accounts")
 public class UserAccount extends BaseTimeEntity {
 
+    /**
+     * 主键 ID。
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * 登录用户名。
+     */
     @Column(nullable = false, unique = true, length = 64)
     private String username;
 
+    /**
+     * 界面展示名。
+     */
     @Column(nullable = false, length = 64)
     private String displayName;
 
+    /**
+     * 手机号。
+     */
     @Column(nullable = false, length = 32)
     private String phone;
 
+    /**
+     * 用户角色。
+     */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
     private UserRole role;
 
+    /**
+     * 是否启用。
+     */
     @Column(nullable = false)
     private Boolean enabled = Boolean.TRUE;
 

@@ -8,6 +8,13 @@ import java.util.List;
 
 /**
  * 学生提交报修的请求体。
+ * @param studentName 学生姓名
+ * @param buildingNo 宿舍楼栋号
+ * @param roomNo 宿舍房间号
+ * @param faultCategory 故障类型
+ * @param description 故障描述
+ * @param contactPhone 联系电话
+ * @param imageUrls 图片地址列表
  */
 public record CreateRepairRequestCommand(
         @NotBlank(message = "学生姓名不能为空")

@@ -6,6 +6,9 @@ import jakarta.validation.constraints.Size;
 
 /**
  * 更新工单状态的请求体。
+ * @param status 工单状态
+ * @param operatorId 当前操作人 ID
+ * @param note 本次处理说明
  */
 public record UpdateWorkOrderStatusCommand(
         @NotNull(message = "工单状态不能为空")
