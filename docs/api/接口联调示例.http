@@ -1,0 +1,130 @@
+### 宿舍报修与工单管理系统接口联调示例
+### 使用方式：
+### 1. 先启动后端，默认端口是 8082
+### 2. 在 IDEA / VS Code 的 HTTP Client 里逐条执行
+### 3. 遇到需要替换的 ID，先看上一个响应再改变量
+
+@baseUrl = http://localhost:8082
+@repairRequestId = 1
+@workOrderId = 1
+@dormRoomId = 1
+
+### 根路径会自动跳到 Swagger
+GET {{baseUrl}}/
+
+### 健康检查
+GET {{baseUrl}}/actuator/health
+
+### Swagger 文档入口
+GET {{baseUrl}}/swagger-ui.html
+
+### 新增宿舍房间
+POST {{baseUrl}}/api/v1/dorm-rooms
+Content-Type: application/json
+
+{
+  "campusName": "华南农业大学",
+  "buildingNo": "23栋",
+  "roomNo": "402",
+  "floorNo": 4,
+  "bedCount": 6
+}
+
+### 查询宿舍分页
+GET {{baseUrl}}/api/v1/dorm-rooms?page=1&size=20
+
+### 查询单个宿舍
+GET {{baseUrl}}/api/v1/dorm-rooms/{{dormRoomId}}
+
+### 提交报修申请
+POST {{baseUrl}}/api/v1/repair-requests
+Content-Type: application/json
+
+{
+  "studentName": "张三",
+  "buildingNo": "23栋",
+  "roomNo": "402",
+  "faultCategory": "ELECTRICITY",
+  "description": "宿舍吸顶灯频闪，晚上无法正常使用。",
+  "contactPhone": "13800138000",
+  "imageUrls": [
+    "https://example.com/images/repair-light-01.jpg"
+  ]
+}
+
+### 查询报修分页
+GET {{baseUrl}}/api/v1/repair-requests?page=1&size=20
+
+### 按状态查询报修分页
+GET {{baseUrl}}/api/v1/repair-requests?status=SUBMITTED&page=1&size=20
+
+### 查询报修详情
+GET {{baseUrl}}/api/v1/repair-requests/{{repairRequestId}}
+
+### 管理员派单
+POST {{baseUrl}}/api/v1/work-orders
+Content-Type: application/json
+
+{
+  "repairRequestId": {{repairRequestId}},
+  "adminId": 1001,
+  "workerId": 2001,
+  "priority": "NORMAL",
+  "assignmentNote": "优先安排今晚查修，避免影响宿舍休息。"
+}
+
+### 查询工单分页
+GET {{baseUrl}}/api/v1/work-orders?page=1&size=20
+
+### 按状态查询工单分页
+GET {{baseUrl}}/api/v1/work-orders?status=ASSIGNED&page=1&size=20
+
+### 查询维修员名下工单
+GET {{baseUrl}}/api/v1/work-orders?workerId=2001&page=1&size=20
+
+### 查询工单详情
+GET {{baseUrl}}/api/v1/work-orders/{{workOrderId}}
+
+### 维修员接单
+PATCH {{baseUrl}}/api/v1/work-orders/{{workOrderId}}/status
+Content-Type: application/json
+
+{
+  "status": "ACCEPTED",
+  "operatorId": 2001,
+  "note": "已接单，预计 30 分钟内到场。"
+}
+
+### 维修处理中
+PATCH {{baseUrl}}/api/v1/work-orders/{{workOrderId}}/status
+Content-Type: application/json
+
+{
+  "status": "IN_PROGRESS",
+  "operatorId": 2001,
+  "note": "已拆下灯具并检查线路。"
+}
+
+### 工单完成
+PATCH {{baseUrl}}/api/v1/work-orders/{{workOrderId}}/status
+Content-Type: application/json
+
+{
+  "status": "COMPLETED",
+  "operatorId": 2001,
+  "note": "已更换损坏灯管并恢复供电。"
+}
+
+### 学生提交评价
+POST {{baseUrl}}/api/v1/repair-feedbacks
+Content-Type: application/json
+
+{
+  "repairRequestId": {{repairRequestId}},
+  "rating": 5,
+  "feedbackComment": "维修及时，师傅处理认真。",
+  "anonymous": false
+}
+
+### 月度统计报表
+GET {{baseUrl}}/api/v1/reports/repair-requests/monthly-summary?month=2026-03

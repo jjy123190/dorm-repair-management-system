@@ -109,6 +109,7 @@ mvn spring-boot:run
 - 协作约束：`AGENTS.md`
 - 接口规范：`docs/api/接口规范.md`
 - 接口清单：`docs/api/接口清单.md`
+- 接口联调示例：`docs/api/接口联调示例.http`
 - MySQL 最小表设计：`docs/database/MySQL最小表设计.md`
 - MySQL DDL 草案：`sql/mysql/01_init_schema_v1.sql`
 - 老师资料索引：`docs/teacher-materials/README.md`
@@ -118,6 +119,104 @@ mvn spring-boot:run
 - 根路径：`http://localhost:8082/`，会自动跳转到 Swagger UI
 - Swagger UI: `http://localhost:8082/swagger-ui/index.html`
 - OpenAPI JSON: `http://localhost:8082/v3/api-docs`
+
+## 代码结构
+
+项目主代码按 `com.scau.dormrepair` 作为根包组织，推荐前后端和数据库同学都先按这棵树理解项目：
+
+```text
+src
+├─ main
+│  ├─ java
+│  │  └─ com
+│  │     └─ scau
+│  │        └─ dormrepair
+│  │           ├─ common
+│  │           │  ├─ ApiResponse.java
+│  │           │  └─ PageResponse.java
+│  │           ├─ config
+│  │           │  └─ OpenApiConfig.java
+│  │           ├─ domain
+│  │           │  ├─ entity
+│  │           │  │  ├─ BaseTimeEntity.java
+│  │           │  │  ├─ DormRoom.java
+│  │           │  │  ├─ RepairFeedback.java
+│  │           │  │  ├─ RepairRecord.java
+│  │           │  │  ├─ RepairRequest.java
+│  │           │  │  ├─ UserAccount.java
+│  │           │  │  └─ WorkOrder.java
+│  │           │  └─ enums
+│  │           │     ├─ FaultCategory.java
+│  │           │     ├─ RepairRequestStatus.java
+│  │           │     ├─ UserRole.java
+│  │           │     ├─ WorkOrderPriority.java
+│  │           │     └─ WorkOrderStatus.java
+│  │           ├─ exception
+│  │           │  ├─ GlobalExceptionHandler.java
+│  │           │  └─ ResourceNotFoundException.java
+│  │           ├─ repository
+│  │           │  ├─ DormRoomRepository.java
+│  │           │  ├─ RepairFeedbackRepository.java
+│  │           │  ├─ RepairRecordRepository.java
+│  │           │  ├─ RepairRequestRepository.java
+│  │           │  ├─ UserAccountRepository.java
+│  │           │  └─ WorkOrderRepository.java
+│  │           ├─ service
+│  │           │  ├─ DormRoomService.java
+│  │           │  ├─ RepairRequestService.java
+│  │           │  ├─ StatisticsService.java
+│  │           │  ├─ WorkOrderService.java
+│  │           │  └─ impl
+│  │           │     ├─ DormRoomServiceImpl.java
+│  │           │     ├─ RepairRequestServiceImpl.java
+│  │           │     ├─ StatisticsServiceImpl.java
+│  │           │     └─ WorkOrderServiceImpl.java
+│  │           ├─ web
+│  │           │  ├─ controller
+│  │           │  │  ├─ DormRoomController.java
+│  │           │  │  ├─ HomeController.java
+│  │           │  │  ├─ RepairFeedbackController.java
+│  │           │  │  ├─ RepairRequestController.java
+│  │           │  │  ├─ StatisticsController.java
+│  │           │  │  └─ WorkOrderController.java
+│  │           │  └─ dto
+│  │           │     ├─ AssignWorkOrderCommand.java
+│  │           │     ├─ CreateRepairRequestCommand.java
+│  │           │     ├─ DormRoomResponse.java
+│  │           │     ├─ MonthlyStatisticsResponse.java
+│  │           │     ├─ RepairRequestDetailResponse.java
+│  │           │     ├─ RepairRequestSummaryResponse.java
+│  │           │     ├─ SaveDormRoomCommand.java
+│  │           │     ├─ SubmitRepairFeedbackCommand.java
+│  │           │     ├─ UpdateWorkOrderStatusCommand.java
+│  │           │     └─ WorkOrderResponse.java
+│  │           └─ DormRepairApplication.java
+│  └─ resources
+│     └─ application.yml
+└─ test
+   ├─ java
+   │  └─ com
+   │     └─ scau
+   │        └─ dormrepair
+   │           └─ DormRepairApplicationTests.java
+   └─ resources
+      └─ application-test.yml
+```
+
+各层职责固定如下：
+
+- `common`：统一响应体、分页结构这类全项目复用对象。
+- `config`：Swagger、Spring Boot 运行配置。
+- `domain/entity`：数据库实体，和表结构一一对应。
+- `domain/enums`：状态、角色、故障类型、优先级等枚举常量。
+- `exception`：统一异常与全局异常处理。
+- `repository`：JPA 数据访问层，直接和数据库交互。
+- `service`：业务接口层，定义宿舍、报修、工单、统计等业务能力。
+- `service/impl`：业务接口的具体实现，写流程和状态流转逻辑。
+- `web/controller`：REST 接口入口，负责接收请求、返回 JSON。
+- `web/dto`：请求体和响应体对象，给前端联调用。
+- `resources/application.yml`：本地开发默认配置。
+- `test`：基础冒烟测试，先保证应用能启动、根路径能跳转、健康检查可用。
 
 ## 官方依据
 
