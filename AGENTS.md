@@ -62,6 +62,7 @@
 - 表名统一 `snake_case`
 - 时间字段统一：`created_at`、`updated_at`
 - 状态类字段统一使用 `varchar` 存枚举码
+- 当前仓库本地开发默认数据库连接写死为：`root / 123456 / dorm_repair_db`
 
 ## 6. 当前明确未完成项
 

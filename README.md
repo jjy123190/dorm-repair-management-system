@@ -89,10 +89,13 @@
 ### 数据库准备
 
 1. 准备 MySQL 数据库，例如 `dorm_repair_db`
-2. 通过环境变量覆盖数据库配置：
-   - `DB_URL`
-   - `DB_USERNAME`
-   - `DB_PASSWORD`
+2. 当前仓库的本地开发配置已经写死为：
+   - host：`127.0.0.1`
+   - port：`3306`
+   - database：`dorm_repair_db`
+   - username：`root`
+   - password：`123456`
+3. 如果你同事 pull 下来后连不上，不要先怀疑代码，先确认他本机 MySQL root 密码是不是 `123456`
 
 ### 启动命令
 
