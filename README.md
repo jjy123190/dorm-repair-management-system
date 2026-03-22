@@ -115,6 +115,7 @@ mvn spring-boot:run
 
 ## 文档入口
 
+- 根路径：`http://localhost:8082/`，会自动跳转到 Swagger UI
 - Swagger UI: `http://localhost:8082/swagger-ui/index.html`
 - OpenAPI JSON: `http://localhost:8082/v3/api-docs`
 
