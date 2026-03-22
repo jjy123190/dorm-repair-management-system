@@ -1,17 +1,18 @@
 server:
-  port: 8080
+  # Default to 8082 to avoid conflicting with the user's hmdp service on 8080.
+  port: 8082
 
 spring:
   application:
     name: dorm-repair-management-system
   datasource:
-    # 当前小组开发阶段直接写死本地数据库配置，减少同学初次拉项目时的理解成本。
+    # Keep the local team database config explicit so teammates can run the project directly.
     url: jdbc:mysql://127.0.0.1:3306/dorm_repair_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
-    # 起步阶段先用 update 方便联调；正式落库后建议切到 Flyway/Liquibase 管理。
+    # Use update during the scaffold stage to reduce schema-sync friction.
     open-in-view: false
     hibernate:
       ddl-auto: update

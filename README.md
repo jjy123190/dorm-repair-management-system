@@ -115,8 +115,8 @@ mvn spring-boot:run
 
 ## 文档入口
 
-- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
-- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+- Swagger UI: `http://localhost:8082/swagger-ui/index.html`
+- OpenAPI JSON: `http://localhost:8082/v3/api-docs`
 
 ## 官方依据
 
