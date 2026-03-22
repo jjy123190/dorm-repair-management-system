@@ -4,6 +4,9 @@ import com.scau.dormrepair.domain.enums.WorkOrderPriority;
 import com.scau.dormrepair.domain.enums.WorkOrderStatus;
 import java.time.LocalDateTime;
 
+/**
+ * 工单响应体。
+ */
 public record WorkOrderResponse(
         Long id,
         String workOrderNo,

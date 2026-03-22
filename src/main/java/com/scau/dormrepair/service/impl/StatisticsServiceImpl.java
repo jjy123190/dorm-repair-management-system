@@ -13,6 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+/**
+ * 报表统计服务实现。
+ */
 public class StatisticsServiceImpl implements StatisticsService {
 
     private final RepairRequestRepository repairRequestRepository;
@@ -29,6 +32,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Override
     @Transactional(readOnly = true)
     public MonthlyStatisticsResponse monthlySummary(YearMonth month) {
+        // 统计区间采用 [start, end) 半开区间，避免月底边界重复计算。
         YearMonth targetMonth = month == null ? YearMonth.now() : month;
         LocalDateTime start = targetMonth.atDay(1).atStartOfDay();
         LocalDateTime end = targetMonth.plusMonths(1).atDay(1).atStartOfDay();

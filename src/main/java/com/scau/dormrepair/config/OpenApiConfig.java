@@ -6,6 +6,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+/**
+ * OpenAPI / Swagger 基础配置。
+ * 作用是让前端和测试同学可以直接从在线文档查看接口。
+ */
 public class OpenApiConfig {
 
     @Bean

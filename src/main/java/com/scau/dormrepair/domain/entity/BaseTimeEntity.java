@@ -10,6 +10,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
+/**
+ * 所有实体的公共时间字段基类。
+ */
 public abstract class BaseTimeEntity {
 
     @CreatedDate

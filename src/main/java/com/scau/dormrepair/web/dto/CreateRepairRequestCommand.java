@@ -6,6 +6,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 
+/**
+ * 学生提交报修的请求体。
+ */
 public record CreateRepairRequestCommand(
         @NotBlank(message = "学生姓名不能为空")
         @Size(max = 64, message = "学生姓名长度不能超过64")

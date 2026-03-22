@@ -5,6 +5,9 @@ import com.scau.dormrepair.domain.enums.RepairRequestStatus;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * 报修单详情响应体。
+ */
 public record RepairRequestDetailResponse(
         Long id,
         String requestNo,

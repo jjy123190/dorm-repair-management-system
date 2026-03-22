@@ -13,6 +13,9 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "repair_records")
+/**
+ * 工单处理记录实体。
+ */
 public class RepairRecord extends BaseTimeEntity {
 
     @Id

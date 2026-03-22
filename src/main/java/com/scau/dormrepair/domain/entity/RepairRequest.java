@@ -22,6 +22,9 @@ import java.time.LocalDateTime;
                 @Index(name = "idx_repair_request_status", columnList = "status")
         }
 )
+/**
+ * 报修单实体。
+ */
 public class RepairRequest extends BaseTimeEntity {
 
     @Id

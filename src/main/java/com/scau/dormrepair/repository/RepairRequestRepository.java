@@ -7,6 +7,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+/**
+ * 报修单数据访问接口。
+ */
 public interface RepairRequestRepository extends JpaRepository<RepairRequest, Long> {
 
     Page<RepairRequest> findAllByStatus(RepairRequestStatus status, Pageable pageable);

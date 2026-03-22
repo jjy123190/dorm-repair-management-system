@@ -13,6 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+/**
+ * 宿舍房间服务实现。
+ */
 public class DormRoomServiceImpl implements DormRoomService {
 
     private final DormRoomRepository dormRoomRepository;
@@ -49,7 +52,7 @@ public class DormRoomServiceImpl implements DormRoomService {
     @Override
     @Transactional(readOnly = true)
     public Page<DormRoomResponse> page(int page, int size) {
-        int safePage = Math.max(page, 0);
+        int safePage = Math.max(page - 1, 0);
         int safeSize = Math.min(Math.max(size, 1), 100);
         PageRequest pageRequest = PageRequest.of(
                 safePage,
@@ -69,6 +72,7 @@ public class DormRoomServiceImpl implements DormRoomService {
     }
 
     private void applyCommand(DormRoom dormRoom, SaveDormRoomCommand command) {
+        // 把前端传入的参数统一写回实体，避免 create / update 逻辑各写一份。
         dormRoom.setCampusName(command.campusName());
         dormRoom.setBuildingNo(command.buildingNo());
         dormRoom.setRoomNo(command.roomNo());

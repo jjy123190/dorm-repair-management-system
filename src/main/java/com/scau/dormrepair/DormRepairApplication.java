@@ -6,6 +6,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @EnableJpaAuditing
 @SpringBootApplication
+/**
+ * Spring Boot 启动入口。
+ * 这里同时开启了 JPA 审计功能，用来自动维护 createdAt / updatedAt。
+ */
 public class DormRepairApplication {
 
     public static void main(String[] args) {

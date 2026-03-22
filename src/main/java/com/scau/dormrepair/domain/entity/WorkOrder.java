@@ -22,6 +22,9 @@ import java.time.LocalDateTime;
                 @Index(name = "idx_work_order_request_id", columnList = "repairRequestId", unique = true)
         }
 )
+/**
+ * 工单实体。
+ */
 public class WorkOrder extends BaseTimeEntity {
 
     @Id

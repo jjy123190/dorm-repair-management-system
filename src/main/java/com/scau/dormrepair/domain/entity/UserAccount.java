@@ -12,6 +12,9 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "user_accounts")
+/**
+ * 用户账号实体。
+ */
 public class UserAccount extends BaseTimeEntity {
 
     @Id

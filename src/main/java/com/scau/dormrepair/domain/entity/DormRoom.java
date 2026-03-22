@@ -9,6 +9,9 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "dorm_rooms")
+/**
+ * 宿舍房间实体。
+ */
 public class DormRoom extends BaseTimeEntity {
 
     @Id

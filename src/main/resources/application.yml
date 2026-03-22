@@ -5,11 +5,13 @@ spring:
   application:
     name: dorm-repair-management-system
   datasource:
+    # 默认连本地 MySQL；正式环境建议通过环境变量覆盖。
     url: ${DB_URL:jdbc:mysql://127.0.0.1:3306/dorm_repair_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8}
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
+    # 起步阶段先用 update 方便联调；正式落库后建议切到 Flyway/Liquibase 管理。
     open-in-view: false
     hibernate:
       ddl-auto: update

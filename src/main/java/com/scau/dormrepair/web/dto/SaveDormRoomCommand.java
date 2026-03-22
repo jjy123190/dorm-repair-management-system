@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+/**
+ * 宿舍房间新增 / 修改请求体。
+ */
 public record SaveDormRoomCommand(
         @NotBlank(message = "校区名称不能为空")
         @Size(max = 64, message = "校区名称长度不能超过64")

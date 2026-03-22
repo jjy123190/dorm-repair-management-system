@@ -68,8 +68,9 @@
 - Spring Boot 后端骨架
 - MySQL + JPA 基础配置
 - 宿舍、报修单、工单、维修记录、评价等核心实体
-- 学生报修、管理员派单、维修员更新状态、评价反馈、月度统计的接口骨架
+- 学生报修、管理员派单、工单查询、维修员更新状态、评价反馈、月度统计的接口骨架
 - Swagger/OpenAPI 文档入口
+- `docs/` 下的接口文档、数据库设计草案、课程文档和老师资料归档
 
 ## 角色范围
 
@@ -98,6 +99,16 @@
 ```bash
 mvn spring-boot:run
 ```
+
+## 协作入口
+
+- 文档总索引：`docs/README.md`
+- 协作约束：`AGENTS.md`
+- 接口规范：`docs/api/接口规范.md`
+- 接口清单：`docs/api/接口清单.md`
+- MySQL 最小表设计：`docs/database/MySQL最小表设计.md`
+- MySQL DDL 草案：`sql/mysql/01_init_schema_v1.sql`
+- 老师资料索引：`docs/teacher-materials/README.md`
 
 ## 文档入口
 

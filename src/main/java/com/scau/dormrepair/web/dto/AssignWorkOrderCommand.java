@@ -4,6 +4,9 @@ import com.scau.dormrepair.domain.enums.WorkOrderPriority;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+/**
+ * 创建工单并派单的请求体。
+ */
 public record AssignWorkOrderCommand(
         @NotNull(message = "报修单ID不能为空")
         Long repairRequestId,

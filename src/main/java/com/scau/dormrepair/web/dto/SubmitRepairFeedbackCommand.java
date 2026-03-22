@@ -5,6 +5,9 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+/**
+ * 提交评价的请求体。
+ */
 public record SubmitRepairFeedbackCommand(
         @NotNull(message = "报修单ID不能为空")
         Long repairRequestId,

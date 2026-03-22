@@ -4,6 +4,9 @@ import com.scau.dormrepair.domain.enums.WorkOrderStatus;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+/**
+ * 更新工单状态的请求体。
+ */
 public record UpdateWorkOrderStatusCommand(
         @NotNull(message = "工单状态不能为空")
         WorkOrderStatus status,

@@ -20,6 +20,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+/**
+ * 报修单服务实现。
+ */
 public class RepairRequestServiceImpl implements RepairRequestService {
 
     private static final String IMAGE_SEPARATOR = "||";
@@ -35,6 +38,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     @Transactional
     public RepairRequestDetailResponse create(CreateRepairRequestCommand command) {
         RepairRequest repairRequest = new RepairRequest();
+        // 报修单号由后端统一生成，避免前端自己拼编号。
         repairRequest.setRequestNo(generateRequestNo());
         repairRequest.setStudentName(command.studentName());
         repairRequest.setContactPhone(command.contactPhone());
@@ -60,7 +64,8 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     @Override
     @Transactional(readOnly = true)
     public Page<RepairRequestSummaryResponse> page(RepairRequestStatus status, int page, int size) {
-        int safePage = Math.max(page, 0);
+        // 对前端传入的页码做保护，并把 1 基页码转成 Spring 的 0 基页码。
+        int safePage = Math.max(page - 1, 0);
         int safeSize = Math.min(Math.max(size, 1), 100);
         PageRequest pageRequest = PageRequest.of(
                 safePage,
@@ -109,6 +114,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     }
 
     private String generateRequestNo() {
+        // 规则：前缀 + 时间戳 + 随机串，便于排查和人工追踪。
         return "RR" + NUMBER_TIME_FORMATTER.format(LocalDateTime.now())
                 + UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase();
     }
@@ -117,6 +123,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         if (imageUrls == null || imageUrls.isEmpty()) {
             return null;
         }
+        // 当前骨架阶段先把图片地址拼成字符串；正式 MySQL 设计中会拆成独立图片表。
         return imageUrls.stream()
                 .filter(imageUrl -> imageUrl != null && !imageUrl.isBlank())
                 .map(String::trim)
@@ -128,6 +135,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         if (imageUrls == null || imageUrls.isBlank()) {
             return Collections.emptyList();
         }
+        // 读取详情时再拆回前端容易消费的数组结构。
         return List.of(imageUrls.split("\\|\\|"));
     }
 }

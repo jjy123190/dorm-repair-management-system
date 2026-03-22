@@ -10,6 +10,9 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "repair_feedbacks")
+/**
+ * 评价反馈实体。
+ */
 public class RepairFeedback extends BaseTimeEntity {
 
     @Id
