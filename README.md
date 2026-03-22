@@ -1,5 +1,7 @@
 # 宿舍报修与工单管理系统
 
+基于 Spring Boot + Vue + MySQL 的宿舍报修与工单管理系统，面向学生、宿舍管理员和维修人员三类用户，支持学生报修、管理员派单、维修员处理及数据统计分析。
+
 ## 参考仓库结论
 
 参考仓库 `jjy123190/dorm-repair-management-system` 当前只有一段 README 说明：
