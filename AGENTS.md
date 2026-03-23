@@ -13,6 +13,7 @@
 - 项目总入口：[README.md](README.md)
 - 文档总索引：[docs/README.md](docs/README.md)
 - 架构说明：[docs/architecture/系统架构与协作约定.md](docs/architecture/系统架构与协作约定.md)
+- 交接说明：[docs/architecture/JavaFX与MyBatis交接说明.md](docs/architecture/JavaFX与MyBatis交接说明.md)
 - 桌面端模块约定：[docs/architecture/桌面端模块与服务约定.md](docs/architecture/桌面端模块与服务约定.md)
 - 包分类号：[docs/architecture/软件包分层与分类号.md](docs/architecture/软件包分层与分类号.md)
 - MySQL 最小表设计：[docs/database/MySQL最小表设计.md](docs/database/MySQL最小表设计.md)

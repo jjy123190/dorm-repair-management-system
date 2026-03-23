@@ -66,6 +66,7 @@ mvn test
 - 文档索引：`docs/README.md`
 - 协作约束：`AGENTS.md`
 - 架构说明：`docs/architecture/系统架构与协作约定.md`
+- 交接说明：`docs/architecture/JavaFX与MyBatis交接说明.md`
 - 包分类号：`docs/architecture/软件包分层与分类号.md`
 - 桌面端模块约定：`docs/architecture/桌面端模块与服务约定.md`
 - 起步待办：`docs/architecture/起步问题与待办.md`
