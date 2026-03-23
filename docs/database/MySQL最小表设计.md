@@ -145,9 +145,9 @@
 - `work_orders.status`
 - `repair_feedbacks.repair_request_id`
 
-## 5. 当前 Java 骨架与正式 MySQL 设计的差异
+## 5. 当前 Java 桌面端骨架与正式 MySQL 设计的关系
 
-- Java 当前把图片暂存在 `repair_requests.imageUrls` 文本字段思路里
-- 正式 MySQL 设计要求拆成 `repair_request_images`
-- Java 当前宿舍表是简化版
-- 正式 MySQL 设计建议拆 `dorm_buildings` + `dorm_rooms`
+- 当前 Java 骨架已经按 `repair_request_images` 独立表的方向建模
+- 当前 Java 骨架已经按 `dorm_buildings` + `dorm_rooms` 两张表建模
+- 当前还没有把宿舍基础数据维护界面和用户管理界面真正做出来
+- 当前 SQL v1 草案已经足够支撑首页概览、待派单列表、活动工单和月度统计

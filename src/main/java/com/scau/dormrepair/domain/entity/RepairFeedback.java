@@ -1,50 +1,15 @@
 package com.scau.dormrepair.domain.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-import jakarta.persistence.Table;
-
 /**
- * 评价反馈实体。
+ * 维修评价实体。
  */
-@Entity
-@Table(name = "repair_feedbacks")
 public class RepairFeedback extends BaseTimeEntity {
 
-    /**
-     * 主键 ID。
-     */
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    /**
-     * 关联的报修单 ID。
-     */
-    @Column(nullable = false, unique = true)
     private Long repairRequestId;
-
-    /**
-     * 学生评分，范围 1-5。
-     */
-    @Column(nullable = false)
     private Integer rating;
-
-    /**
-     * 学生填写的评价内容。
-     */
-    @Lob
     private String feedbackComment;
-
-    /**
-     * 是否匿名评价。
-     */
-    @Column(nullable = false)
-    private Boolean anonymous;
+    private Boolean anonymousFlag;
 
     public Long getId() {
         return id;
@@ -78,11 +43,11 @@ public class RepairFeedback extends BaseTimeEntity {
         this.feedbackComment = feedbackComment;
     }
 
-    public Boolean getAnonymous() {
-        return anonymous;
+    public Boolean getAnonymousFlag() {
+        return anonymousFlag;
     }
 
-    public void setAnonymous(Boolean anonymous) {
-        this.anonymous = anonymous;
+    public void setAnonymousFlag(Boolean anonymousFlag) {
+        this.anonymousFlag = anonymousFlag;
     }
 }

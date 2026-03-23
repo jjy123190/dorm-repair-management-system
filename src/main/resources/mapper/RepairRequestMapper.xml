@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scau.dormrepair.mapper.RepairRequestMapper">
+
+    <select id="selectById" parameterType="long" resultType="com.scau.dormrepair.domain.entity.RepairRequest">
+        SELECT
+            id,
+            request_no,
+            student_id,
+            student_name,
+            contact_phone,
+            dorm_room_id,
+            building_no_snapshot,
+            room_no_snapshot,
+            fault_category,
+            description,
+            status,
+            reviewer_id,
+            worker_id,
+            urge_count,
+            submitted_at,
+            completed_at,
+            created_at,
+            updated_at
+        FROM repair_requests
+        WHERE id = #{id}
+    </select>
+
+    <insert id="insert" parameterType="com.scau.dormrepair.domain.entity.RepairRequest" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO repair_requests (
+            request_no,
+            student_id,
+            student_name,
+            contact_phone,
+            dorm_room_id,
+            building_no_snapshot,
+            room_no_snapshot,
+            fault_category,
+            description,
+            status,
+            reviewer_id,
+            worker_id,
+            urge_count,
+            submitted_at,
+            completed_at
+        ) VALUES (
+            #{requestNo},
+            #{studentId},
+            #{studentName},
+            #{contactPhone},
+            #{dormRoomId},
+            #{buildingNoSnapshot},
+            #{roomNoSnapshot},
+            #{faultCategory},
+            #{description},
+            #{status},
+            #{reviewerId},
+            #{workerId},
+            #{urgeCount},
+            #{submittedAt},
+            #{completedAt}
+        )
+    </insert>
+
+    <update id="updateAssignmentInfo">
+        UPDATE repair_requests
+        SET status = #{status},
+            reviewer_id = #{reviewerId},
+            worker_id = #{workerId}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE repair_requests
+        SET status = #{status},
+            completed_at = #{completedAt}
+        WHERE id = #{id}
+    </update>
+
+    <select id="selectLatestSubmittedRequests" resultType="com.scau.dormrepair.domain.view.RecentRepairRequestView">
+        SELECT
+            id,
+            request_no,
+            student_name,
+            CONCAT(building_no_snapshot, '-', room_no_snapshot) AS location_text,
+            fault_category,
+            status,
+            submitted_at
+        FROM repair_requests
+        ORDER BY submitted_at DESC, id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectPendingAssignmentRequests" resultType="com.scau.dormrepair.domain.view.RecentRepairRequestView">
+        SELECT
+            id,
+            request_no,
+            student_name,
+            CONCAT(building_no_snapshot, '-', room_no_snapshot) AS location_text,
+            fault_category,
+            status,
+            submitted_at
+        FROM repair_requests
+        WHERE status = 'SUBMITTED'
+        ORDER BY submitted_at DESC, id DESC
+        LIMIT #{limit}
+    </select>
+</mapper>

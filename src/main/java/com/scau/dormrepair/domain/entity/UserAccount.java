@@ -1,59 +1,20 @@
 package com.scau.dormrepair.domain.entity;
 
 import com.scau.dormrepair.domain.enums.UserRole;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 
 /**
  * 用户账号实体。
+ * 这张表统一容纳学生、管理员和维修人员三类账号。
  */
-@Entity
-@Table(name = "user_accounts")
 public class UserAccount extends BaseTimeEntity {
 
-    /**
-     * 主键 ID。
-     */
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    /**
-     * 登录用户名。
-     */
-    @Column(nullable = false, unique = true, length = 64)
     private String username;
-
-    /**
-     * 界面展示名。
-     */
-    @Column(nullable = false, length = 64)
+    private String passwordHash;
     private String displayName;
-
-    /**
-     * 手机号。
-     */
-    @Column(nullable = false, length = 32)
     private String phone;
-
-    /**
-     * 用户角色。
-     */
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 32)
-    private UserRole role;
-
-    /**
-     * 是否启用。
-     */
-    @Column(nullable = false)
-    private Boolean enabled = Boolean.TRUE;
+    private UserRole roleCode;
+    private Boolean enabled;
 
     public Long getId() {
         return id;
@@ -69,6 +30,14 @@ public class UserAccount extends BaseTimeEntity {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 
     public String getDisplayName() {
@@ -87,12 +56,12 @@ public class UserAccount extends BaseTimeEntity {
         this.phone = phone;
     }
 
-    public UserRole getRole() {
-        return role;
+    public UserRole getRoleCode() {
+        return roleCode;
     }
 
-    public void setRole(UserRole role) {
-        this.role = role;
+    public void setRoleCode(UserRole roleCode) {
+        this.roleCode = roleCode;
     }
 
     public Boolean getEnabled() {

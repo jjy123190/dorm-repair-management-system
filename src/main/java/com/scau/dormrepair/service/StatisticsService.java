@@ -1,17 +1,12 @@
 package com.scau.dormrepair.service;
 
-import com.scau.dormrepair.web.dto.MonthlyStatisticsResponse;
-import java.time.YearMonth;
+import com.scau.dormrepair.domain.view.MonthlyRepairSummary;
+import java.util.List;
 
 /**
- * 报表统计服务接口。
+ * 月度统计服务。
  */
 public interface StatisticsService {
 
-    /**
-     * 统计指定月份的报修汇总。
-     * @param month 统计月份，为空时默认当前月
-     * @return 月度汇总结果
-     */
-    MonthlyStatisticsResponse monthlySummary(YearMonth month);
+    List<MonthlyRepairSummary> listMonthlySummary(int recentMonths);
 }

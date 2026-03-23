@@ -1,33 +1,16 @@
-server:
-  # Default to 8082 to avoid conflicting with the user's hmdp service on 8080.
-  port: 8082
+app:
+  name: dorm-repair-management-system
+  title: 宿舍报修与工单管理系统
 
-spring:
-  application:
-    name: dorm-repair-management-system
-  datasource:
-    # Keep the local team database config explicit so teammates can run the project directly.
-    url: jdbc:mysql://127.0.0.1:3306/dorm_repair_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
-    username: root
-    password: 123456
-    driver-class-name: com.mysql.cj.jdbc.Driver
-  jpa:
-    # Use update during the scaffold stage to reduce schema-sync friction.
-    open-in-view: false
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        format_sql: true
-  jackson:
-    default-property-inclusion: non_null
+database:
+  # 当前沿用小组统一的本地 MySQL 配置。
+  url: jdbc:mysql://127.0.0.1:3306/dorm_repair_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
+  username: root
+  password: 123456
+  driver-class-name: com.mysql.cj.jdbc.Driver
 
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
+ui:
+  width: 1280
+  height: 820
+  min-width: 1120
+  min-height: 720

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scau.dormrepair.mapper.RepairFeedbackMapper">
+
+    <select id="selectByRepairRequestId" parameterType="long" resultType="com.scau.dormrepair.domain.entity.RepairFeedback">
+        SELECT
+            id,
+            repair_request_id,
+            rating,
+            feedback_comment,
+            anonymous_flag,
+            created_at,
+            updated_at
+        FROM repair_feedbacks
+        WHERE repair_request_id = #{repairRequestId}
+    </select>
+
+    <insert id="insert" parameterType="com.scau.dormrepair.domain.entity.RepairFeedback" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO repair_feedbacks (
+            repair_request_id,
+            rating,
+            feedback_comment,
+            anonymous_flag
+        ) VALUES (
+            #{repairRequestId},
+            #{rating},
+            #{feedbackComment},
+            #{anonymousFlag}
+        )
+    </insert>
+</mapper>

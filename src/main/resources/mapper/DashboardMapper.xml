@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scau.dormrepair.mapper.DashboardMapper">
+
+    <select id="selectOverview" resultType="com.scau.dormrepair.domain.view.DashboardOverview">
+        SELECT
+            COALESCE((SELECT COUNT(*) FROM repair_requests), 0) AS total_requests,
+            COALESCE((SELECT COUNT(*) FROM repair_requests WHERE status = 'SUBMITTED'), 0) AS pending_review_requests,
+            COALESCE((SELECT COUNT(*) FROM work_orders WHERE status IN ('ASSIGNED', 'ACCEPTED', 'IN_PROGRESS', 'WAITING_PARTS')), 0) AS active_work_orders,
+            COALESCE((
+                SELECT COUNT(*)
+                FROM repair_requests
+                WHERE status = 'COMPLETED'
+                  AND DATE_FORMAT(completed_at, '%Y-%m') = DATE_FORMAT(CURRENT_DATE(), '%Y-%m')
+            ), 0) AS completed_this_month
+        FROM dual
+    </select>
+
+    <select id="selectRecentRepairRequests" resultType="com.scau.dormrepair.domain.view.RecentRepairRequestView">
+        SELECT
+            rr.id,
+            rr.request_no,
+            rr.student_name,
+            CONCAT(rr.building_no_snapshot, '-', rr.room_no_snapshot) AS location_text,
+            rr.fault_category,
+            rr.status,
+            rr.submitted_at
+        FROM repair_requests rr
+        ORDER BY rr.submitted_at DESC, rr.id DESC
+        LIMIT #{limit}
+    </select>
+</mapper>

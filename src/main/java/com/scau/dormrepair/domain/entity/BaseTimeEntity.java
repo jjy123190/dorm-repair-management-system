@@ -1,32 +1,14 @@
 package com.scau.dormrepair.domain.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.MappedSuperclass;
 import java.time.LocalDateTime;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
- * 所有实体的公共时间字段基类。
+ * 统一抽取创建时间和更新时间字段。
+ * 现在时间字段改为普通 POJO 属性，由 MyBatis 映射数据库中的审计列。
  */
-@MappedSuperclass
-@EntityListeners(AuditingEntityListener.class)
 public abstract class BaseTimeEntity {
 
-    /**
-     * 记录创建时间。
-     */
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    /**
-     * 记录最后一次更新时间。
-     */
-    @LastModifiedDate
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
     public LocalDateTime getCreatedAt() {

@@ -128,3 +128,4 @@ Content-Type: application/json
 
 ### 月度统计报表
 GET {{baseUrl}}/api/v1/reports/repair-requests/monthly-summary?month=2026-03
+### 说明：本文件属于旧 Spring Boot REST 方案存档，当前主线代码已切换为 JavaFX + MyBatis 桌面应用。

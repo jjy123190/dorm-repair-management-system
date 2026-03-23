@@ -2,123 +2,29 @@ package com.scau.dormrepair.domain.entity;
 
 import com.scau.dormrepair.domain.enums.FaultCategory;
 import com.scau.dormrepair.domain.enums.RepairRequestStatus;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.Lob;
-import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
 /**
- * 报修单实体。
+ * 报修申请主实体。
+ * 这张表承载学生提交信息，以及管理员分派和维修过程中的状态流转。
  */
-@Entity
-@Table(
-        name = "repair_requests",
-        indexes = {
-                @Index(name = "idx_repair_request_no", columnList = "requestNo", unique = true),
-                @Index(name = "idx_repair_request_status", columnList = "status")
-        }
-)
 public class RepairRequest extends BaseTimeEntity {
 
-    /**
-     * 主键 ID。
-     */
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    /**
-     * 报修单号。
-     * 业务上用于给学生、管理员、维修人员追踪问题。
-     */
-    @Column(nullable = false, unique = true, length = 64)
     private String requestNo;
-
-    /**
-     * 报修学生姓名。
-     */
-    @Column(nullable = false, length = 64)
+    private Long studentId;
     private String studentName;
-
-    /**
-     * 联系电话。
-     */
-    @Column(nullable = false, length = 32)
     private String contactPhone;
-
-    /**
-     * 提交时的楼栋号快照。
-     * 当前骨架阶段先直接保存在报修单中。
-     */
-    @Column(nullable = false, length = 32)
-    private String buildingNo;
-
-    /**
-     * 提交时的房间号快照。
-     */
-    @Column(nullable = false, length = 32)
-    private String roomNo;
-
-    /**
-     * 故障类型。
-     */
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 32)
+    private Long dormRoomId;
+    private String buildingNoSnapshot;
+    private String roomNoSnapshot;
     private FaultCategory faultCategory;
-
-    /**
-     * 故障详细描述。
-     */
-    @Lob
-    @Column(nullable = false)
     private String description;
-
-    /**
-     * 图片地址集合。
-     * 当前阶段使用字符串拼接保存，后续正式数据库设计会拆成独立图片表。
-     */
-    @Lob
-    private String imageUrls;
-
-    /**
-     * 报修单状态。
-     */
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 32)
     private RepairRequestStatus status;
-
-    /**
-     * 审核或派单管理员 ID。
-     */
     private Long reviewerId;
-
-    /**
-     * 当前负责的维修人员 ID。
-     */
     private Long workerId;
-
-    /**
-     * 催办次数。
-     */
-    @Column(nullable = false)
-    private Integer urgeCount = 0;
-
-    /**
-     * 学生提交报修的时间。
-     */
-    @Column(nullable = false)
+    private Integer urgeCount;
     private LocalDateTime submittedAt;
-
-    /**
-     * 报修完成时间。
-     */
     private LocalDateTime completedAt;
 
     public Long getId() {
@@ -137,6 +43,14 @@ public class RepairRequest extends BaseTimeEntity {
         this.requestNo = requestNo;
     }
 
+    public Long getStudentId() {
+        return studentId;
+    }
+
+    public void setStudentId(Long studentId) {
+        this.studentId = studentId;
+    }
+
     public String getStudentName() {
         return studentName;
     }
@@ -153,20 +67,28 @@ public class RepairRequest extends BaseTimeEntity {
         this.contactPhone = contactPhone;
     }
 
-    public String getBuildingNo() {
-        return buildingNo;
+    public Long getDormRoomId() {
+        return dormRoomId;
     }
 
-    public void setBuildingNo(String buildingNo) {
-        this.buildingNo = buildingNo;
+    public void setDormRoomId(Long dormRoomId) {
+        this.dormRoomId = dormRoomId;
     }
 
-    public String getRoomNo() {
-        return roomNo;
+    public String getBuildingNoSnapshot() {
+        return buildingNoSnapshot;
     }
 
-    public void setRoomNo(String roomNo) {
-        this.roomNo = roomNo;
+    public void setBuildingNoSnapshot(String buildingNoSnapshot) {
+        this.buildingNoSnapshot = buildingNoSnapshot;
+    }
+
+    public String getRoomNoSnapshot() {
+        return roomNoSnapshot;
+    }
+
+    public void setRoomNoSnapshot(String roomNoSnapshot) {
+        this.roomNoSnapshot = roomNoSnapshot;
     }
 
     public FaultCategory getFaultCategory() {
@@ -183,14 +105,6 @@ public class RepairRequest extends BaseTimeEntity {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public String getImageUrls() {
-        return imageUrls;
-    }
-
-    public void setImageUrls(String imageUrls) {
-        this.imageUrls = imageUrls;
     }
 
     public RepairRequestStatus getStatus() {

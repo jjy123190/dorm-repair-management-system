@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scau.dormrepair.mapper.StatisticsMapper">
+
+    <select id="selectMonthlySummary" resultType="com.scau.dormrepair.domain.view.MonthlyRepairSummary">
+        SELECT
+            DATE_FORMAT(submitted_at, '%Y-%m') AS month_label,
+            COUNT(*) AS total_requests,
+            SUM(CASE WHEN status = 'COMPLETED' THEN 1 ELSE 0 END) AS completed_requests,
+            ROUND(SUM(CASE WHEN status = 'COMPLETED' THEN 1 ELSE 0 END) / COUNT(*) * 100, 2) AS completion_rate
+        FROM repair_requests
+        WHERE submitted_at >= DATE_SUB(CURRENT_DATE(), INTERVAL #{recentMonths} MONTH)
+        GROUP BY DATE_FORMAT(submitted_at, '%Y-%m')
+        ORDER BY month_label DESC
+    </select>
+</mapper>

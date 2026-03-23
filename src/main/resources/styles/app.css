@@ -1,0 +1,89 @@
+.app-shell {
+    -fx-background-color: linear-gradient(to bottom right, #f3f7fb, #eef2f8);
+}
+
+.header-box {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d9e2ef;
+    -fx-border-width: 0 0 1 0;
+}
+
+.page-title {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #17324d;
+}
+
+.page-subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: #60758c;
+}
+
+.sidebar {
+    -fx-background-color: #17324d;
+    -fx-pref-width: 220px;
+}
+
+.sidebar-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.sidebar-hint {
+    -fx-font-size: 12px;
+    -fx-text-fill: #c7d5e5;
+}
+
+.nav-button {
+    -fx-background-color: #24496c;
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-padding: 10 12 10 12;
+    -fx-background-radius: 10px;
+}
+
+.nav-button:hover {
+    -fx-background-color: #2e5f8e;
+}
+
+.section-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #17324d;
+}
+
+.subsection-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #24496c;
+}
+
+.plain-text {
+    -fx-font-size: 13px;
+    -fx-text-fill: #53677d;
+}
+
+.metric-card,
+.panel-box {
+    -fx-background-color: rgba(255, 255, 255, 0.96);
+    -fx-background-radius: 14px;
+    -fx-border-radius: 14px;
+    -fx-border-color: #d6e0eb;
+}
+
+.metric-title {
+    -fx-font-size: 13px;
+    -fx-text-fill: #60758c;
+}
+
+.metric-value {
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #17324d;
+}
+
+.metric-description {
+    -fx-font-size: 12px;
+    -fx-text-fill: #6b7f95;
+}

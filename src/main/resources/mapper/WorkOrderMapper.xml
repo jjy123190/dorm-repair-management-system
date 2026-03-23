@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scau.dormrepair.mapper.WorkOrderMapper">
+
+    <select id="selectById" parameterType="long" resultType="com.scau.dormrepair.domain.entity.WorkOrder">
+        SELECT
+            id,
+            work_order_no,
+            repair_request_id,
+            admin_id,
+            worker_id,
+            status,
+            priority,
+            assignment_note,
+            assigned_at,
+            accepted_at,
+            completed_at,
+            created_at,
+            updated_at
+        FROM work_orders
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectByRepairRequestId" parameterType="long" resultType="com.scau.dormrepair.domain.entity.WorkOrder">
+        SELECT
+            id,
+            work_order_no,
+            repair_request_id,
+            admin_id,
+            worker_id,
+            status,
+            priority,
+            assignment_note,
+            assigned_at,
+            accepted_at,
+            completed_at,
+            created_at,
+            updated_at
+        FROM work_orders
+        WHERE repair_request_id = #{repairRequestId}
+    </select>
+
+    <insert id="insert" parameterType="com.scau.dormrepair.domain.entity.WorkOrder" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO work_orders (
+            work_order_no,
+            repair_request_id,
+            admin_id,
+            worker_id,
+            status,
+            priority,
+            assignment_note,
+            assigned_at,
+            accepted_at,
+            completed_at
+        ) VALUES (
+            #{workOrderNo},
+            #{repairRequestId},
+            #{adminId},
+            #{workerId},
+            #{status},
+            #{priority},
+            #{assignmentNote},
+            #{assignedAt},
+            #{acceptedAt},
+            #{completedAt}
+        )
+    </insert>
+
+    <update id="updateStatus">
+        UPDATE work_orders
+        SET status = #{status},
+            accepted_at = #{acceptedAt},
+            completed_at = #{completedAt}
+        WHERE id = #{id}
+    </update>
+
+    <select id="selectActiveWorkOrders" resultType="com.scau.dormrepair.domain.view.ActiveWorkOrderView">
+        SELECT
+            wo.id,
+            wo.work_order_no,
+            rr.request_no,
+            wo.worker_id,
+            wo.priority,
+            wo.status,
+            wo.assigned_at
+        FROM work_orders wo
+        LEFT JOIN repair_requests rr ON rr.id = wo.repair_request_id
+        WHERE wo.status IN ('ASSIGNED', 'ACCEPTED', 'IN_PROGRESS', 'WAITING_PARTS')
+        ORDER BY wo.assigned_at DESC, wo.id DESC
+        LIMIT #{limit}
+    </select>
+</mapper>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scau.dormrepair.mapper.WorkOrderRecordMapper">
+
+    <insert id="insert" parameterType="com.scau.dormrepair.domain.entity.WorkOrderRecord" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO work_order_records (
+            work_order_id,
+            operator_id,
+            status,
+            record_note
+        ) VALUES (
+            #{workOrderId},
+            #{operatorId},
+            #{status},
+            #{recordNote}
+        )
+    </insert>
+</mapper>

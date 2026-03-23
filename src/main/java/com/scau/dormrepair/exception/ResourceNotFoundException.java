@@ -1,8 +1,7 @@
 package com.scau.dormrepair.exception;
 
 /**
- * 资源不存在异常。
- * 用在“按 ID 查询但数据库里没有这条记录”的场景。
+ * 查询结果缺失时统一抛这个异常，方便后续界面层做提示。
  */
 public class ResourceNotFoundException extends RuntimeException {
 
