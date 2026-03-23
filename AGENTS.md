@@ -64,6 +64,6 @@
 
 ## 7. 旧方案说明
 
-- `docs/api/` 保留的是旧 Spring Boot REST 方案存档
+- `docs/api/` 仅作历史归档，不再作为当前实现依据
 - 当前主线不要再新增 `controller / dto / repository` 那套 Web 分层
-- 如果要继续扩展，统一在 `ui`、`service`、`mapper` 这三层往下写
+- 继续扩展时，统一在 `ui`、`service`、`mapper` 这三层往下写
