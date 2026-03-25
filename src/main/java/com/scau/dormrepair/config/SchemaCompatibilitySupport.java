@@ -7,18 +7,23 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 启动时顺手修掉旧库和当前桌面端口径最容易撞上的表结构差异。
  */
 public final class SchemaCompatibilitySupport {
 
+    private static final String BUILDING_SUFFIX = "\u680b";
     private static final String[] DORM_AREAS = {
-            "泰山区",
-            "华山区",
-            "启林区",
-            "黑山区",
-            "燕山区"
+            "\u6cf0\u5c71\u533a",
+            "\u534e\u5c71\u533a",
+            "\u542f\u6797\u533a",
+            "\u9ed1\u5c71\u533a",
+            "\u71d5\u5c71\u533a"
     };
 
     private SchemaCompatibilitySupport() {
@@ -32,6 +37,7 @@ public final class SchemaCompatibilitySupport {
             }
 
             repairRequestTable(connection, catalog);
+            repairDormBuildingTable(connection, catalog);
             seedDormBuildings(connection);
         } catch (SQLException exception) {
             throw new IllegalStateException("数据库表结构兼容处理失败: " + exception.getMessage(), exception);
@@ -50,6 +56,22 @@ public final class SchemaCompatibilitySupport {
         relaxNullableColumnIfPresent(connection, catalog, "repair_requests", "image_urls", "TINYTEXT NULL");
     }
 
+    private static void repairDormBuildingTable(Connection connection, String catalog) throws SQLException {
+        ensureColumnExists(connection, catalog, "dorm_buildings", "campus_name", "VARCHAR(64) NOT NULL");
+        ensureColumnExists(connection, catalog, "dorm_buildings", "building_no", "VARCHAR(32) NOT NULL");
+        ensureColumnExists(connection, catalog, "dorm_buildings", "building_name", "VARCHAR(64) NULL");
+
+        // 以前试错留下来的脏宿舍区值会直接污染下拉列表，这里先清掉。
+        String placeholders = Arrays.stream(DORM_AREAS)
+                .map(area -> "?")
+                .collect(Collectors.joining(", "));
+        String deleteSql = "DELETE FROM dorm_buildings WHERE campus_name NOT IN (" + placeholders + ")";
+        try (PreparedStatement statement = connection.prepareStatement(deleteSql)) {
+            bindDormAreas(statement);
+            statement.executeUpdate();
+        }
+    }
+
     private static void seedDormBuildings(Connection connection) throws SQLException {
         String insertSql = """
                 INSERT INTO dorm_buildings (campus_name, building_no, building_name)
@@ -60,7 +82,7 @@ public final class SchemaCompatibilitySupport {
         try (PreparedStatement statement = connection.prepareStatement(insertSql)) {
             for (String dormArea : DORM_AREAS) {
                 for (int buildingIndex = 1; buildingIndex <= 15; buildingIndex++) {
-                    String buildingNo = buildingIndex + "栋";
+                    String buildingNo = buildingIndex + BUILDING_SUFFIX;
                     statement.setString(1, dormArea);
                     statement.setString(2, buildingNo);
                     statement.setString(3, dormArea + " " + buildingNo);
@@ -68,6 +90,12 @@ public final class SchemaCompatibilitySupport {
                 }
             }
             statement.executeBatch();
+        }
+    }
+
+    private static void bindDormAreas(PreparedStatement statement) throws SQLException {
+        for (int index = 0; index < DORM_AREAS.length; index++) {
+            statement.setString(index + 1, DORM_AREAS[index]);
         }
     }
 
@@ -83,9 +111,7 @@ public final class SchemaCompatibilitySupport {
         }
 
         try (Statement statement = connection.createStatement()) {
-            statement.execute(
-                    "ALTER TABLE " + tableName + " ADD COLUMN " + columnName + " " + columnDefinition
-            );
+            statement.execute("ALTER TABLE " + tableName + " ADD COLUMN " + columnName + " " + columnDefinition);
         }
     }
 
@@ -102,9 +128,7 @@ public final class SchemaCompatibilitySupport {
         }
 
         try (Statement statement = connection.createStatement()) {
-            statement.execute(
-                    "ALTER TABLE " + tableName + " MODIFY COLUMN " + columnName + " " + columnDefinition
-            );
+            statement.execute("ALTER TABLE " + tableName + " MODIFY COLUMN " + columnName + " " + columnDefinition);
         }
     }
 

@@ -65,18 +65,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         TableView<RecentRepairRequestView> historyTable = buildHistoryTable();
         refreshStudentHistory(historyTable, currentStudent.id());
 
-        VBox content = new VBox(
-                18,
-                createIdentityBanner(
-                        "\u5f53\u524d\u67e5\u770b\u4eba",
-                        currentStudent.displayName(),
-                        "\u8fd9\u91cc\u5355\u72ec\u5c55\u793a\u6700\u8fd1\u62a5\u4fee\u8bb0\u5f55\uff0c\u8868\u5355\u63d0\u4ea4\u8bf7\u56de\u5230\u300c\u63d0\u4ea4\u62a5\u4fee\u300d\u9875\u9762\u3002",
-                        "dashboard-mini-card",
-                        "dashboard-metric-card",
-                        "dashboard-metric-card-highlight"
-                ),
-                wrapPanel("\u6700\u8fd1\u62a5\u4fee\u8bb0\u5f55", historyTable)
-        );
+        VBox content = new VBox(18, wrapPanel("\u6700\u8fd1\u62a5\u4fee\u8bb0\u5f55", historyTable));
         content.setFillWidth(true);
 
         return createPage(
@@ -88,10 +77,6 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
 
     private TableView<RecentRepairRequestView> buildHistoryTable() {
         TableView<RecentRepairRequestView> historyTable = new TableView<>();
-        historyTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        historyTable.setMinWidth(0);
-        historyTable.setMaxWidth(Double.MAX_VALUE);
-        historyTable.setPrefHeight(540);
         historyTable.setPlaceholder(new Label("\u6682\u65e0\u62a5\u4fee\u8bb0\u5f55"));
         historyTable.getColumns().addAll(
                 createTextColumn("\u62a5\u4fee\u5355\u53f7", "requestNo", 120),
@@ -100,6 +85,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
                 createStatusColumn(),
                 createDateTimeColumn("\u63d0\u4ea4\u65f6\u95f4")
         );
+        configureFixedTable(historyTable, 540, 1.618, 1.382, 1.236, 0.764, 1.382);
         return historyTable;
     }
 

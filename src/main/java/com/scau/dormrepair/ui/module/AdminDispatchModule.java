@@ -34,7 +34,8 @@ import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 
 /**
- * Admin dispatch module. */
+ * 管理员派单模块。
+ */
 public class AdminDispatchModule extends AbstractWorkbenchModule {
 
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -50,12 +51,12 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
 
     @Override
     public String moduleName() {
-        return "\u7ba1\u7406\u5458\u6d3e\u5355";
+        return "管理员派单";
     }
 
     @Override
     public String moduleDescription() {
-        return "\u5ba1\u6838\u5b66\u751f\u62a5\u4fee\uff0c\u5e76\u628a\u5408\u9002\u7684\u5de5\u5355\u6d3e\u7ed9\u6307\u5b9a\u7ef4\u4fee\u5458\u3002";
+        return "审核学生报修，并把合适的工单派给指定维修员。";
     }
 
     @Override
@@ -72,7 +73,7 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
     public Parent createView() {
         DemoAccount currentAdmin = DemoAccountDirectory.resolveCurrent(appContext.appSession());
         if (currentAdmin == null) {
-            throw new IllegalStateException("管理员身份未初始化，无法进入派单模块");
+            throw new IllegalStateException("管理员身份未初始化，无法进入派单模块。");
         }
 
         TableView<RecentRepairRequestView> pendingTable = buildPendingTable();
@@ -82,21 +83,21 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
                 44,
                 56,
                 buildDispatchForm(currentAdmin, pendingTable),
-                wrapPanel("\u5f85\u6d3e\u5355\u5217\u8868", pendingTable)
+                wrapPanel("待派单列表", pendingTable)
         );
 
         return createPage(
                 "管理员派单工作区",
-                "\u5148\u4ece\u53f3\u4fa7\u6311\u4e00\u6761\u5f85\u6d3e\u5355\u62a5\u4fee\uff0c\u518d\u9009\u7ef4\u4fee\u5458\u548c\u4f18\u5148\u7ea7\uff0c\u628a\u62a5\u4fee\u6b63\u5f0f\u6d41\u8f6c\u6210\u5de5\u5355\u3002",
+                "先从右侧挑一条待派单报修，再选维修员和优先级，把报修正式流转成工单。",
                 contentGrid
         );
     }
 
     private Node buildDispatchForm(DemoAccount currentAdmin, TableView<RecentRepairRequestView> pendingTable) {
-        Label selectedRequestNoLabel = new Label("\u672a\u9009\u62e9\u62a5\u4fee\u5355");
+        Label selectedRequestNoLabel = new Label("未选择报修单");
         selectedRequestNoLabel.getStyleClass().add("dashboard-spotlight-value");
 
-        Label selectedRequestInfoLabel = new Label("\u8bf7\u5148\u5728\u53f3\u4fa7\u8868\u683c\u91cc\u9009\u62e9\u4e00\u6761\u5f85\u6d3e\u5355\u62a5\u4fee\u3002");
+        Label selectedRequestInfoLabel = new Label("请先在右侧表格里选择一条待派单报修。");
         selectedRequestInfoLabel.getStyleClass().add("dashboard-mini-description");
         selectedRequestInfoLabel.setWrapText(true);
 
@@ -123,14 +124,14 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
         UiMotion.installSmoothDropdown(priorityBox);
 
         TextArea assignmentNoteArea = new TextArea();
-        assignmentNoteArea.setPromptText("\u5199\u6e05\u695a\u6d3e\u5355\u8bf4\u660e\u3001\u6ce8\u610f\u4e8b\u9879\u548c\u662f\u5426\u9700\u8981\u4f18\u5148\u5904\u7406\u3002");
+        assignmentNoteArea.setPromptText("写清楚派单说明、注意事项和是否需要优先处理。");
         assignmentNoteArea.setPrefRowCount(5);
         assignmentNoteArea.setWrapText(true);
 
         pendingTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue == null) {
-                selectedRequestNoLabel.setText("\u672a\u9009\u62e9\u62a5\u4fee\u5355");
-                selectedRequestInfoLabel.setText("\u8bf7\u5148\u5728\u53f3\u4fa7\u8868\u683c\u91cc\u9009\u62e9\u4e00\u6761\u5f85\u6d3e\u5355\u62a5\u4fee\u3002");
+                selectedRequestNoLabel.setText("未选择报修单");
+                selectedRequestInfoLabel.setText("请先在右侧表格里选择一条待派单报修。");
                 return;
             }
 
@@ -144,21 +145,21 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
             );
         });
 
-        Button refreshButton = new Button("\u5237\u65b0\u5f85\u6d3e\u5355");
+        Button refreshButton = new Button("刷新待派单");
         refreshButton.getStyleClass().add("nav-button");
         refreshButton.setOnAction(event -> refreshPendingRequests(pendingTable));
 
-        Node assignButton = FusionUiFactory.createPrimaryButton("\u751f\u6210\u5de5\u5355\u5e76\u6d3e\u5355", 190, 40, () -> {
+        Node assignButton = FusionUiFactory.createPrimaryButton("生成工单并派单", 190, 40, () -> {
             try {
                 RecentRepairRequestView selectedRequest = pendingTable.getSelectionModel().getSelectedItem();
                 if (selectedRequest == null) {
                     throw new IllegalArgumentException("请先选择一条待派单报修");
                 }
                 if (workerBox.getValue() == null) {
-                    throw new IllegalArgumentException("\u8bf7\u9009\u62e9\u7ef4\u4fee\u5458");
+                    throw new IllegalArgumentException("请选择维修员");
                 }
                 if (priorityBox.getValue() == null) {
-                    throw new IllegalArgumentException("\u8bf7\u9009\u62e9\u4f18\u5148\u7ea7");
+                    throw new IllegalArgumentException("请选择优先级");
                 }
 
                 AssignWorkOrderCommand command = new AssignWorkOrderCommand(
@@ -173,7 +174,7 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
                 refreshPendingRequests(pendingTable);
                 pendingTable.getSelectionModel().clearSelection();
                 assignmentNoteArea.clear();
-                UiAlerts.info("派单成功", "工单已创建，工单ID=" + workOrderId);
+                UiAlerts.info("派单成功", "工单已创建，工单 ID=" + workOrderId);
             } catch (RuntimeException exception) {
                 UiAlerts.error("派单失败", exception.getMessage());
             }
@@ -190,9 +191,9 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
 
         VBox formBox = new VBox(
                 14,
-                createInlineSummaryCard("\u5f53\u524d\u9009\u62e9", summaryBox, "dashboard-mini-card", "dashboard-mini-soft"),
-                createFieldBlock("\u7ef4\u4fee\u5458", workerBox),
-                createFieldBlock("\u4f18\u5148\u7ea7", priorityBox),
+                createInlineSummaryCard("当前选择", summaryBox, "dashboard-mini-card", "dashboard-mini-soft"),
+                createFieldBlock("维修员", workerBox),
+                createFieldBlock("优先级", priorityBox),
                 createFieldBlock("派单说明", assignmentNoteArea),
                 actionRow
         );
@@ -202,8 +203,6 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
 
     private TableView<RecentRepairRequestView> buildPendingTable() {
         TableView<RecentRepairRequestView> pendingTable = new TableView<>();
-        pendingTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        pendingTable.setPrefHeight(460);
         pendingTable.getColumns().addAll(
                 createTextColumn("报修单号", "requestNo"),
                 createTextColumn("学生", "studentName"),
@@ -212,6 +211,7 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
                 createStatusColumn(),
                 createDateTimeColumn("提交时间")
         );
+        configureFixedTable(pendingTable, 460, 1.618, 1.0, 1.382, 1.236, 0.764, 1.382);
         return pendingTable;
     }
 
@@ -236,7 +236,7 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
     }
 
     private TableColumn<RecentRepairRequestView, String> createStatusColumn() {
-        TableColumn<RecentRepairRequestView, String> column = new TableColumn<>("\u72b6\u6001");
+        TableColumn<RecentRepairRequestView, String> column = new TableColumn<>("状态");
         column.setCellValueFactory(cell ->
                 Bindings.createStringBinding(() -> UiDisplayText.repairRequestStatus(cell.getValue().getStatus()))
         );
@@ -255,5 +255,4 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
         );
         return column;
     }
-
 }

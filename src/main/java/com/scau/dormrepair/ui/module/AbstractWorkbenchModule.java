@@ -1,12 +1,16 @@
 package com.scau.dormrepair.ui.module;
 
 import com.scau.dormrepair.common.AppContext;
+import java.util.Arrays;
 import com.scau.dormrepair.ui.component.FusionUiFactory;
+import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
@@ -156,6 +160,30 @@ public abstract class AbstractWorkbenchModule implements WorkbenchModule {
         column.setFillWidth(true);
         column.setMinWidth(0);
         return column;
+    }
+
+    protected <T> void configureFixedTable(TableView<T> tableView, double prefHeight, double... columnWeights) {
+        // 表格统一走固定列比和禁拖拽策略，避免用户自己拖乱列宽、重排列顺序或把表头交互弄得很跳。
+        tableView.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
+        tableView.setTableMenuButtonVisible(false);
+        tableView.setEditable(false);
+        tableView.setMinWidth(0);
+        tableView.setMaxWidth(Double.MAX_VALUE);
+        tableView.setPrefHeight(prefHeight);
+
+        double weightSum = Arrays.stream(columnWeights).sum();
+        for (int index = 0; index < tableView.getColumns().size() && index < columnWeights.length; index++) {
+            TableColumn<?, ?> column = tableView.getColumns().get(index);
+            double weight = columnWeights[index];
+            column.setSortable(false);
+            column.setReorderable(false);
+            column.setResizable(false);
+            column.setStyle("-fx-alignment: CENTER;");
+            column.prefWidthProperty().bind(Bindings.createDoubleBinding(
+                    () -> Math.max(96, tableView.getWidth() * (weight / weightSum)),
+                    tableView.widthProperty()
+            ));
+        }
     }
 
     private Node prepareContentNode(Node node) {

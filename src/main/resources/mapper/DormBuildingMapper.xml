@@ -5,9 +5,10 @@
 <mapper namespace="com.scau.dormrepair.mapper.DormBuildingMapper">
 
     <select id="selectDistinctAreas" resultType="string">
-        SELECT DISTINCT campus_name
+        SELECT campus_name
         FROM dorm_buildings
-        ORDER BY FIELD(campus_name, '泰山区', '华山区', '启林区', '黑山区', '燕山区'), id ASC
+        GROUP BY campus_name
+        ORDER BY MIN(id) ASC
     </select>
 
     <select id="selectByArea" parameterType="string" resultType="com.scau.dormrepair.domain.entity.DormBuilding">
@@ -20,6 +21,6 @@
             updated_at
         FROM dorm_buildings
         WHERE campus_name = #{campusName}
-        ORDER BY CAST(REPLACE(building_no, '栋', '') AS UNSIGNED), id ASC
+        ORDER BY id ASC
     </select>
 </mapper>

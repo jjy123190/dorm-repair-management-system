@@ -239,3 +239,70 @@
   - 功能提交号：`a2c1994`
   - 日志回填提交号：`9c887b4`
 
+### 2026-03-25 20:50 | A
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/ui/AppShell.java`
+  - `src/main/resources/mapper/DormBuildingMapper.xml`
+- 完成内容
+  - 修复“点击提交报修后头部切到新模块、但主体还是上一页”的真实根因
+  - 根因不是按钮事件失效，而是学生报修页加载时触发 `DormBuildingMapper.selectDistinctAreas` SQL 报错，导致主体视图创建失败
+  - `AppShell` 现在即使点击当前已激活模块，也会强制重载主体页面；如果模块加载失败，会回退并弹窗提示，不再只切头部状态
+  - `DormBuildingMapper.xml` 去掉了会在 MySQL 8 下报错的 `DISTINCT + ORDER BY id` 写法，宿舍区列表改为按 `MIN(id)` 稳定排序
+- 影响提醒 / 下一步
+  - 如果后面再出现“头部模块变了，但正文没变”，先查模块创建链路是否抛异常，不要只盯导航按钮
+  - `AppShell.java` 和 `DormBuildingMapper.xml` 都是共享高风险文件，队友改前先 pull
+- Push 结果
+  - 待 push
+
+### 2026-03-25 21:10 | A
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/config/SchemaCompatibilitySupport.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/AbstractWorkbenchModule.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/DashboardModule.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/StudentRepairModule.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/StudentRepairHistoryModule.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/AdminDispatchModule.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/WorkerProcessingModule.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/StatisticsModule.java`
+  - `src/main/resources/styles/app.css`
+- 完成内容
+  - 清掉宿舍区基础资料中的脏值 `???`，并把宿舍区种子逻辑改成稳定常量，避免下拉再次混出第六项脏数据
+  - 下拉列表弹层改回更像正常列表的紧凑样式，不再铺成一大块透明面板
+  - 学生报修页和学生报修记录页删掉了重复的身份摘要条，避免和头部摘要重复
+  - 把首页、学生记录、管理员派单、维修处理、月度统计这些表格统一成固定列比
+  - 所有表格统一加边界线，并禁止用户拖拽改列宽、改顺序或点击表头乱排序
+- 影响提醒 / 下一步
+  - `AbstractWorkbenchModule.java` 和 `app.css` 现在是表格共享底座，后续新表格优先复用这一套
+  - `SchemaCompatibilitySupport.java` 负责启动期修复宿舍区基础数据，D 区如果再动 DDL，记得同步这层兼容逻辑
+- Push 结果
+  - 待 push
+
+### 2026-03-25 21:14 | A
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/ui/AppShell.java`
+  - `项目协作根基.md`
+- 完成内容
+  - 把头部右上 summary 卡改成固定高度的静态结构，只保留角色、演示身份、当前模块和退出按钮
+  - 删除 summary 卡里那行会随模块变化的说明文案，避免点击三个工作模块时把上半部分整体顶高或压低
+  - 头部容器本身也锁了固定高度，壳层不再跟着模块切换上下跳
+- 影响提醒 / 下一步
+  - 后续如果再改 `AppShell.java`，不要往右上 summary 区继续塞多行描述，模块说明回到页面主体里
+  - 这条规则属于 A 区固定约束，队友改壳层前先 pull
+- Push 结果
+  - 待 push
+
+### 2026-03-25 21:20 | A
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/ui/AppShell.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/AbstractWorkbenchModule.java`
+  - `src/main/resources/styles/app.css`
+- 完成内容
+  - 删掉头部左侧 `DESKTOP WORKBENCH` 和壳层演示口吻，只保留正式系统标题
+  - 表格共享列宽算法改成按整表宽度直接分配，不再额外减掉一段补偿宽度
+  - 所有共享表格列内容统一改成居中显示，列边界和表头对齐更清晰
+- 影响提醒 / 下一步
+  - 后续新表格继续走 `configureFixedTable(...)`，不要再单独手写列宽逻辑
+  - 如果某张表必须左对齐，先单独写列级样式，不要把全局共享规则再改散
+- Push 结果
+  - 待 push
+

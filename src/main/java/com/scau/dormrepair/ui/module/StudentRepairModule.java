@@ -70,7 +70,7 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
             throw new IllegalStateException("\u5b66\u751f\u8eab\u4efd\u672a\u521d\u59cb\u5316\uff0c\u65e0\u6cd5\u8fdb\u5165\u62a5\u4fee\u6a21\u5757\u3002");
         }
 
-        VBox content = new VBox(18, buildSummaryStrip(currentStudent), buildRepairForm(currentStudent));
+        VBox content = new VBox(18, buildRepairForm(currentStudent));
         content.setFillWidth(true);
         content.setMaxWidth(Double.MAX_VALUE);
 
@@ -78,17 +78,6 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
                 "\u5b66\u751f\u62a5\u4fee\u5de5\u4f5c\u533a",
                 "\u73b0\u5728\u62a5\u4fee\u8868\u5355\u4ece\u6570\u636e\u5e93\u8bfb\u5bbf\u820d\u533a\u548c\u697c\u680b\u57fa\u7840\u8d44\u6599\uff0c\u4e0d\u518d\u5141\u8bb8\u81ea\u7531\u4e71\u586b\u5bbf\u820d\u697c\u680b\u6587\u672c\u3002",
                 content
-        );
-    }
-
-    private Node buildSummaryStrip(DemoAccount currentStudent) {
-        return createIdentityBanner(
-                "\u5f53\u524d\u62a5\u4fee\u4eba",
-                currentStudent.displayName(),
-                "\u6f14\u793a studentId=" + currentStudent.id() + "\uff0c\u63d0\u4ea4\u65f6\u4f1a\u7528\u8fd9\u4e2a\u7a33\u5b9a ID \u7ed1\u5b9a\u62a5\u4fee\u5f52\u5c5e\u3002",
-                "dashboard-mini-card",
-                "dashboard-metric-card",
-                "dashboard-metric-card-highlight"
         );
     }
 
@@ -208,7 +197,7 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         ComboBox<String> dormAreaBox = new ComboBox<>();
         dormAreaBox.getItems().setAll(appContext.dormCatalogService().listDormAreas());
         dormAreaBox.setPromptText("\u9009\u62e9\u5bbf\u820d\u533a");
-        dormAreaBox.setVisibleRowCount(5);
+        dormAreaBox.setVisibleRowCount(4);
         dormAreaBox.setMinHeight(44);
         dormAreaBox.setPrefHeight(44);
         dormAreaBox.setMaxHeight(44);
@@ -221,7 +210,7 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         ComboBox<DormBuilding> buildingBox = new ComboBox<>();
         buildingBox.setPromptText("\u5148\u9009\u5bbf\u820d\u533a\u518d\u9009\u5bbf\u820d\u697c");
         buildingBox.setDisable(true);
-        buildingBox.setVisibleRowCount(8);
+        buildingBox.setVisibleRowCount(5);
         buildingBox.setMinHeight(44);
         buildingBox.setPrefHeight(44);
         buildingBox.setMaxHeight(44);
@@ -258,7 +247,7 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         });
         faultCategoryBox.getItems().addAll(FaultCategory.values());
         faultCategoryBox.setPromptText("\u9009\u62e9\u6545\u969c\u7c7b\u578b");
-        faultCategoryBox.setVisibleRowCount(6);
+        faultCategoryBox.setVisibleRowCount(5);
         faultCategoryBox.setMinHeight(44);
         faultCategoryBox.setPrefHeight(44);
         faultCategoryBox.setMaxHeight(44);

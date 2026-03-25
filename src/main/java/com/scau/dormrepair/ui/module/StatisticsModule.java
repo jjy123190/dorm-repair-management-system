@@ -48,13 +48,13 @@ public class StatisticsModule extends AbstractWorkbenchModule {
         hintLabel.setWrapText(true);
 
         TableView<MonthlyRepairSummary> tableView = new TableView<>();
-        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         tableView.getColumns().addAll(
                 createColumn("月份", "monthLabel"),
                 createColumn("报修总数", "totalRequests"),
                 createColumn("已完成", "completedRequests"),
                 createColumn("完成率(%)", "completionRate")
         );
+        configureFixedTable(tableView, 420, 1.618, 1.0, 1.0, 1.382);
         tableView.setItems(FXCollections.observableArrayList(
                 appContext.statisticsService().listMonthlySummary(6)
         ));

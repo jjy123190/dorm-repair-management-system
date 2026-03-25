@@ -34,7 +34,8 @@ import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 
 /**
- * Worker processing module. */
+ * 维修员处理模块。
+ */
 public class WorkerProcessingModule extends AbstractWorkbenchModule {
 
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -63,7 +64,7 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
 
     @Override
     public String moduleDescription() {
-        return "\u67e5\u770b\u5206\u914d\u7ed9\u81ea\u5df1\u7684\u5728\u9014\u5de5\u5355\uff0c\u5e76\u6301\u7eed\u66f4\u65b0\u5904\u7406\u72b6\u6001\u3002";
+        return "查看分配给自己的在途工单，并持续更新处理状态。";
     }
 
     @Override
@@ -80,7 +81,7 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
     public Parent createView() {
         DemoAccount currentWorker = DemoAccountDirectory.resolveCurrent(appContext.appSession());
         if (currentWorker == null) {
-            throw new IllegalStateException("维修员身份未初始化，无法进入维修处理模块");
+            throw new IllegalStateException("维修员身份未初始化，无法进入维修处理模块。");
         }
 
         TableView<ActiveWorkOrderView> workOrderTable = buildWorkOrderTable();
@@ -90,12 +91,12 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
                 42,
                 58,
                 buildStatusForm(currentWorker, workOrderTable),
-                wrapPanel("\u6211\u7684\u5728\u9014\u5de5\u5355", workOrderTable)
+                wrapPanel("我的在途工单", workOrderTable)
         );
 
         return createPage(
                 "维修员处理工作区",
-                "\u53f3\u4fa7\u53ea\u663e\u793a\u5f53\u524d\u7ef4\u4fee\u5458\u81ea\u5df1\u7684\u6d3b\u52a8\u5de5\u5355\uff1b\u5de6\u4fa7\u66f4\u65b0\u72b6\u6001\u540e\uff0c\u8868\u683c\u4f1a\u7acb\u523b\u5237\u65b0\uff0c\u5df2\u5b8c\u6210\u5de5\u5355\u4f1a\u81ea\u52a8\u9000\u51fa\u6d3b\u52a8\u5217\u8868\u3002",
+                "右侧只显示当前维修员自己的活动工单；左侧更新状态后，表格会立刻刷新，已完成工单会自动退出活动列表。",
                 contentGrid
         );
     }
@@ -104,7 +105,7 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
         Label selectedWorkOrderLabel = new Label("未选择工单");
         selectedWorkOrderLabel.getStyleClass().add("dashboard-spotlight-value");
 
-        Label selectedOrderInfoLabel = new Label("\u8bf7\u5148\u4ece\u53f3\u4fa7\u5de5\u5355\u8868\u4e2d\u9009\u62e9\u4e00\u6761\u8bb0\u5f55\u3002");
+        Label selectedOrderInfoLabel = new Label("请先从右侧工单表中选择一条记录。");
         selectedOrderInfoLabel.getStyleClass().add("dashboard-mini-description");
         selectedOrderInfoLabel.setWrapText(true);
 
@@ -125,14 +126,14 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
         UiMotion.installSmoothDropdown(statusBox);
 
         TextArea recordNoteArea = new TextArea();
-        recordNoteArea.setPromptText("\u4f8b\u5982\uff1a\u5df2\u4e0a\u95e8\u68c0\u6d4b\u3001\u7b49\u5f85\u914d\u4ef6\u3001\u5df2\u66f4\u6362\u96f6\u4ef6\u5e76\u6062\u590d\u4f7f\u7528\u3002");
+        recordNoteArea.setPromptText("例如：已上门检测、等待配件、已更换零件并恢复使用。");
         recordNoteArea.setPrefRowCount(5);
         recordNoteArea.setWrapText(true);
 
         workOrderTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue == null) {
                 selectedWorkOrderLabel.setText("未选择工单");
-                selectedOrderInfoLabel.setText("\u8bf7\u5148\u4ece\u53f3\u4fa7\u5de5\u5355\u8868\u4e2d\u9009\u62e9\u4e00\u6761\u8bb0\u5f55\u3002");
+                selectedOrderInfoLabel.setText("请先从右侧工单表中选择一条记录。");
                 statusBox.getSelectionModel().clearSelection();
                 return;
             }
@@ -152,14 +153,14 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
         refreshButton.getStyleClass().add("nav-button");
         refreshButton.setOnAction(event -> refreshWorkOrders(workOrderTable, currentWorker.id()));
 
-        Node updateButton = FusionUiFactory.createPrimaryButton("\u56de\u586b\u5904\u7406\u72b6\u6001", 170, 40, () -> {
+        Node updateButton = FusionUiFactory.createPrimaryButton("回填处理状态", 170, 40, () -> {
             try {
                 ActiveWorkOrderView selectedWorkOrder = workOrderTable.getSelectionModel().getSelectedItem();
                 if (selectedWorkOrder == null) {
-                    throw new IllegalArgumentException("\u8bf7\u9009\u62e9\u4e00\u6761\u5de5\u5355");
+                    throw new IllegalArgumentException("请选择一条工单");
                 }
                 if (statusBox.getValue() == null) {
-                    throw new IllegalArgumentException("\u8bf7\u9009\u62e9\u8981\u66f4\u65b0\u6210\u7684\u72b6\u6001");
+                    throw new IllegalArgumentException("请选择要更新成的状态");
                 }
 
                 UpdateWorkOrderStatusCommand command = new UpdateWorkOrderStatusCommand(
@@ -189,8 +190,8 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
 
         VBox formBox = new VBox(
                 14,
-                createInlineSummaryCard("\u5f53\u524d\u5de5\u5355", summaryBox, "dashboard-mini-card", "dashboard-mini-soft"),
-                createFieldBlock("\u66f4\u65b0\u72b6\u6001", statusBox),
+                createInlineSummaryCard("当前工单", summaryBox, "dashboard-mini-card", "dashboard-mini-soft"),
+                createFieldBlock("更新状态", statusBox),
                 createFieldBlock("处理说明", recordNoteArea),
                 actionRow
         );
@@ -200,15 +201,14 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
 
     private TableView<ActiveWorkOrderView> buildWorkOrderTable() {
         TableView<ActiveWorkOrderView> tableView = new TableView<>();
-        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        tableView.setPrefHeight(460);
         tableView.getColumns().addAll(
-                createTextColumn("\u5de5\u5355\u53f7", item -> item.getWorkOrderNo()),
-                createTextColumn("报修单号", item -> item.getRequestNo()),
-                createTextColumn("\u4f18\u5148\u7ea7", item -> UiDisplayText.workOrderPriority(item.getPriority())),
-                createTextColumn("\u5f53\u524d\u72b6\u6001", item -> UiDisplayText.workOrderStatus(item.getStatus())),
+                createTextColumn("工单号", ActiveWorkOrderView::getWorkOrderNo),
+                createTextColumn("报修单号", ActiveWorkOrderView::getRequestNo),
+                createTextColumn("优先级", item -> UiDisplayText.workOrderPriority(item.getPriority())),
+                createTextColumn("当前状态", item -> UiDisplayText.workOrderStatus(item.getStatus())),
                 createTextColumn("派单时间", item -> item.getAssignedAt() == null ? "" : TIME_FORMATTER.format(item.getAssignedAt()))
         );
+        configureFixedTable(tableView, 460, 1.382, 1.236, 0.764, 1.0, 1.382);
         return tableView;
     }
 
@@ -241,5 +241,4 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
         );
         return column;
     }
-
 }

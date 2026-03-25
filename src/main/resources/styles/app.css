@@ -498,13 +498,13 @@
 }
 
 .combo-box-popup > .list-view {
-    -fx-background-color: rgba(248,246,239,0.98);
+    -fx-background-color: #fffdf8;
     -fx-background-insets: 0;
-    -fx-background-radius: 18px;
-    -fx-border-color: rgba(46,46,46,0.10);
-    -fx-border-radius: 18px;
-    -fx-padding: 4;
-    -fx-fixed-cell-size: 42px;
+    -fx-background-radius: 14px;
+    -fx-border-color: rgba(46,46,46,0.12);
+    -fx-border-radius: 14px;
+    -fx-padding: 2;
+    -fx-fixed-cell-size: 38px;
     -fx-effect: none;
 }
 
@@ -513,21 +513,20 @@
 }
 
 .combo-box-popup .list-cell {
-    -fx-background-color: transparent;
-    -fx-background-radius: 10px;
+    -fx-background-color: #fffdf8;
+    -fx-background-radius: 8px;
     -fx-border-color: transparent;
-    -fx-padding: 0 14 0 14;
+    -fx-padding: 0 12 0 12;
     -fx-alignment: center-left;
     -fx-text-fill: #2e2e2e;
 }
 
-.combo-box-popup .list-cell:hover,
+.combo-box-popup .list-cell:filled:hover,
 .combo-box-popup .list-cell:filled:selected {
     -fx-background-color: rgba(167,205,184,0.32);
     -fx-text-fill: #2e2e2e;
 }
 
-.list-view,
 .table-view {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
@@ -536,7 +535,6 @@
 
 .scroll-pane,
 .scroll-pane > .viewport,
-.list-view > .virtual-flow,
 .table-view > .virtual-flow,
 .text-area > .scroll-pane,
 .text-area > .scroll-pane > .viewport {
@@ -608,7 +606,7 @@
 .table-view .column-header,
 .table-view .filler {
     -fx-background-color: transparent;
-    -fx-border-color: transparent;
+    -fx-border-color: transparent rgba(46,46,46,0.10) transparent transparent;
     -fx-size: 40px;
 }
 
@@ -636,9 +634,10 @@
 
 .table-view .cell {
     -fx-text-fill: #2e2e2e;
-    -fx-alignment: CENTER_LEFT;
+    -fx-alignment: CENTER;
     -fx-padding: 8 10 8 10;
     -fx-font-size: 12px;
+    -fx-border-color: transparent rgba(46,46,46,0.10) transparent transparent;
 }
 
 .dashboard-hero-card {

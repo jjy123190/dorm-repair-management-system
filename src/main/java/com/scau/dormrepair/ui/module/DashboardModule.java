@@ -13,7 +13,6 @@ import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -22,7 +21,7 @@ import javafx.scene.layout.VBox;
 
 /**
  * 首页概览只保留一屏内最有价值的信息。
- * 这里先讲清楚当前角色、处理压力和最近报修，不再堆很多重复卡片。
+ * 这里先讲清当前角色、处理压力和最近报修，不再堆很多重复卡片。
  */
 public class DashboardModule extends AbstractWorkbenchModule {
 
@@ -63,7 +62,6 @@ public class DashboardModule extends AbstractWorkbenchModule {
         overviewGrid.add(buildHeroCard(overview), 0, 0);
         overviewGrid.add(buildSpotlightColumn(overview), 1, 0);
 
-        // 四张统计卡统一等分，避免因为文案长短不同把版面挤乱。
         GridPane metricGrid = new GridPane();
         metricGrid.setHgap(16);
         metricGrid.getStyleClass().add("dashboard-metric-row");
@@ -93,20 +91,20 @@ public class DashboardModule extends AbstractWorkbenchModule {
     }
 
     private Node buildHeroCard(DashboardOverview overview) {
-        Label eyebrowLabel = new Label(roleEyebrow());
+        javafx.scene.control.Label eyebrowLabel = new javafx.scene.control.Label(roleEyebrow());
         eyebrowLabel.getStyleClass().add("dashboard-hero-eyebrow");
 
-        Label titleLabel = new Label(heroTitle());
+        javafx.scene.control.Label titleLabel = new javafx.scene.control.Label(heroTitle());
         titleLabel.getStyleClass().add("dashboard-hero-title");
         titleLabel.setWrapText(true);
         titleLabel.setMaxWidth(Double.MAX_VALUE);
 
-        Label descriptionLabel = new Label(heroDescription());
+        javafx.scene.control.Label descriptionLabel = new javafx.scene.control.Label(heroDescription());
         descriptionLabel.getStyleClass().add("dashboard-hero-description");
         descriptionLabel.setWrapText(true);
         descriptionLabel.setMaxWidth(Double.MAX_VALUE);
 
-        Label helperLabel = new Label(heroHelper(overview));
+        javafx.scene.control.Label helperLabel = new javafx.scene.control.Label(heroHelper(overview));
         helperLabel.getStyleClass().add("dashboard-hero-helper");
         helperLabel.setWrapText(true);
         helperLabel.setMaxWidth(Double.MAX_VALUE);
@@ -131,15 +129,15 @@ public class DashboardModule extends AbstractWorkbenchModule {
     }
 
     private Node createSpotlightCard(String title, String value, String description, String styleClassNames) {
-        Label titleLabel = new Label(title);
+        javafx.scene.control.Label titleLabel = new javafx.scene.control.Label(title);
         titleLabel.getStyleClass().add("dashboard-spotlight-title");
 
-        Label valueLabel = new Label(value);
+        javafx.scene.control.Label valueLabel = new javafx.scene.control.Label(value);
         valueLabel.getStyleClass().add("dashboard-spotlight-value");
         valueLabel.setWrapText(true);
         valueLabel.setMaxWidth(Double.MAX_VALUE);
 
-        Label descriptionLabel = new Label(description);
+        javafx.scene.control.Label descriptionLabel = new javafx.scene.control.Label(description);
         descriptionLabel.getStyleClass().add("dashboard-spotlight-description");
         descriptionLabel.setWrapText(true);
         descriptionLabel.setMaxWidth(Double.MAX_VALUE);
@@ -153,13 +151,13 @@ public class DashboardModule extends AbstractWorkbenchModule {
     }
 
     private Node createMetricCard(String tag, long value, String title, String styleClassNames) {
-        Label tagLabel = new Label(tag);
+        javafx.scene.control.Label tagLabel = new javafx.scene.control.Label(tag);
         tagLabel.getStyleClass().add("dashboard-mini-tag");
 
-        Label valueLabel = new Label(String.valueOf(value));
+        javafx.scene.control.Label valueLabel = new javafx.scene.control.Label(String.valueOf(value));
         valueLabel.getStyleClass().add("dashboard-mini-value");
 
-        Label titleLabel = new Label(title);
+        javafx.scene.control.Label titleLabel = new javafx.scene.control.Label(title);
         titleLabel.getStyleClass().add("dashboard-mini-title");
         titleLabel.setWrapText(true);
         titleLabel.setMaxWidth(Double.MAX_VALUE);
@@ -175,8 +173,6 @@ public class DashboardModule extends AbstractWorkbenchModule {
 
     private TableView<RecentRepairRequestView> buildRepairRequestTable() {
         TableView<RecentRepairRequestView> tableView = new TableView<>();
-        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        tableView.setPrefHeight(168);
 
         TableColumn<RecentRepairRequestView, String> requestNoColumn = new TableColumn<>("报修单号");
         requestNoColumn.setCellValueFactory(new PropertyValueFactory<>("requestNo"));
@@ -207,6 +203,7 @@ public class DashboardModule extends AbstractWorkbenchModule {
         tableView.getColumns().addAll(
                 requestNoColumn, studentColumn, locationColumn, categoryColumn, statusColumn, timeColumn
         );
+        configureFixedTable(tableView, 168, 1.618, 1.0, 1.382, 1.236, 0.764, 1.382);
         return tableView;
     }
 
@@ -281,5 +278,4 @@ public class DashboardModule extends AbstractWorkbenchModule {
     private long safeLong(Long value) {
         return value == null ? 0L : value;
     }
-
 }
