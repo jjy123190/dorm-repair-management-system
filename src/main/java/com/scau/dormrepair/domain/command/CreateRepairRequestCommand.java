@@ -11,6 +11,7 @@ public record CreateRepairRequestCommand(
         String studentName,
         String contactPhone,
         Long dormRoomId,
+        String dormAreaSnapshot,
         String buildingNoSnapshot,
         String roomNoSnapshot,
         FaultCategory faultCategory,

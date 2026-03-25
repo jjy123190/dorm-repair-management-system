@@ -31,12 +31,14 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     @Override
     public Long create(CreateRepairRequestCommand command) {
         validateCreateCommand(command);
+
         RepairRequest repairRequest = new RepairRequest();
         repairRequest.setRequestNo(BusinessNumberGenerator.nextRepairRequestNo());
         repairRequest.setStudentId(command.studentId());
         repairRequest.setStudentName(command.studentName().trim());
         repairRequest.setContactPhone(command.contactPhone().trim());
         repairRequest.setDormRoomId(command.dormRoomId());
+        repairRequest.setDormAreaSnapshot(command.dormAreaSnapshot().trim());
         repairRequest.setBuildingNoSnapshot(command.buildingNoSnapshot().trim());
         repairRequest.setRoomNoSnapshot(command.roomNoSnapshot().trim());
         repairRequest.setFaultCategory(command.faultCategory());
@@ -72,7 +74,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             throw new BusinessException("学生ID不能为空");
         }
 
-        // 学生端历史记录只看自己的数据，避免演示时把全站工单都混进来。
+        // 学生历史页只看自己的记录，避免把全站报修单都带进来。
         int safeLimit = Math.min(Math.max(limit, 1), 20);
         return myBatisExecutor.executeRead(
                 session -> session.getMapper(RepairRequestMapper.class).selectStudentSubmittedRequests(studentId, safeLimit)
@@ -119,7 +121,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     }
 
     /**
-     * 提交报修前先把必填字段兜住，避免脏数据直接入库。
+     * 提交报修前先把宿舍区、楼栋、房间和联系方式兜住，避免脏数据直接入库。
      */
     private void validateCreateCommand(CreateRepairRequestCommand command) {
         if (command.studentName() == null || command.studentName().isBlank()) {
@@ -128,8 +130,11 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         if (command.contactPhone() == null || command.contactPhone().isBlank()) {
             throw new BusinessException("联系电话不能为空");
         }
+        if (command.dormAreaSnapshot() == null || command.dormAreaSnapshot().isBlank()) {
+            throw new BusinessException("宿舍区不能为空");
+        }
         if (command.buildingNoSnapshot() == null || command.buildingNoSnapshot().isBlank()) {
-            throw new BusinessException("楼栋号不能为空");
+            throw new BusinessException("宿舍楼不能为空");
         }
         if (command.roomNoSnapshot() == null || command.roomNoSnapshot().isBlank()) {
             throw new BusinessException("房间号不能为空");

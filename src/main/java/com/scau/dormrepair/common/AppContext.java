@@ -4,10 +4,12 @@ import com.scau.dormrepair.config.AppProperties;
 import com.scau.dormrepair.config.DatabaseConfig;
 import com.scau.dormrepair.config.SchemaCompatibilitySupport;
 import com.scau.dormrepair.service.DashboardService;
+import com.scau.dormrepair.service.DormCatalogService;
 import com.scau.dormrepair.service.RepairRequestService;
 import com.scau.dormrepair.service.StatisticsService;
 import com.scau.dormrepair.service.WorkOrderService;
 import com.scau.dormrepair.service.impl.DashboardServiceImpl;
+import com.scau.dormrepair.service.impl.DormCatalogServiceImpl;
 import com.scau.dormrepair.service.impl.RepairRequestServiceImpl;
 import com.scau.dormrepair.service.impl.StatisticsServiceImpl;
 import com.scau.dormrepair.service.impl.WorkOrderServiceImpl;
@@ -26,6 +28,7 @@ public final class AppContext implements AutoCloseable {
     private final MyBatisExecutor myBatisExecutor;
     private final AppSession appSession;
     private final DashboardService dashboardService;
+    private final DormCatalogService dormCatalogService;
     private final RepairRequestService repairRequestService;
     private final WorkOrderService workOrderService;
     private final StatisticsService statisticsService;
@@ -42,6 +45,7 @@ public final class AppContext implements AutoCloseable {
         this.myBatisExecutor = myBatisExecutor;
         this.appSession = new AppSession();
         this.dashboardService = new DashboardServiceImpl(myBatisExecutor);
+        this.dormCatalogService = new DormCatalogServiceImpl(myBatisExecutor);
         this.repairRequestService = new RepairRequestServiceImpl(myBatisExecutor);
         this.workOrderService = new WorkOrderServiceImpl(myBatisExecutor);
         this.statisticsService = new StatisticsServiceImpl(myBatisExecutor);
@@ -70,6 +74,10 @@ public final class AppContext implements AutoCloseable {
 
     public DashboardService dashboardService() {
         return dashboardService;
+    }
+
+    public DormCatalogService dormCatalogService() {
+        return dormCatalogService;
     }
 
     public RepairRequestService repairRequestService() {

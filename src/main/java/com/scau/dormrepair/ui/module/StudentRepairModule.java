@@ -4,6 +4,7 @@ import com.scau.dormrepair.common.AppContext;
 import com.scau.dormrepair.common.DemoAccountDirectory;
 import com.scau.dormrepair.common.DemoAccountDirectory.DemoAccount;
 import com.scau.dormrepair.domain.command.CreateRepairRequestCommand;
+import com.scau.dormrepair.domain.entity.DormBuilding;
 import com.scau.dormrepair.domain.enums.FaultCategory;
 import com.scau.dormrepair.domain.enums.UserRole;
 import com.scau.dormrepair.ui.component.FusionUiFactory;
@@ -29,8 +30,7 @@ import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 
 /**
- * 学生报修页只负责提交新报修。
- * 最近记录已经单独拆到独立页面，避免一屏里表单和表格互相抢空间。
+ * 学生报修页只负责提交新的报修单。
  */
 public class StudentRepairModule extends AbstractWorkbenchModule {
 
@@ -50,7 +50,7 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
 
     @Override
     public String moduleDescription() {
-        return "\u586b\u5199\u5bbf\u820d\u3001\u8054\u7cfb\u65b9\u5f0f\u548c\u6545\u969c\u63cf\u8ff0\uff0c\u63d0\u4ea4\u65b0\u7684\u62a5\u4fee\u7533\u8bf7\u3002";
+        return "\u5148\u9009\u5bbf\u820d\u533a\u548c\u697c\u680b\uff0c\u518d\u8865\u5168\u8054\u7cfb\u65b9\u5f0f\u548c\u6545\u969c\u63cf\u8ff0\uff0c\u63d0\u4ea4\u65b0\u7684\u62a5\u4fee\u7533\u8bf7\u3002";
     }
 
     @Override
@@ -76,7 +76,7 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
 
         return createPage(
                 "\u5b66\u751f\u62a5\u4fee\u5de5\u4f5c\u533a",
-                "\u8fd9\u4e2a\u9875\u9762\u53ea\u8d1f\u8d23\u63d0\u4ea4\u62a5\u4fee\u3002\u300c\u62a5\u4fee\u8bb0\u5f55\u300d\u5df2\u72ec\u7acb\u6210\u9875\uff0c\u4e0d\u518d\u8ddf\u8868\u5355\u6324\u5728\u4e00\u5c4f\u91cc\u3002",
+                "\u73b0\u5728\u62a5\u4fee\u8868\u5355\u4ece\u6570\u636e\u5e93\u8bfb\u5bbf\u820d\u533a\u548c\u697c\u680b\u57fa\u7840\u8d44\u6599\uff0c\u4e0d\u518d\u5141\u8bb8\u81ea\u7531\u4e71\u586b\u5bbf\u820d\u697c\u680b\u6587\u672c\u3002",
                 content
         );
     }
@@ -93,8 +93,8 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
     }
 
     private Node buildRepairForm(DemoAccount currentStudent) {
-        TextField buildingField = new TextField();
-        buildingField.setPromptText("\u4f8b\u5982 13\u680b");
+        ComboBox<String> dormAreaBox = createDormAreaBox();
+        ComboBox<DormBuilding> buildingBox = createDormBuildingBox();
 
         TextField roomField = new TextField();
         roomField.setPromptText("\u4f8b\u5982 402");
@@ -102,6 +102,148 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         TextField phoneField = new TextField();
         phoneField.setPromptText("\u8054\u7cfb\u7535\u8bdd");
 
+        ComboBox<FaultCategory> faultCategoryBox = createFaultCategoryBox();
+
+        TextArea descriptionArea = new TextArea();
+        descriptionArea.setPromptText("\u8bf7\u5177\u4f53\u8bf4\u660e\u6545\u969c\u73b0\u8c61\u3001\u662f\u5426\u7d27\u6025\u3001\u662f\u5426\u5f71\u54cd\u6b63\u5e38\u751f\u6d3b\u3002");
+        descriptionArea.setPrefRowCount(4);
+        descriptionArea.setWrapText(true);
+
+        TextArea imageUrlsArea = new TextArea();
+        imageUrlsArea.setPromptText("\u6682\u65f6\u7528\u56fe\u7247\u5730\u5740\u4ee3\u66ff\u4e0a\u4f20\u529f\u80fd\uff0c\u4e00\u884c\u4e00\u5f20\u3002");
+        imageUrlsArea.setPrefRowCount(3);
+        imageUrlsArea.setWrapText(true);
+
+        dormAreaBox.valueProperty().addListener((observable, oldValue, newValue) ->
+                reloadBuildingsByArea(newValue, buildingBox)
+        );
+
+        Button resetButton = new Button("\u6e05\u7a7a\u8868\u5355");
+        resetButton.getStyleClass().add("nav-button");
+
+        Node submitButton = FusionUiFactory.createPrimaryButton("\u63d0\u4ea4\u62a5\u4fee\u7533\u8bf7", 180, 40, () -> {
+            try {
+                DormBuilding selectedBuilding = buildingBox.getValue();
+                CreateRepairRequestCommand command = new CreateRepairRequestCommand(
+                        currentStudent.id(),
+                        appContext.appSession().getDisplayName(),
+                        phoneField.getText(),
+                        null,
+                        dormAreaBox.getValue(),
+                        selectedBuilding == null ? null : selectedBuilding.getBuildingNo(),
+                        roomField.getText(),
+                        faultCategoryBox.getValue(),
+                        descriptionArea.getText(),
+                        splitImageUrls(imageUrlsArea.getText())
+                );
+
+                Long repairRequestId = appContext.repairRequestService().create(command);
+                clearAfterSubmit(
+                        dormAreaBox,
+                        buildingBox,
+                        roomField,
+                        phoneField,
+                        descriptionArea,
+                        imageUrlsArea,
+                        faultCategoryBox
+                );
+                UiAlerts.info(
+                        "\u63d0\u4ea4\u6210\u529f",
+                        "\u62a5\u4fee\u7533\u8bf7\u5df2\u4fdd\u5b58\uff0c\u8bb0\u5f55 ID=" + repairRequestId + "\u3002\u6700\u8fd1\u8bb0\u5f55\u8bf7\u53bb\u300c\u62a5\u4fee\u8bb0\u5f55\u300d\u9875\u9762\u67e5\u770b\u3002"
+                );
+            } catch (RuntimeException exception) {
+                UiAlerts.error("\u63d0\u4ea4\u5931\u8d25", exception.getMessage());
+            }
+        }).getNode();
+
+        resetButton.setOnAction(event ->
+                clearAfterSubmit(
+                        dormAreaBox,
+                        buildingBox,
+                        roomField,
+                        phoneField,
+                        descriptionArea,
+                        imageUrlsArea,
+                        faultCategoryBox
+                )
+        );
+
+        GridPane dormRow = new GridPane();
+        dormRow.setHgap(16);
+        dormRow.setMinWidth(0);
+        dormRow.getColumnConstraints().addAll(percentColumn(50), percentColumn(50));
+        dormRow.add(createFieldBlock("\u5bbf\u820d\u533a", dormAreaBox), 0, 0);
+        dormRow.add(createFieldBlock("\u5bbf\u820d\u697c", buildingBox), 1, 0);
+
+        GridPane contactRow = new GridPane();
+        contactRow.setHgap(16);
+        contactRow.setMinWidth(0);
+        contactRow.getColumnConstraints().addAll(percentColumn(50), percentColumn(50));
+        contactRow.add(createFieldBlock("\u623f\u95f4\u53f7", roomField), 0, 0);
+        contactRow.add(createFieldBlock("\u8054\u7cfb\u7535\u8bdd", phoneField), 1, 0);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox actionRow = new HBox(12, resetButton, spacer, submitButton);
+        actionRow.setAlignment(Pos.CENTER_LEFT);
+        actionRow.setMinWidth(0);
+
+        VBox formBox = new VBox(
+                16,
+                dormRow,
+                contactRow,
+                createFieldBlock("\u6545\u969c\u7c7b\u578b", faultCategoryBox),
+                createFieldBlock("\u6545\u969c\u63cf\u8ff0", descriptionArea),
+                createFieldBlock("\u56fe\u7247\u5730\u5740", imageUrlsArea),
+                actionRow
+        );
+        formBox.setFillWidth(true);
+        formBox.setMaxWidth(Double.MAX_VALUE);
+
+        return wrapPanel("\u586b\u5199\u62a5\u4fee\u8868\u5355", formBox);
+    }
+
+    private ComboBox<String> createDormAreaBox() {
+        ComboBox<String> dormAreaBox = new ComboBox<>();
+        dormAreaBox.getItems().setAll(appContext.dormCatalogService().listDormAreas());
+        dormAreaBox.setPromptText("\u9009\u62e9\u5bbf\u820d\u533a");
+        dormAreaBox.setVisibleRowCount(5);
+        dormAreaBox.setMinHeight(44);
+        dormAreaBox.setPrefHeight(44);
+        dormAreaBox.setMaxHeight(44);
+        dormAreaBox.setMaxWidth(Double.MAX_VALUE);
+        UiMotion.installSmoothDropdown(dormAreaBox);
+        return dormAreaBox;
+    }
+
+    private ComboBox<DormBuilding> createDormBuildingBox() {
+        ComboBox<DormBuilding> buildingBox = new ComboBox<>();
+        buildingBox.setPromptText("\u5148\u9009\u5bbf\u820d\u533a\u518d\u9009\u5bbf\u820d\u697c");
+        buildingBox.setDisable(true);
+        buildingBox.setVisibleRowCount(8);
+        buildingBox.setMinHeight(44);
+        buildingBox.setPrefHeight(44);
+        buildingBox.setMaxHeight(44);
+        buildingBox.setMaxWidth(Double.MAX_VALUE);
+        buildingBox.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(DormBuilding building) {
+                return building == null ? "" : building.getDisplayName();
+            }
+
+            @Override
+            public DormBuilding fromString(String string) {
+                return null;
+            }
+        });
+        buildingBox.setButtonCell(createDormBuildingCell());
+        buildingBox.setCellFactory(ignored -> createDormBuildingCell());
+        UiMotion.installSmoothDropdown(buildingBox);
+        return buildingBox;
+    }
+
+    private ComboBox<FaultCategory> createFaultCategoryBox() {
         ComboBox<FaultCategory> faultCategoryBox = new ComboBox<>();
         faultCategoryBox.setConverter(new StringConverter<>() {
             @Override
@@ -124,82 +266,22 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         faultCategoryBox.setButtonCell(createFaultCategoryCell());
         faultCategoryBox.setCellFactory(ignored -> createFaultCategoryCell());
         UiMotion.installSmoothDropdown(faultCategoryBox);
+        return faultCategoryBox;
+    }
 
-        TextArea descriptionArea = new TextArea();
-        descriptionArea.setPromptText("\u8bf7\u5177\u4f53\u8bf4\u660e\u6545\u969c\u73b0\u8c61\u3001\u662f\u5426\u7d27\u6025\u3001\u662f\u5426\u5f71\u54cd\u6b63\u5e38\u751f\u6d3b\u3002");
-        descriptionArea.setPrefRowCount(4);
-        descriptionArea.setWrapText(true);
+    private void reloadBuildingsByArea(String dormArea, ComboBox<DormBuilding> buildingBox) {
+        buildingBox.getItems().clear();
+        buildingBox.getSelectionModel().clearSelection();
 
-        TextArea imageUrlsArea = new TextArea();
-        imageUrlsArea.setPromptText("\u6682\u65f6\u7528\u56fe\u7247\u5730\u5740\u4ee3\u66ff\u4e0a\u4f20\u529f\u80fd\uff0c\u4e00\u884c\u4e00\u5f20\u3002");
-        imageUrlsArea.setPrefRowCount(3);
-        imageUrlsArea.setWrapText(true);
+        if (dormArea == null || dormArea.isBlank()) {
+            buildingBox.setDisable(true);
+            buildingBox.setPromptText("\u5148\u9009\u5bbf\u820d\u533a\u518d\u9009\u5bbf\u820d\u697c");
+            return;
+        }
 
-        Button resetButton = new Button("\u6e05\u7a7a\u8868\u5355");
-        resetButton.getStyleClass().add("nav-button");
-
-        Node submitButton = FusionUiFactory.createPrimaryButton("\u63d0\u4ea4\u62a5\u4fee\u7533\u8bf7", 180, 40, () -> {
-            try {
-                CreateRepairRequestCommand command = new CreateRepairRequestCommand(
-                        currentStudent.id(),
-                        appContext.appSession().getDisplayName(),
-                        phoneField.getText(),
-                        null,
-                        buildingField.getText(),
-                        roomField.getText(),
-                        faultCategoryBox.getValue(),
-                        descriptionArea.getText(),
-                        splitImageUrls(imageUrlsArea.getText())
-                );
-
-                Long repairRequestId = appContext.repairRequestService().create(command);
-                clearAfterSubmit(buildingField, roomField, phoneField, descriptionArea, imageUrlsArea, faultCategoryBox);
-                UiAlerts.info(
-                        "\u63d0\u4ea4\u6210\u529f",
-                        "\u62a5\u4fee\u7533\u8bf7\u5df2\u4fdd\u5b58\uff0c\u8bb0\u5f55 ID=" + repairRequestId + "\u3002\u6700\u8fd1\u8bb0\u5f55\u8bf7\u53bb\u300c\u62a5\u4fee\u8bb0\u5f55\u300d\u9875\u9762\u67e5\u770b\u3002"
-                );
-            } catch (RuntimeException exception) {
-                UiAlerts.error("\u63d0\u4ea4\u5931\u8d25", exception.getMessage());
-            }
-        }).getNode();
-
-        resetButton.setOnAction(event ->
-                clearAfterSubmit(buildingField, roomField, phoneField, descriptionArea, imageUrlsArea, faultCategoryBox)
-        );
-
-        GridPane roomRow = new GridPane();
-        roomRow.setHgap(16);
-        roomRow.setMinWidth(0);
-        roomRow.getColumnConstraints().addAll(percentColumn(50), percentColumn(50));
-        roomRow.add(createFieldBlock("\u5bbf\u820d\u697c\u680b", buildingField), 0, 0);
-        roomRow.add(createFieldBlock("\u623f\u95f4\u53f7", roomField), 1, 0);
-
-        GridPane contactRow = new GridPane();
-        contactRow.setHgap(16);
-        contactRow.setMinWidth(0);
-        contactRow.getColumnConstraints().addAll(percentColumn(32), percentColumn(68));
-        contactRow.add(createFieldBlock("\u8054\u7cfb\u7535\u8bdd", phoneField), 0, 0);
-        contactRow.add(createFieldBlock("\u6545\u969c\u7c7b\u578b", faultCategoryBox), 1, 0);
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        HBox actionRow = new HBox(12, resetButton, spacer, submitButton);
-        actionRow.setAlignment(Pos.CENTER_LEFT);
-        actionRow.setMinWidth(0);
-
-        VBox formBox = new VBox(
-                16,
-                roomRow,
-                contactRow,
-                createFieldBlock("\u6545\u969c\u63cf\u8ff0", descriptionArea),
-                createFieldBlock("\u56fe\u7247\u5730\u5740", imageUrlsArea),
-                actionRow
-        );
-        formBox.setFillWidth(true);
-        formBox.setMaxWidth(Double.MAX_VALUE);
-
-        return wrapPanel("\u586b\u5199\u62a5\u4fee\u8868\u5355", formBox);
+        buildingBox.getItems().setAll(appContext.dormCatalogService().listBuildingsByArea(dormArea));
+        buildingBox.setDisable(false);
+        buildingBox.setPromptText("\u9009\u62e9" + dormArea + "\u7684\u697c\u680b");
     }
 
     private List<String> splitImageUrls(String rawText) {
@@ -213,19 +295,34 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
     }
 
     private void clearAfterSubmit(
-            TextField buildingField,
+            ComboBox<String> dormAreaBox,
+            ComboBox<DormBuilding> buildingBox,
             TextField roomField,
             TextField phoneField,
             TextArea descriptionArea,
             TextArea imageUrlsArea,
             ComboBox<FaultCategory> faultCategoryBox
     ) {
-        buildingField.clear();
+        dormAreaBox.getSelectionModel().clearSelection();
+        buildingBox.getItems().clear();
+        buildingBox.getSelectionModel().clearSelection();
+        buildingBox.setDisable(true);
+        buildingBox.setPromptText("\u5148\u9009\u5bbf\u820d\u533a\u518d\u9009\u5bbf\u820d\u697c");
         roomField.clear();
         phoneField.clear();
         descriptionArea.clear();
         imageUrlsArea.clear();
         faultCategoryBox.getSelectionModel().clearSelection();
+    }
+
+    private ListCell<DormBuilding> createDormBuildingCell() {
+        return new ListCell<>() {
+            @Override
+            protected void updateItem(DormBuilding item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty || item == null ? "" : item.getDisplayName());
+            }
+        };
     }
 
     private ListCell<FaultCategory> createFaultCategoryCell() {

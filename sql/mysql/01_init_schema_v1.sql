@@ -1,5 +1,5 @@
 -- 数据库初始化脚本（v1 草案）
--- 目标：给数据库同事一个可以直接落库、再逐步细化的最小版本。
+-- 目标：给课程设计一个可直接落库、再逐步细化的最小版本。
 
 CREATE DATABASE IF NOT EXISTS dorm_repair_db
   DEFAULT CHARACTER SET utf8mb4
@@ -7,7 +7,7 @@ CREATE DATABASE IF NOT EXISTS dorm_repair_db
 
 USE dorm_repair_db;
 
--- 用户表：学生、管理员、维修人员共用一张账号表。
+-- 用户表：学生、管理员、维修员共用一张账号表。
 CREATE TABLE IF NOT EXISTS user_accounts (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(64) NOT NULL UNIQUE,
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS user_accounts (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- 楼栋表：把校区和楼栋信息单独抽出来，避免房间表重复存校区/楼栋基础信息。
+-- 楼栋表：这里把宿舍区直接落在 campus_name，界面层统一展示为“宿舍区”。
 CREATE TABLE IF NOT EXISTS dorm_buildings (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     campus_name VARCHAR(64) NOT NULL,
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS dorm_buildings (
     UNIQUE KEY uk_dorm_building (campus_name, building_no)
 );
 
--- 房间表：和楼栋表形成一对多关系。
+-- 房间表：当前主链仍然允许房间号手填，所以这张表先作为后续“宿舍基础资料维护”的扩展点保留。
 CREATE TABLE IF NOT EXISTS dorm_rooms (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     building_id BIGINT NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS dorm_rooms (
     CONSTRAINT fk_room_building FOREIGN KEY (building_id) REFERENCES dorm_buildings(id)
 );
 
--- 报修单表：学生提交报修的主表。
+-- 报修单表：保留宿舍区/楼栋/房间快照，避免后面楼栋资料调整时把历史记录带乱。
 CREATE TABLE IF NOT EXISTS repair_requests (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     request_no VARCHAR(64) NOT NULL UNIQUE,
@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS repair_requests (
     student_name VARCHAR(64) NOT NULL,
     contact_phone VARCHAR(32) NOT NULL,
     dorm_room_id BIGINT NULL,
+    dorm_area_snapshot VARCHAR(64) NOT NULL,
     building_no_snapshot VARCHAR(32) NOT NULL,
     room_no_snapshot VARCHAR(32) NOT NULL,
     fault_category VARCHAR(32) NOT NULL,
@@ -70,7 +71,7 @@ CREATE TABLE IF NOT EXISTS repair_requests (
     CONSTRAINT fk_repair_request_room FOREIGN KEY (dorm_room_id) REFERENCES dorm_rooms(id)
 );
 
--- 报修图片表：正式数据库设计里不建议把图片长期塞到一个文本字段中。
+-- 报修图片表：正式实现时不建议把多张图片长期塞进一个文本字段。
 CREATE TABLE IF NOT EXISTS repair_request_images (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     repair_request_id BIGINT NOT NULL,
@@ -101,7 +102,7 @@ CREATE TABLE IF NOT EXISTS work_orders (
     CONSTRAINT fk_work_orders_request FOREIGN KEY (repair_request_id) REFERENCES repair_requests(id)
 );
 
--- 工单处理记录表：用来记录派单、接单、处理中、完工等动作流水。
+-- 工单处理记录表：记录派单、接单、处理中、完工等动作流水。
 CREATE TABLE IF NOT EXISTS work_order_records (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     work_order_id BIGINT NOT NULL,
@@ -125,3 +126,24 @@ CREATE TABLE IF NOT EXISTS repair_feedbacks (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_repair_feedbacks_request FOREIGN KEY (repair_request_id) REFERENCES repair_requests(id)
 );
+
+-- 宿舍区 / 楼栋基础资料：5 个宿舍区，每区 15 栋楼。
+INSERT IGNORE INTO dorm_buildings (campus_name, building_no, building_name)
+WITH RECURSIVE seq AS (
+    SELECT 1 AS n
+    UNION ALL
+    SELECT n + 1 FROM seq WHERE n < 15
+),
+areas AS (
+    SELECT '泰山区' AS campus_name
+    UNION ALL SELECT '华山区'
+    UNION ALL SELECT '启林区'
+    UNION ALL SELECT '黑山区'
+    UNION ALL SELECT '燕山区'
+)
+SELECT
+    areas.campus_name,
+    CONCAT(seq.n, '栋') AS building_no,
+    CONCAT(areas.campus_name, ' ', seq.n, '栋') AS building_name
+FROM areas
+CROSS JOIN seq;

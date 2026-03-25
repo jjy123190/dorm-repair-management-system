@@ -41,4 +41,11 @@ public class DormBuilding extends BaseTimeEntity {
     public void setBuildingName(String buildingName) {
         this.buildingName = buildingName;
     }
+
+    public String getDisplayName() {
+        if (buildingName != null && !buildingName.isBlank()) {
+            return buildingName;
+        }
+        return campusName + " " + buildingNo;
+    }
 }

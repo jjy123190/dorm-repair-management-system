@@ -16,6 +16,7 @@ public class RepairRequest extends BaseTimeEntity {
     private String studentName;
     private String contactPhone;
     private Long dormRoomId;
+    private String dormAreaSnapshot;
     private String buildingNoSnapshot;
     private String roomNoSnapshot;
     private FaultCategory faultCategory;
@@ -73,6 +74,14 @@ public class RepairRequest extends BaseTimeEntity {
 
     public void setDormRoomId(Long dormRoomId) {
         this.dormRoomId = dormRoomId;
+    }
+
+    public String getDormAreaSnapshot() {
+        return dormAreaSnapshot;
+    }
+
+    public void setDormAreaSnapshot(String dormAreaSnapshot) {
+        this.dormAreaSnapshot = dormAreaSnapshot;
     }
 
     public String getBuildingNoSnapshot() {

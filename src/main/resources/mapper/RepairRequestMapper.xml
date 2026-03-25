@@ -12,6 +12,7 @@
             student_name,
             contact_phone,
             dorm_room_id,
+            dorm_area_snapshot,
             building_no_snapshot,
             room_no_snapshot,
             fault_category,
@@ -35,6 +36,7 @@
             student_name,
             contact_phone,
             dorm_room_id,
+            dorm_area_snapshot,
             building_no_snapshot,
             room_no_snapshot,
             fault_category,
@@ -51,6 +53,7 @@
             #{studentName},
             #{contactPhone},
             #{dormRoomId},
+            #{dormAreaSnapshot},
             #{buildingNoSnapshot},
             #{roomNoSnapshot},
             #{faultCategory},
@@ -84,7 +87,10 @@
             id,
             request_no,
             student_name,
-            CONCAT(building_no_snapshot, '-', room_no_snapshot) AS location_text,
+            CASE
+                WHEN dorm_area_snapshot IS NULL OR dorm_area_snapshot = '' THEN CONCAT(building_no_snapshot, '-', room_no_snapshot)
+                ELSE CONCAT(dorm_area_snapshot, ' ', building_no_snapshot, '-', room_no_snapshot)
+            END AS location_text,
             fault_category,
             status,
             submitted_at
@@ -98,7 +104,10 @@
             id,
             request_no,
             student_name,
-            CONCAT(building_no_snapshot, '-', room_no_snapshot) AS location_text,
+            CASE
+                WHEN dorm_area_snapshot IS NULL OR dorm_area_snapshot = '' THEN CONCAT(building_no_snapshot, '-', room_no_snapshot)
+                ELSE CONCAT(dorm_area_snapshot, ' ', building_no_snapshot, '-', room_no_snapshot)
+            END AS location_text,
             fault_category,
             status,
             submitted_at
@@ -113,7 +122,10 @@
             id,
             request_no,
             student_name,
-            CONCAT(building_no_snapshot, '-', room_no_snapshot) AS location_text,
+            CASE
+                WHEN dorm_area_snapshot IS NULL OR dorm_area_snapshot = '' THEN CONCAT(building_no_snapshot, '-', room_no_snapshot)
+                ELSE CONCAT(dorm_area_snapshot, ' ', building_no_snapshot, '-', room_no_snapshot)
+            END AS location_text,
             fault_category,
             status,
             submitted_at

@@ -1,6 +1,7 @@
 package com.scau.dormrepair.config;
 
 import com.scau.dormrepair.mapper.DashboardMapper;
+import com.scau.dormrepair.mapper.DormBuildingMapper;
 import com.scau.dormrepair.mapper.RepairFeedbackMapper;
 import com.scau.dormrepair.mapper.RepairRequestImageMapper;
 import com.scau.dormrepair.mapper.RepairRequestMapper;
@@ -26,6 +27,7 @@ public final class DatabaseConfig {
 
     private static final String[] MAPPER_XMLS = {
             "mapper/DashboardMapper.xml",
+            "mapper/DormBuildingMapper.xml",
             "mapper/RepairRequestMapper.xml",
             "mapper/RepairRequestImageMapper.xml",
             "mapper/RepairFeedbackMapper.xml",
@@ -61,6 +63,7 @@ public final class DatabaseConfig {
         configuration.setMapUnderscoreToCamelCase(true);
         configuration.setJdbcTypeForNull(org.apache.ibatis.type.JdbcType.NULL);
         configuration.addMapper(DashboardMapper.class);
+        configuration.addMapper(DormBuildingMapper.class);
         configuration.addMapper(RepairRequestMapper.class);
         configuration.addMapper(RepairRequestImageMapper.class);
         configuration.addMapper(RepairFeedbackMapper.class);
