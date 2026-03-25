@@ -20,8 +20,9 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 
 /**
- * 首页概览只保留一屏内最有价值的信息。
- * 这里先讲清当前角色、处理压力和最近报修，不再堆很多重复卡片。
+ * 首页只保留一屏内最关键的信息：
+ * 当前角色最应该先看的主线、四个核心指标、最近报修。
+ * 角色身份已经在顶部固定区展示，这里不再重复堆叠角色说明卡。
  */
 public class DashboardModule extends AbstractWorkbenchModule {
 
@@ -55,13 +56,6 @@ public class DashboardModule extends AbstractWorkbenchModule {
     public Parent createView() {
         DashboardOverview overview = appContext.dashboardService().loadOverview();
 
-        GridPane overviewGrid = new GridPane();
-        overviewGrid.setHgap(20);
-        overviewGrid.getStyleClass().add("dashboard-overview-deck");
-        overviewGrid.getColumnConstraints().addAll(percentColumn(68), percentColumn(32));
-        overviewGrid.add(buildHeroCard(overview), 0, 0);
-        overviewGrid.add(buildSpotlightColumn(overview), 1, 0);
-
         GridPane metricGrid = new GridPane();
         metricGrid.setHgap(16);
         metricGrid.getStyleClass().add("dashboard-metric-row");
@@ -82,19 +76,18 @@ public class DashboardModule extends AbstractWorkbenchModule {
         ));
         fitTableHeightToRows(tableView, tableView.getItems().size(), 1, 5);
 
-        return createPage(
-                "系统总览",
-                "当前角色、处理压力和最近报修都放在这一屏里。",
-                overviewGrid,
+        VBox deck = new VBox(
+                18,
+                buildHeroCard(overview),
                 metricGrid,
                 wrapPanel("最近报修", tableView)
         );
+        deck.getStyleClass().add("dashboard-overview-deck");
+
+        return createPage("系统总览", "", deck);
     }
 
     private Node buildHeroCard(DashboardOverview overview) {
-        javafx.scene.control.Label eyebrowLabel = new javafx.scene.control.Label(roleEyebrow());
-        eyebrowLabel.getStyleClass().add("dashboard-hero-eyebrow");
-
         javafx.scene.control.Label titleLabel = new javafx.scene.control.Label(heroTitle());
         titleLabel.getStyleClass().add("dashboard-hero-title");
         titleLabel.setWrapText(true);
@@ -110,43 +103,10 @@ public class DashboardModule extends AbstractWorkbenchModule {
         helperLabel.setWrapText(true);
         helperLabel.setMaxWidth(Double.MAX_VALUE);
 
-        VBox content = new VBox(12, eyebrowLabel, titleLabel, descriptionLabel, helperLabel);
+        VBox content = new VBox(12, titleLabel, descriptionLabel, helperLabel);
         content.getStyleClass().add("dashboard-hero-body");
 
         var pane = FusionUiFactory.createCard(content, 0, 0, "dashboard-hero-card");
-        pane.getNode().setMaxWidth(Double.MAX_VALUE);
-        return pane.getNode();
-    }
-
-    private VBox buildSpotlightColumn(DashboardOverview overview) {
-        VBox column = new VBox(
-                14,
-                createSpotlightCard("当前角色", roleTitle(), roleSummary(), "dashboard-spotlight-card"),
-                createSpotlightCard("当前重点", focusTitle(overview), focusSummary(overview), "dashboard-spotlight-card dashboard-spotlight-card-focus")
-        );
-        column.getStyleClass().add("dashboard-spotlight-column");
-        column.setMaxWidth(Double.MAX_VALUE);
-        return column;
-    }
-
-    private Node createSpotlightCard(String title, String value, String description, String styleClassNames) {
-        javafx.scene.control.Label titleLabel = new javafx.scene.control.Label(title);
-        titleLabel.getStyleClass().add("dashboard-spotlight-title");
-
-        javafx.scene.control.Label valueLabel = new javafx.scene.control.Label(value);
-        valueLabel.getStyleClass().add("dashboard-spotlight-value");
-        valueLabel.setWrapText(true);
-        valueLabel.setMaxWidth(Double.MAX_VALUE);
-
-        javafx.scene.control.Label descriptionLabel = new javafx.scene.control.Label(description);
-        descriptionLabel.getStyleClass().add("dashboard-spotlight-description");
-        descriptionLabel.setWrapText(true);
-        descriptionLabel.setMaxWidth(Double.MAX_VALUE);
-
-        VBox content = new VBox(8, titleLabel, valueLabel, descriptionLabel);
-        content.getStyleClass().add("dashboard-spotlight-body");
-
-        var pane = FusionUiFactory.createCard(content, 0, 0, styleClassNames.split(" "));
         pane.getNode().setMaxWidth(Double.MAX_VALUE);
         return pane.getNode();
     }
@@ -204,75 +164,31 @@ public class DashboardModule extends AbstractWorkbenchModule {
         tableView.getColumns().addAll(
                 requestNoColumn, studentColumn, locationColumn, categoryColumn, statusColumn, timeColumn
         );
-        configureFixedTable(tableView, 168, 1.618, 1.0, 1.382, 1.236, 0.764, 1.382);
+        configureFixedTable(tableView, 168, 1.618, 0.764, 1.236, 1.0, 0.764, 1.236);
         return tableView;
-    }
-
-    private String roleEyebrow() {
-        return switch (appContext.appSession().getCurrentRole()) {
-            case STUDENT -> "STUDENT BOARD";
-            case ADMIN -> "ADMIN BOARD";
-            case WORKER -> "WORKER BOARD";
-        };
     }
 
     private String heroTitle() {
         return switch (appContext.appSession().getCurrentRole()) {
             case STUDENT -> "先看自己的报修进度";
-            case ADMIN -> "把待审和派单压力看清楚";
-            case WORKER -> "先处理在途工单";
+            case ADMIN -> "先看待审和处理中工单";
+            case WORKER -> "先看当前在途工单";
         };
     }
 
     private String heroDescription() {
         return switch (appContext.appSession().getCurrentRole()) {
-            case STUDENT -> "学生工作台先保留进度、待办和最近记录，避免一上来塞太多操作。";
-            case ADMIN -> "管理员首页先聚焦审核、派单和处理节奏，不把统计和详情混成一堆。";
-            case WORKER -> "维修员首页先给出接单和回填的主线，不让页面被次要信息冲淡。";
+            case STUDENT -> "首页只保留进度、最近记录和本月结果，不再重复身份说明。";
+            case ADMIN -> "首页只保留审核、派单和处理压力，先解决主链路。";
+            case WORKER -> "首页只保留在途工单、本月完成和最近处理记录。";
         };
     }
 
     private String heroHelper(DashboardOverview overview) {
         return switch (appContext.appSession().getCurrentRole()) {
             case STUDENT -> "你已提交 " + safeLong(overview.getTotalRequests()) + " 条报修，当前处理中 " + safeLong(overview.getActiveWorkOrders()) + " 条。";
-            case ADMIN -> "当前待审核 " + safeLong(overview.getPendingReviewRequests()) + " 条，处理中 " + safeLong(overview.getActiveWorkOrders()) + " 条。";
+            case ADMIN -> "待审核 " + safeLong(overview.getPendingReviewRequests()) + " 条，处理中 " + safeLong(overview.getActiveWorkOrders()) + " 条。";
             case WORKER -> "当前在途 " + safeLong(overview.getActiveWorkOrders()) + " 条，本月闭环 " + safeLong(overview.getCompletedThisMonth()) + " 条。";
-        };
-    }
-
-    private String roleTitle() {
-        UserRole role = appContext.appSession().getCurrentRole();
-        return role == null ? "未登录角色" : role.displayName();
-    }
-
-    private String roleSummary() {
-        return switch (appContext.appSession().getCurrentRole()) {
-            case STUDENT -> "提交报修、查看进度、完成评价。";
-            case ADMIN -> "审核、派单、催办、统计。";
-            case WORKER -> "接单、处理、回填结果。";
-        };
-    }
-
-    private String focusTitle(DashboardOverview overview) {
-        long pendingReview = safeLong(overview.getPendingReviewRequests());
-        long activeOrders = safeLong(overview.getActiveWorkOrders());
-
-        return switch (appContext.appSession().getCurrentRole()) {
-            case STUDENT -> activeOrders > 0 ? "继续跟进" : "可以报修";
-            case ADMIN -> pendingReview > 0 ? "先审工单" : "审核平稳";
-            case WORKER -> activeOrders > 0 ? "优先处理" : "可以接单";
-        };
-    }
-
-    private String focusSummary(DashboardOverview overview) {
-        long pendingReview = safeLong(overview.getPendingReviewRequests());
-        long activeOrders = safeLong(overview.getActiveWorkOrders());
-        long completedThisMonth = safeLong(overview.getCompletedThisMonth());
-
-        return switch (appContext.appSession().getCurrentRole()) {
-            case STUDENT -> "当前有 " + activeOrders + " 条工单处于处理中或待完成阶段。";
-            case ADMIN -> "待审核 " + pendingReview + " 条，处理中 " + activeOrders + " 条。";
-            case WORKER -> "当前在途 " + activeOrders + " 条，本月完成 " + completedThisMonth + " 条。";
         };
     }
 

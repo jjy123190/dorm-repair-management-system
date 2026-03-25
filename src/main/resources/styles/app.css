@@ -224,7 +224,7 @@
     -fx-background-radius: 18px;
     -fx-border-color: rgba(46,46,46,0.08);
     -fx-border-radius: 18px;
-    -fx-padding: 12 14 12 14;
+    -fx-padding: 10 14 10 14;
 }
 
 .header-role-chip,
@@ -505,6 +505,8 @@
     -fx-border-radius: 14px;
     -fx-padding: 2;
     -fx-fixed-cell-size: 38px;
+    -fx-pref-height: 196px;
+    -fx-max-height: 196px;
     -fx-effect: none;
 }
 
@@ -658,13 +660,6 @@
 
 .dashboard-hero-body {
     -fx-padding: 20;
-}
-
-.dashboard-hero-eyebrow {
-    -fx-text-fill: #a7cdb8;
-    -fx-font-size: 11px;
-    -fx-font-weight: bold;
-    -fx-letter-spacing: 1.1px;
 }
 
 .dashboard-hero-title {

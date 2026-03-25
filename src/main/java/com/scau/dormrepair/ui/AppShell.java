@@ -30,8 +30,11 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 /**
- * 顶层壳层只负责身份、导航和模块承载。
- * 具体业务说明留在模块内部，避免头部、侧栏和正文重复说同一段话。
+ * 桌面端壳层只负责三件事：
+ * 1. 固定顶部身份区
+ * 2. 固定左侧模块入口
+ * 3. 承载中间业务页面
+ * 这样模块切换时，顶部和侧栏不会因为正文内容不同而上下抖动。
  */
 public class AppShell {
 
@@ -94,6 +97,7 @@ public class AppShell {
 
         moduleHost = new StackPane();
         moduleHost.getStyleClass().add("module-host");
+        moduleHost.setMinWidth(0);
 
         workbenchShell.setTop(buildHeader());
         workbenchShell.setCenter(moduleHost);
@@ -102,7 +106,7 @@ public class AppShell {
     private void syncWorkbench() {
         List<WorkbenchModule> availableModules = availableModules();
         if (availableModules.isEmpty()) {
-            throw new IllegalStateException("\u5f53\u524d\u89d2\u8272\u6ca1\u6709\u53ef\u7528\u6a21\u5757\uff0c\u8bf7\u68c0\u67e5\u6a21\u5757\u6743\u9650\u914d\u7f6e\u3002");
+            throw new IllegalStateException("当前角色没有可用模块，请检查模块权限配置。");
         }
 
         UserRole currentRole = appSession.getCurrentRole();
@@ -127,69 +131,59 @@ public class AppShell {
     }
 
     private VBox buildHeader() {
-        VBox brandBox = buildHeaderBrand();
-        VBox summaryBox = buildHeaderSummary();
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        HBox headerRow = new HBox(20, brandBox, spacer, summaryBox);
-        headerRow.setAlignment(Pos.CENTER_LEFT);
-
-        VBox headerBox = new VBox(headerRow);
-        headerBox.getStyleClass().add("header-shell");
-        headerBox.setPadding(new Insets(16, 22, 14, 22));
-        headerBox.setMinHeight(146);
-        headerBox.setPrefHeight(146);
-        headerBox.setMaxHeight(146);
-        return headerBox;
-    }
-
-    private VBox buildHeaderBrand() {
-        Label titleLabel = new Label("\u5bbf\u820d\u62a5\u4fee\u4e0e\u5de5\u5355\u7ba1\u7406\u7cfb\u7edf");
+        Label titleLabel = new Label("宿舍报修与工单管理系统");
         titleLabel.getStyleClass().add("header-brand-title");
 
         VBox brandBox = new VBox(titleLabel);
         brandBox.setAlignment(Pos.CENTER_LEFT);
+        brandBox.setFillWidth(true);
         brandBox.setMaxWidth(Double.MAX_VALUE);
-        return brandBox;
-    }
 
-    private VBox buildHeaderSummary() {
         roleBadgeLabel = new Label();
         roleBadgeLabel.getStyleClass().add("header-role-chip");
 
         userLabel = new Label();
         userLabel.getStyleClass().add("header-user-chip");
         userLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
-        userLabel.setMaxWidth(220);
+        userLabel.setMaxWidth(160);
 
         moduleChipLabel = new Label();
         moduleChipLabel.getStyleClass().add("header-module-chip");
         moduleChipLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
-        moduleChipLabel.setMaxWidth(180);
+        moduleChipLabel.setMaxWidth(140);
 
         HBox metaRow = new HBox(8, roleBadgeLabel, userLabel, moduleChipLabel);
         metaRow.getStyleClass().add("header-meta-row");
         metaRow.setAlignment(Pos.CENTER);
 
-        Button logoutButton = new Button("\u9000\u51fa\u767b\u5f55");
+        Button logoutButton = new Button("退出登录");
         logoutButton.getStyleClass().add("header-logout-action");
         logoutButton.setOnAction(event -> {
             activeModule = null;
             appSession.logout();
         });
 
-        VBox summaryBox = new VBox(14, metaRow, logoutButton);
+        VBox summaryBox = new VBox(12, metaRow, logoutButton);
         summaryBox.getStyleClass().add("header-summary-card");
         summaryBox.setAlignment(Pos.CENTER);
         summaryBox.setMinWidth(320);
         summaryBox.setPrefWidth(320);
         summaryBox.setMaxWidth(320);
-        summaryBox.setMinHeight(120);
-        summaryBox.setPrefHeight(120);
-        summaryBox.setMaxHeight(120);
-        return summaryBox;
+        summaryBox.setMinHeight(78);
+        summaryBox.setPrefHeight(78);
+        summaryBox.setMaxHeight(78);
+
+        BorderPane headerRow = new BorderPane();
+        headerRow.setLeft(brandBox);
+        headerRow.setRight(summaryBox);
+
+        VBox headerBox = new VBox(headerRow);
+        headerBox.getStyleClass().add("header-shell");
+        headerBox.setPadding(new Insets(14, 22, 14, 22));
+        headerBox.setMinHeight(108);
+        headerBox.setPrefHeight(108);
+        headerBox.setMaxHeight(108);
+        return headerBox;
     }
 
     private VBox buildSidebar(List<WorkbenchModule> availableModules) {
@@ -197,14 +191,9 @@ public class AppShell {
         sidebar.getStyleClass().add("sidebar");
         sidebar.setPadding(new Insets(18));
 
-        Label navTitle = new Label("\u5de5\u4f5c\u6a21\u5757");
+        Label navTitle = new Label("工作模块");
         navTitle.getStyleClass().add("sidebar-title");
-
-        Label navHint = new Label("\u5de6\u4fa7\u53ea\u4fdd\u7559\u6a21\u5757\u5165\u53e3\uff0c\u5177\u4f53\u4e1a\u52a1\u8bf4\u660e\u56de\u5230\u9875\u9762\u4e3b\u4f53\u5185\uff0c\u907f\u514d\u91cd\u590d\u3002");
-        navHint.getStyleClass().add("sidebar-hint");
-        navHint.setWrapText(true);
-
-        sidebar.getChildren().addAll(navTitle, navHint);
+        sidebar.getChildren().add(navTitle);
         navButtons.clear();
 
         for (WorkbenchModule module : availableModules) {
@@ -228,7 +217,7 @@ public class AppShell {
         try {
             updateHeader();
             updateSidebarSelection();
-            // 就算当前按钮已经处于激活态，也强制重载主体视图，避免壳层状态和页面内容偶发串页后无法自恢复。
+            // 每次都强制刷新中间主体，避免缓存页和导航状态偶发串页。
             showModule(module, true);
         } catch (RuntimeException exception) {
             activeModule = previousModule;
@@ -238,18 +227,17 @@ public class AppShell {
                 try {
                     showModule(previousModule, false);
                 } catch (RuntimeException ignored) {
-                    // 回退页只是兜底，不再让二次异常覆盖真正的报错原因。
+                    // 这里只做兜底，不覆盖真正的报错原因。
                 }
             }
-            UiAlerts.error("\u9875\u9762\u52a0\u8f7d\u5931\u8d25", exception);
+            UiAlerts.error("页面加载失败", exception);
         }
     }
 
     private void updateHeader() {
-        String moduleName = activeModule == null ? "\u9996\u9875\u6982\u89c8" : activeModule.moduleName();
-
+        String moduleName = activeModule == null ? "首页概览" : activeModule.moduleName();
         roleBadgeLabel.setText(appSession.getCurrentRole().displayName());
-        userLabel.setText("\u6f14\u793a\u8eab\u4efd \u00b7 " + appSession.getDisplayName());
+        userLabel.setText("演示身份 · " + appSession.getDisplayName());
         moduleChipLabel.setText(moduleName);
     }
 
@@ -266,7 +254,6 @@ public class AppShell {
         if (forceReload) {
             moduleViewCache.remove(module.moduleCode());
         }
-
         Parent nextContent = loadModuleView(module);
         moduleHost.getChildren().setAll(nextContent);
     }
@@ -287,7 +274,7 @@ public class AppShell {
 
     private void login(String displayName, UserRole role) {
         if (role == null) {
-            throw new IllegalArgumentException("\u8bf7\u9009\u62e9\u767b\u5f55\u89d2\u8272");
+            throw new IllegalArgumentException("请选择登录角色");
         }
         appSession.login(displayName, role);
     }

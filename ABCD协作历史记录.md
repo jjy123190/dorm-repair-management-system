@@ -364,3 +364,25 @@
   - 已 push
   - 提交号：`9a2bfac`
 
+### 2026-03-25 21:52 | A
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/ui/AppShell.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/AbstractWorkbenchModule.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/DashboardModule.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/StudentRepairModule.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/StudentRepairHistoryModule.java`
+  - `src/main/java/com/scau/dormrepair/service/impl/DormCatalogServiceImpl.java`
+  - `src/main/resources/styles/app.css`
+- 完成内容
+  - 把壳层改成真正静态结构：顶部只保留标题、身份 chip、当前模块 chip 和退出按钮，左侧只保留模块入口
+  - 删除顶部和侧栏重复解释文案，模块页默认不再强制渲染副说明，避免切换模块时上半区高度抖动
+  - 首页去掉右侧重复角色说明列，只保留主视觉、指标卡和最近报修表
+  - 宿舍区列表加稳定常量兜底，只允许 `泰山区 / 华山区 / 启林区 / 黑山区 / 燕山区` 出现在下拉里，屏蔽数据库脏值 `???`
+  - 下拉弹层高度统一锁定，避免再次弹成整块大浮层
+- 影响提醒 / 下一步
+  - 顶部身份区以后不要再塞模块说明句子，保持固定高度
+  - 宿舍区如果后面再扩展，先同步 `DormCatalogServiceImpl` 的稳定常量，不要只改数据库
+- Push 结果
+  - 待 push
+  - 提交号：待补
+

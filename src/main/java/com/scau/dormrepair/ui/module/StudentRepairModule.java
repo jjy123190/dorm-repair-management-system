@@ -76,7 +76,7 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
 
         return createPage(
                 "\u5b66\u751f\u62a5\u4fee\u5de5\u4f5c\u533a",
-                "\u73b0\u5728\u62a5\u4fee\u8868\u5355\u4ece\u6570\u636e\u5e93\u8bfb\u5bbf\u820d\u533a\u548c\u697c\u680b\u57fa\u7840\u8d44\u6599\uff0c\u4e0d\u518d\u5141\u8bb8\u81ea\u7531\u4e71\u586b\u5bbf\u820d\u697c\u680b\u6587\u672c\u3002",
+                "",
                 content
         );
     }
@@ -197,7 +197,7 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         ComboBox<String> dormAreaBox = new ComboBox<>();
         dormAreaBox.getItems().setAll(appContext.dormCatalogService().listDormAreas());
         dormAreaBox.setPromptText("\u9009\u62e9\u5bbf\u820d\u533a");
-        dormAreaBox.setVisibleRowCount(4);
+        dormAreaBox.setVisibleRowCount(5);
         dormAreaBox.setMinHeight(44);
         dormAreaBox.setPrefHeight(44);
         dormAreaBox.setMaxHeight(44);
@@ -247,7 +247,7 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         });
         faultCategoryBox.getItems().addAll(FaultCategory.values());
         faultCategoryBox.setPromptText("\u9009\u62e9\u6545\u969c\u7c7b\u578b");
-        faultCategoryBox.setVisibleRowCount(5);
+        faultCategoryBox.setVisibleRowCount(7);
         faultCategoryBox.setMinHeight(44);
         faultCategoryBox.setPrefHeight(44);
         faultCategoryBox.setMaxHeight(44);

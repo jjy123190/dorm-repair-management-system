@@ -39,11 +39,13 @@ public abstract class AbstractWorkbenchModule implements WorkbenchModule {
         Label titleLabel = new Label(title);
         titleLabel.getStyleClass().add("section-title");
 
-        Label descriptionLabel = new Label(description);
-        descriptionLabel.getStyleClass().add("plain-text");
-        descriptionLabel.setWrapText(true);
-
-        container.getChildren().addAll(titleLabel, descriptionLabel);
+        container.getChildren().add(titleLabel);
+        if (description != null && !description.isBlank()) {
+            Label descriptionLabel = new Label(description);
+            descriptionLabel.getStyleClass().add("plain-text");
+            descriptionLabel.setWrapText(true);
+            container.getChildren().add(descriptionLabel);
+        }
         for (Node contentNode : contentNodes) {
             if (contentNode instanceof Region region) {
                 region.setMaxWidth(Double.MAX_VALUE);

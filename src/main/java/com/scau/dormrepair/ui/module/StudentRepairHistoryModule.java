@@ -70,7 +70,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
 
         return createPage(
                 "\u5b66\u751f\u62a5\u4fee\u8bb0\u5f55",
-                "\u8fd9\u4e2a\u9875\u9762\u53ea\u8d1f\u8d23\u770b\u8bb0\u5f55\uff0c\u4f60\u53ef\u4ee5\u76f4\u63a5\u6838\u5bf9\u5355\u53f7\u3001\u5bbf\u820d\u3001\u6545\u969c\u7c7b\u578b\u548c\u5f53\u524d\u72b6\u6001\u3002",
+                "",
                 content
         );
     }
