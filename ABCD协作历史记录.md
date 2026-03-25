@@ -205,6 +205,6 @@
   - `AppShell.java`、`UiAlerts.java`、`UiMotion.java`、`app.css` 都属于 A 共享文件，队友改前先 pull
   - 如果后面还出现组件“自己变大”或“位置乱飘”，优先先查共享样式和公共 support，不要先怀疑业务逻辑
 - Push 结果
-  - 未 push
-  - 提交号：待补
+  - 已 push
+  - 提交号：`2add28f`
 
