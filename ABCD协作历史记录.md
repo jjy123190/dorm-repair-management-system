@@ -156,3 +156,27 @@
   - 提交号：以本次 push 后的最新提交为准
 - 下一步：
   - 继续把登录页剩余卡片的比例再收一轮，避免出现“单薄但不出界”和“撑满但廉价”这两种极端
+
+### 2026-03-25 19:18 | A
+- 改动文件：
+  - src/main/java/com/scau/dormrepair/ui/AppShell.java
+  - src/main/java/com/scau/dormrepair/ui/module/AbstractWorkbenchModule.java
+  - src/main/java/com/scau/dormrepair/ui/module/StudentRepairModule.java
+  - src/main/java/com/scau/dormrepair/ui/module/AdminDispatchModule.java
+  - src/main/java/com/scau/dormrepair/ui/module/WorkerProcessingModule.java
+  - src/main/java/com/scau/dormrepair/ui/module/DashboardModule.java
+  - src/main/resources/styles/app.css
+  - 项目协作根基.md
+- 完成内容：
+  - 把工作台公共壳层收进 AbstractWorkbenchModule，统一比例布局、字段块、摘要卡和身份条
+  - 学生报修、管理员派单、维修处理三页改成复用公共构件，不再各自复制一套布局辅助方法
+  - 重写 AppShell 头部，只保留身份、模块、动作，去掉壳层里重复解释模块内容的部分
+  - 同步收了一轮 header 样式，让顶层窗口的信息密度更稳
+- 影响提醒：
+  - 这轮动了 AppShell.java 和 pp.css，B / C 本地如果还留着旧壳层缓存，先 pull 最新再继续
+  - 后面新模块优先复用 AbstractWorkbenchModule 的共享 API，不要再在模块类里重写 percentColumn / createFieldBlock / wrapInlinePanel
+- Push 结果：
+  - 本条日志对应的代码将在本轮提交后立即 push
+  - 提交号：待本次 push 后回填
+- 下一步：
+  - 继续收登录页和首页的高级感，并把表格列宽策略再统一一轮

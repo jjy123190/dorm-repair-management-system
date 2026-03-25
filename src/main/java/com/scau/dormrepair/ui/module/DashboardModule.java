@@ -17,9 +17,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 /**
@@ -284,11 +282,4 @@ public class DashboardModule extends AbstractWorkbenchModule {
         return value == null ? 0L : value;
     }
 
-    private ColumnConstraints percentColumn(double percentWidth) {
-        ColumnConstraints column = new ColumnConstraints();
-        column.setPercentWidth(percentWidth);
-        column.setHgrow(Priority.ALWAYS);
-        column.setFillWidth(true);
-        return column;
-    }
 }

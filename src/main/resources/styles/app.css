@@ -186,7 +186,7 @@
 }
 
 .header-shell {
-    -fx-background-color: rgba(255, 252, 246, 0.96);
+    -fx-background-color: linear-gradient(to right, rgba(255,252,246,0.98), rgba(251,247,239,0.96));
     -fx-border-color: rgba(46,46,46,0.08);
     -fx-border-width: 0 0 1 0;
 }
@@ -199,7 +199,7 @@
 }
 
 .header-brand-title {
-    -fx-font-size: 22px;
+    -fx-font-size: 20px;
     -fx-font-weight: bold;
     -fx-text-fill: #243631;
 }
@@ -212,6 +212,10 @@
 
 .header-meta-row {
     -fx-alignment: center-left;
+}
+
+.header-status-box {
+    -fx-alignment: center-right;
 }
 
 .header-role-chip,
@@ -238,29 +242,15 @@
     -fx-text-fill: #61572d;
 }
 
-.header-context-card {
-    -fx-background-color: rgba(255,255,255,0.78);
-    -fx-background-radius: 16px;
-    -fx-border-color: rgba(46,46,46,0.08);
-    -fx-border-radius: 16px;
-    -fx-padding: 10 14 10 14;
-}
-
-.header-context-title {
-    -fx-font-size: 12px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #243631;
-}
-
-.header-context-copy {
+.header-focus-copy {
     -fx-font-size: 12px;
     -fx-line-spacing: 2px;
     -fx-text-fill: rgba(46,46,46,0.66);
 }
 
 .header-logout-button {
-    -fx-min-width: 120px;
-    -fx-max-width: 120px;
+    -fx-min-width: 112px;
+    -fx-max-width: 112px;
 }
 
 .sidebar {
@@ -372,6 +362,14 @@
 
 .fusion-panel-body {
     -fx-padding: 18 20 20 20;
+}
+
+.workbench-inline-card-body {
+    -fx-padding: 14 16 14 16;
+}
+
+.workbench-banner-body {
+    -fx-padding: 16 18 16 18;
 }
 
 .fusion-card-title {

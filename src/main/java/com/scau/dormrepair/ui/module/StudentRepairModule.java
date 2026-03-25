@@ -29,7 +29,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -86,12 +85,7 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         Node repairFormPanel = buildRepairForm(currentStudent, historyTable);
         Node historyPanel = wrapPanel("\u6700\u8fd1\u62a5\u4fee\u8bb0\u5f55", historyTable);
 
-        GridPane contentGrid = new GridPane();
-        contentGrid.setHgap(18);
-        contentGrid.setMaxWidth(Double.MAX_VALUE);
-        contentGrid.getColumnConstraints().addAll(percentColumn(58), percentColumn(42));
-        contentGrid.add(repairFormPanel, 0, 0);
-        contentGrid.add(historyPanel, 1, 0);
+        GridPane contentGrid = createRatioWorkspace(58, 42, repairFormPanel, historyPanel);
 
         VBox content = new VBox(18, buildSummaryStrip(currentStudent), contentGrid);
         content.setFillWidth(true);
@@ -105,29 +99,14 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
     }
 
     private Node buildSummaryStrip(DemoAccount currentStudent) {
-        Label titleLabel = new Label("\u5f53\u524d\u62a5\u4fee\u4eba");
-        titleLabel.getStyleClass().add("dashboard-mini-tag");
-
-        Label nameLabel = new Label(currentStudent.displayName());
-        nameLabel.getStyleClass().add("dashboard-mini-value");
-
-        Label helperLabel = new Label("\u6f14\u793a\u0020\u0073\u0074\u0075\u0064\u0065\u006e\u0074\u0049\u0064\u003d" + currentStudent.id() + "\uff0c\u63d0\u4ea4\u65f6\u4f1a\u7528\u8fd9\u4e2a\u7a33\u5b9a\u0020\u0049\u0044\u0020\u7ed1\u5b9a\u62a5\u4fee\u5f52\u5c5e\u3002");
-        helperLabel.getStyleClass().add("dashboard-mini-description");
-        helperLabel.setWrapText(true);
-        helperLabel.setMaxWidth(Double.MAX_VALUE);
-
-        VBox content = new VBox(8, titleLabel, nameLabel, helperLabel);
-        content.setAlignment(Pos.CENTER_LEFT);
-        content.setFillWidth(true);
-
-        return FusionUiFactory.createCard(
-                content,
-                0,
-                104,
+        return createIdentityBanner(
+                "\u5f53\u524d\u62a5\u4fee\u4eba",
+                currentStudent.displayName(),
+                "\u6f14\u793a studentId=" + currentStudent.id() + "\uff0c\u63d0\u4ea4\u65f6\u4f1a\u7528\u8fd9\u4e2a\u7a33\u5b9a ID \u7ed1\u5b9a\u62a5\u4fee\u5f52\u5c5e\u3002",
                 "dashboard-mini-card",
                 "dashboard-metric-card",
                 "dashboard-metric-card-highlight"
-        ).getNode();
+        );
     }
 
     private Node buildRepairForm(DemoAccount currentStudent, TableView<RecentRepairRequestView> historyTable) {
@@ -243,20 +222,6 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         return wrapPanel("填写报修表单", formBox);
     }
 
-    private VBox createFieldBlock(String labelText, Region input) {
-        Label label = new Label(labelText);
-        label.getStyleClass().add("form-label");
-
-        input.setMaxWidth(Double.MAX_VALUE);
-        input.setMinWidth(0);
-
-        VBox block = new VBox(8, label, input);
-        block.setMaxWidth(Double.MAX_VALUE);
-        block.setMinWidth(0);
-        HBox.setHgrow(block, Priority.ALWAYS);
-        return block;
-    }
-
     private TableView<RecentRepairRequestView> buildHistoryTable() {
         TableView<RecentRepairRequestView> historyTable = new TableView<>();
         historyTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
@@ -336,15 +301,6 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
                 })
         );
         column.setMinWidth(136);
-        return column;
-    }
-
-    private ColumnConstraints percentColumn(double percentWidth) {
-        ColumnConstraints column = new ColumnConstraints();
-        column.setPercentWidth(percentWidth);
-        column.setHgrow(Priority.ALWAYS);
-        column.setFillWidth(true);
-        column.setMinWidth(0);
         return column;
     }
 

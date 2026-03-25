@@ -26,7 +26,6 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -79,13 +78,12 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
         TableView<RecentRepairRequestView> pendingTable = buildPendingTable();
         refreshPendingRequests(pendingTable);
 
-        GridPane contentGrid = new GridPane();
-        contentGrid.setHgap(18);
-        contentGrid.setMinWidth(0);
-        contentGrid.setMaxWidth(Double.MAX_VALUE);
-        contentGrid.getColumnConstraints().addAll(percentColumn(44), percentColumn(56));
-        contentGrid.add(buildDispatchForm(currentAdmin, pendingTable), 0, 0);
-        contentGrid.add(wrapPanel("\u5f85\u6d3e\u5355\u5217\u8868", pendingTable), 1, 0);
+        GridPane contentGrid = createRatioWorkspace(
+                44,
+                56,
+                buildDispatchForm(currentAdmin, pendingTable),
+                wrapPanel("\u5f85\u6d3e\u5355\u5217\u8868", pendingTable)
+        );
 
         return createPage(
                 "管理员派单工作区",
@@ -192,7 +190,7 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
 
         VBox formBox = new VBox(
                 14,
-                wrapInlinePanel("\u5f53\u524d\u9009\u62e9", summaryBox),
+                createInlineSummaryCard("\u5f53\u524d\u9009\u62e9", summaryBox, "dashboard-mini-card", "dashboard-mini-soft"),
                 createFieldBlock("\u7ef4\u4fee\u5458", workerBox),
                 createFieldBlock("\u4f18\u5148\u7ea7", priorityBox),
                 createFieldBlock("派单说明", assignmentNoteArea),
@@ -200,25 +198,6 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
         );
 
         return wrapPanel("填写派单信息", formBox);
-    }
-
-    private Node wrapInlinePanel(String title, Node content) {
-        Label titleLabel = new Label(title);
-        titleLabel.getStyleClass().add("dashboard-mini-tag");
-
-        VBox box = new VBox(10, titleLabel, content);
-        return FusionUiFactory.createCard(box, 0, 0, "dashboard-mini-card", "dashboard-mini-soft").getNode();
-    }
-
-    private VBox createFieldBlock(String labelText, Region input) {
-        Label label = new Label(labelText);
-        label.getStyleClass().add("form-label");
-
-        input.setMaxWidth(Double.MAX_VALUE);
-
-        VBox block = new VBox(8, label, input);
-        block.setMaxWidth(Double.MAX_VALUE);
-        return block;
     }
 
     private TableView<RecentRepairRequestView> buildPendingTable() {
@@ -277,11 +256,4 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
         return column;
     }
 
-    private ColumnConstraints percentColumn(double percentWidth) {
-        ColumnConstraints constraints = new ColumnConstraints();
-        constraints.setPercentWidth(percentWidth);
-        constraints.setFillWidth(true);
-        constraints.setHgrow(Priority.ALWAYS);
-        return constraints;
-    }
 }

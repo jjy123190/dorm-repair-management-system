@@ -26,7 +26,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
-import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -87,13 +86,12 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
         TableView<ActiveWorkOrderView> workOrderTable = buildWorkOrderTable();
         refreshWorkOrders(workOrderTable, currentWorker.id());
 
-        GridPane contentGrid = new GridPane();
-        contentGrid.setHgap(18);
-        contentGrid.setMinWidth(0);
-        contentGrid.setMaxWidth(Double.MAX_VALUE);
-        contentGrid.getColumnConstraints().addAll(percentColumn(42), percentColumn(58));
-        contentGrid.add(buildStatusForm(currentWorker, workOrderTable), 0, 0);
-        contentGrid.add(wrapPanel("\u6211\u7684\u5728\u9014\u5de5\u5355", workOrderTable), 1, 0);
+        GridPane contentGrid = createRatioWorkspace(
+                42,
+                58,
+                buildStatusForm(currentWorker, workOrderTable),
+                wrapPanel("\u6211\u7684\u5728\u9014\u5de5\u5355", workOrderTable)
+        );
 
         return createPage(
                 "维修员处理工作区",
@@ -191,32 +189,13 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
 
         VBox formBox = new VBox(
                 14,
-                wrapInlinePanel("\u5f53\u524d\u5de5\u5355", summaryBox),
+                createInlineSummaryCard("\u5f53\u524d\u5de5\u5355", summaryBox, "dashboard-mini-card", "dashboard-mini-soft"),
                 createFieldBlock("\u66f4\u65b0\u72b6\u6001", statusBox),
                 createFieldBlock("处理说明", recordNoteArea),
                 actionRow
         );
 
         return wrapPanel("填写处理结果", formBox);
-    }
-
-    private Node wrapInlinePanel(String title, Node content) {
-        Label titleLabel = new Label(title);
-        titleLabel.getStyleClass().add("dashboard-mini-tag");
-
-        VBox box = new VBox(10, titleLabel, content);
-        return FusionUiFactory.createCard(box, 0, 0, "dashboard-mini-card", "dashboard-mini-soft").getNode();
-    }
-
-    private VBox createFieldBlock(String labelText, Region input) {
-        Label label = new Label(labelText);
-        label.getStyleClass().add("form-label");
-
-        input.setMaxWidth(Double.MAX_VALUE);
-
-        VBox block = new VBox(8, label, input);
-        block.setMaxWidth(Double.MAX_VALUE);
-        return block;
     }
 
     private TableView<ActiveWorkOrderView> buildWorkOrderTable() {
@@ -263,11 +242,4 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
         return column;
     }
 
-    private ColumnConstraints percentColumn(double percentWidth) {
-        ColumnConstraints constraints = new ColumnConstraints();
-        constraints.setPercentWidth(percentWidth);
-        constraints.setFillWidth(true);
-        constraints.setHgrow(Priority.ALWAYS);
-        return constraints;
-    }
 }
