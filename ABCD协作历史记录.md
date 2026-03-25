@@ -208,3 +208,33 @@
   - 已 push
   - 提交号：`2add28f`
 
+### 2026-03-25 20:36 | A
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/ui/module/StudentRepairModule.java`
+  - `src/main/java/com/scau/dormrepair/domain/command/CreateRepairRequestCommand.java`
+  - `src/main/java/com/scau/dormrepair/domain/entity/RepairRequest.java`
+  - `src/main/java/com/scau/dormrepair/domain/entity/DormBuilding.java`
+  - `src/main/java/com/scau/dormrepair/service/impl/RepairRequestServiceImpl.java`
+  - `src/main/java/com/scau/dormrepair/common/AppContext.java`
+  - `src/main/java/com/scau/dormrepair/config/DatabaseConfig.java`
+  - `src/main/java/com/scau/dormrepair/config/SchemaCompatibilitySupport.java`
+  - `src/main/java/com/scau/dormrepair/mapper/DormBuildingMapper.java`
+  - `src/main/java/com/scau/dormrepair/service/DormCatalogService.java`
+  - `src/main/java/com/scau/dormrepair/service/impl/DormCatalogServiceImpl.java`
+  - `src/main/resources/mapper/DormBuildingMapper.xml`
+  - `src/main/resources/mapper/RepairRequestMapper.xml`
+  - `sql/mysql/01_init_schema_v1.sql`
+  - `项目协作根基.md`
+- 完成内容
+  - 学生报修页改成 `宿舍区 -> 宿舍楼 -> 房间号` 的固定链路，不再手填楼栋文本
+  - 新增宿舍资料查询 service / mapper，宿舍区和楼栋下拉直接从数据库读取
+  - `repair_requests` 增加 `dorm_area_snapshot`，列表位置展示同步改成 `宿舍区 + 楼栋 + 房间`
+  - `SchemaCompatibilitySupport` 启动时会自动补 5 个宿舍区、每区 15 栋楼的种子数据
+  - 本机 MySQL 已验证：`repair_requests.dorm_area_snapshot` 已补上，`dorm_buildings` 当前共 `75` 条
+- 影响提醒 / 下一步
+  - 学生端现在依赖 `dorm_buildings` 基础资料，后面如果要做房间资料维护，优先在这套资料层上继续扩
+  - 当前运行中的旧 JavaFX 窗口已经全部关掉，并重新拉起了最新实例，避免看到上一次残留界面
+- Push 结果
+  - 待 push
+  - 功能提交号：`a2c1994`
+
