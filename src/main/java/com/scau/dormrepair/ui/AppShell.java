@@ -15,7 +15,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javafx.animation.FadeTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
@@ -28,15 +27,12 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.util.Duration;
 
 /**
  * 主壳层统一处理登录入口、模块导航和工作区切换。
  * 这里不再重建整个窗口，只替换中间模块内容。
  */
 public class AppShell {
-
-    private static final Duration MODULE_SWITCH_DURATION = Duration.millis(90);
 
     private final AppContext appContext;
     private final AppSession appSession;
@@ -130,7 +126,7 @@ public class AppShell {
 
         updateHeader();
         updateSidebarSelection();
-        showModule(activeModule, false);
+        showModule(activeModule);
     }
 
     private VBox buildHeader() {
@@ -246,7 +242,7 @@ public class AppShell {
         activeModule = module;
         updateHeader();
         updateSidebarSelection();
-        showModule(module, true);
+        showModule(module);
     }
 
     private void updateHeader() {
@@ -276,7 +272,7 @@ public class AppShell {
         }
     }
 
-    private void showModule(WorkbenchModule module, boolean animate) {
+    private void showModule(WorkbenchModule module) {
         Parent nextContent = loadModuleView(module);
         Parent currentContent = moduleHost.getChildren().isEmpty()
                 ? null
@@ -286,7 +282,7 @@ public class AppShell {
             return;
         }
 
-        switchContent(moduleHost, nextContent, animate);
+        switchContent(moduleHost, nextContent);
     }
 
     private Parent loadModuleView(WorkbenchModule module) {
@@ -298,20 +294,8 @@ public class AppShell {
         return moduleViewCache.computeIfAbsent(module.moduleCode(), ignored -> module.createView());
     }
 
-    private void switchContent(StackPane host, Parent nextContent, boolean animate) {
-        if (!animate || host.getChildren().isEmpty()) {
-            host.getChildren().setAll(nextContent);
-            return;
-        }
-
-        nextContent.setOpacity(0);
+    private void switchContent(StackPane host, Parent nextContent) {
         host.getChildren().setAll(nextContent);
-
-        // 只保留短淡入，不做位移动画，避免“卡片自己在动”的观感。
-        FadeTransition fadeTransition = new FadeTransition(MODULE_SWITCH_DURATION, nextContent);
-        fadeTransition.setFromValue(0);
-        fadeTransition.setToValue(1);
-        fadeTransition.play();
     }
 
     private List<WorkbenchModule> availableModules() {

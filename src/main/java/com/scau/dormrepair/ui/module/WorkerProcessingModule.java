@@ -26,6 +26,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -85,18 +87,18 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
         TableView<ActiveWorkOrderView> workOrderTable = buildWorkOrderTable();
         refreshWorkOrders(workOrderTable, currentWorker.id());
 
-        HBox contentRow = new HBox(
-                18,
-                buildStatusForm(currentWorker, workOrderTable),
-                wrapPanel("\u6211\u7684\u5728\u9014\u5de5\u5355", workOrderTable)
-        );
-        HBox.setHgrow(contentRow.getChildren().get(0), Priority.ALWAYS);
-        HBox.setHgrow(contentRow.getChildren().get(1), Priority.ALWAYS);
+        GridPane contentGrid = new GridPane();
+        contentGrid.setHgap(18);
+        contentGrid.setMinWidth(0);
+        contentGrid.setMaxWidth(Double.MAX_VALUE);
+        contentGrid.getColumnConstraints().addAll(percentColumn(42), percentColumn(58));
+        contentGrid.add(buildStatusForm(currentWorker, workOrderTable), 0, 0);
+        contentGrid.add(wrapPanel("\u6211\u7684\u5728\u9014\u5de5\u5355", workOrderTable), 1, 0);
 
         return createPage(
                 "维修员处理工作区",
                 "\u53f3\u4fa7\u53ea\u663e\u793a\u5f53\u524d\u7ef4\u4fee\u5458\u81ea\u5df1\u7684\u6d3b\u52a8\u5de5\u5355\uff1b\u5de6\u4fa7\u66f4\u65b0\u72b6\u6001\u540e\uff0c\u8868\u683c\u4f1a\u7acb\u523b\u5237\u65b0\uff0c\u5df2\u5b8c\u6210\u5de5\u5355\u4f1a\u81ea\u52a8\u9000\u51fa\u6d3b\u52a8\u5217\u8868\u3002",
-                contentRow
+                contentGrid
         );
     }
 
@@ -259,5 +261,13 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
                 Bindings.createStringBinding(() -> getter.apply(cell.getValue()))
         );
         return column;
+    }
+
+    private ColumnConstraints percentColumn(double percentWidth) {
+        ColumnConstraints constraints = new ColumnConstraints();
+        constraints.setPercentWidth(percentWidth);
+        constraints.setFillWidth(true);
+        constraints.setHgrow(Priority.ALWAYS);
+        return constraints;
     }
 }

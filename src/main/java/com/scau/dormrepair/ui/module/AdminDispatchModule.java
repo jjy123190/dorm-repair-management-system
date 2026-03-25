@@ -26,6 +26,8 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -77,18 +79,18 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
         TableView<RecentRepairRequestView> pendingTable = buildPendingTable();
         refreshPendingRequests(pendingTable);
 
-        HBox contentRow = new HBox(
-                18,
-                buildDispatchForm(currentAdmin, pendingTable),
-                wrapPanel("\u5f85\u6d3e\u5355\u5217\u8868", pendingTable)
-        );
-        HBox.setHgrow(contentRow.getChildren().get(0), Priority.ALWAYS);
-        HBox.setHgrow(contentRow.getChildren().get(1), Priority.ALWAYS);
+        GridPane contentGrid = new GridPane();
+        contentGrid.setHgap(18);
+        contentGrid.setMinWidth(0);
+        contentGrid.setMaxWidth(Double.MAX_VALUE);
+        contentGrid.getColumnConstraints().addAll(percentColumn(44), percentColumn(56));
+        contentGrid.add(buildDispatchForm(currentAdmin, pendingTable), 0, 0);
+        contentGrid.add(wrapPanel("\u5f85\u6d3e\u5355\u5217\u8868", pendingTable), 1, 0);
 
         return createPage(
                 "管理员派单工作区",
                 "\u5148\u4ece\u53f3\u4fa7\u6311\u4e00\u6761\u5f85\u6d3e\u5355\u62a5\u4fee\uff0c\u518d\u9009\u7ef4\u4fee\u5458\u548c\u4f18\u5148\u7ea7\uff0c\u628a\u62a5\u4fee\u6b63\u5f0f\u6d41\u8f6c\u6210\u5de5\u5355\u3002",
-                contentRow
+                contentGrid
         );
     }
 
@@ -273,5 +275,13 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
                 })
         );
         return column;
+    }
+
+    private ColumnConstraints percentColumn(double percentWidth) {
+        ColumnConstraints constraints = new ColumnConstraints();
+        constraints.setPercentWidth(percentWidth);
+        constraints.setFillWidth(true);
+        constraints.setHgrow(Priority.ALWAYS);
+        return constraints;
     }
 }

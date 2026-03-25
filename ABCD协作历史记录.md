@@ -117,3 +117,25 @@
   - 提交号：以本次 push 后的最新提交为准
 - 下一步：
   - 继续收首页和业务页里仍然偏丑的默认控件，优先处理表格和输入框的廉价感
+
+### 2026-03-25 17:15 | A
+- 改动文件：
+  - `src/main/java/com/scau/dormrepair/ui/support/UiMotion.java`
+  - `src/main/java/com/scau/dormrepair/ui/AppShell.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/AdminDispatchModule.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/WorkerProcessingModule.java`
+  - `src/main/resources/styles/app.css`
+- 完成内容：
+  - 全局排查了 UI 卡顿和组件乱动的根因，并直接收掉最明显的 4 处
+  - 下拉框不再给弹层做位移和缩放动画，避免“自己变大、自己移动”
+  - 页面切换去掉淡入，改成直接静态替换
+  - 管理员页和维修页的左右区块从弹性 `HBox` 改成固定比例 `GridPane`
+  - 全局卡片、对话框、登录页和按钮的重阴影全部减掉，降低重绘压力
+- 影响提醒：
+  - 这次同时动了 `UiMotion.java` 和 `app.css`，B / C 如果本地还带旧下拉动画，先 pull 最新再看交互
+  - 目前次一级风险点还剩 `TableView.CONSTRAINED_RESIZE_POLICY`，后面如果表格宽度继续抖，再继续改列宽策略
+- Push 结果：
+  - 本次 A 改动将随当前这轮提交一起推送
+  - 提交号：以本次 push 后的最新提交为准
+- 下一步：
+  - 继续处理表格列宽重算和个别文本溢出点，把剩余的“抖”和“卡”清到最低

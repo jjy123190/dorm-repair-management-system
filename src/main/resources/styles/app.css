@@ -16,7 +16,7 @@
     -fx-background-radius: 30px;
     -fx-border-radius: 30px;
     -fx-border-color: rgba(255,255,255,0.08);
-    -fx-effect: dropshadow(gaussian, rgba(24,30,27,0.22), 28, 0.18, 0, 12);
+    -fx-effect: none;
 }
 
 .login-hero-chip {
@@ -103,7 +103,7 @@
     -fx-background-radius: 30px;
     -fx-border-radius: 30px;
     -fx-border-color: rgba(46,46,46,0.08);
-    -fx-effect: dropshadow(gaussian, rgba(25,25,25,0.14), 24, 0.14, 0, 10);
+    -fx-effect: none;
 }
 
 .login-entry-chip {
@@ -337,7 +337,7 @@
 }
 
 .fusion-node {
-    -fx-effect: dropshadow(gaussian, rgba(24, 30, 27, 0.06), 14, 0.10, 0, 4);
+    -fx-effect: none;
 }
 
 .fusion-card-shell {
@@ -349,7 +349,7 @@
 }
 
 .fusion-metric-card {
-    -fx-effect: dropshadow(gaussian, rgba(24, 30, 27, 0.05), 12, 0.10, 0, 4);
+    -fx-effect: none;
 }
 
 .fusion-panel-box {
@@ -357,7 +357,7 @@
     -fx-border-color: rgba(46,46,46,0.07);
     -fx-border-radius: 20px;
     -fx-background-radius: 20px;
-    -fx-effect: dropshadow(gaussian, rgba(24, 30, 27, 0.05), 12, 0.10, 0, 4);
+    -fx-effect: none;
 }
 
 .fusion-card-body,
@@ -424,7 +424,7 @@
 }
 
 .fusion-button-primary {
-    -fx-effect: dropshadow(gaussian, rgba(46, 46, 46, 0.16), 14, 0.18, 0, 6);
+    -fx-effect: none;
 }
 
 .fusion-button-ghost {
@@ -617,7 +617,7 @@
     -fx-background-radius: 24px;
     -fx-border-color: rgba(167,205,184,0.18);
     -fx-border-radius: 24px;
-    -fx-effect: dropshadow(gaussian, rgba(21, 28, 25, 0.18), 24, 0.14, 0, 10);
+    -fx-effect: none;
 }
 
 .dashboard-hero-body {
@@ -671,7 +671,7 @@
     -fx-background-radius: 20px;
     -fx-border-color: rgba(46,46,46,0.08);
     -fx-border-radius: 20px;
-    -fx-effect: dropshadow(gaussian, rgba(24,30,27,0.05), 12, 0.10, 0, 4);
+    -fx-effect: none;
 }
 
 .dashboard-spotlight-card-focus {
@@ -706,7 +706,7 @@
     -fx-background-radius: 18px;
     -fx-border-color: rgba(46,46,46,0.08);
     -fx-border-radius: 18px;
-    -fx-effect: dropshadow(gaussian, rgba(24,30,27,0.05), 10, 0.08, 0, 3);
+    -fx-effect: none;
 }
 
 .dashboard-metric-card-highlight {
@@ -750,7 +750,7 @@
     -fx-background-radius: 20px;
     -fx-border-color: rgba(46,46,46,0.10);
     -fx-border-radius: 20px;
-    -fx-effect: dropshadow(gaussian, rgba(21,28,25,0.12), 20, 0.14, 0, 8);
+    -fx-effect: none;
 }
 
 .dialog-shell-info {
