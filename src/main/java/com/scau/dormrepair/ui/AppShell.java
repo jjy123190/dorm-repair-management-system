@@ -21,6 +21,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.OverrunStyle;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -48,6 +49,9 @@ public class AppShell {
     private StackPane moduleHost;
     private Label roleBadgeLabel;
     private Label userLabel;
+    private Label moduleChipLabel;
+    private Label headerContextTitleLabel;
+    private Label headerContextCopyLabel;
     private Label moduleHintLabel;
     private WorkbenchModule activeModule;
     private UserRole renderedRole;
@@ -130,34 +134,72 @@ public class AppShell {
     }
 
     private VBox buildHeader() {
-        Label titleLabel = new Label("宿舍报修与工单管理系统");
-        titleLabel.getStyleClass().add("page-title");
+        Label eyebrowLabel = new Label("DESKTOP WORKBENCH");
+        eyebrowLabel.getStyleClass().add("header-brand-eyebrow");
 
-        Label subtitleLabel = new Label("JavaFX + MyBatis 桌面工作台");
-        subtitleLabel.getStyleClass().add("page-subtitle");
+        Label titleLabel = new Label("宿舍报修与工单管理系统");
+        titleLabel.getStyleClass().add("header-brand-title");
+
+        Label subtitleLabel = new Label("把学生报修、宿管派单和维修闭环统一到同一个桌面壳层里，顶部只保留当前演示真正需要的信息。");
+        subtitleLabel.getStyleClass().add("header-brand-subtitle");
+        subtitleLabel.setWrapText(true);
+        subtitleLabel.setMaxWidth(420);
+
+        VBox brandBox = new VBox(4, eyebrowLabel, titleLabel, subtitleLabel);
+        brandBox.setAlignment(Pos.CENTER_LEFT);
+        brandBox.setMaxWidth(Double.MAX_VALUE);
 
         roleBadgeLabel = new Label();
-        roleBadgeLabel.getStyleClass().add("role-badge");
+        roleBadgeLabel.getStyleClass().add("header-role-chip");
 
         userLabel = new Label();
-        userLabel.getStyleClass().add("plain-text");
-        userLabel.setMaxWidth(Double.MAX_VALUE);
+        userLabel.getStyleClass().add("header-user-chip");
+        userLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
+        userLabel.setMaxWidth(220);
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
+        moduleChipLabel = new Label();
+        moduleChipLabel.getStyleClass().add("header-module-chip");
+        moduleChipLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
+        moduleChipLabel.setMaxWidth(180);
 
-        var logoutButton = FusionUiFactory.createGhostButton("退出登录", 132, 40, () -> {
+        HBox metaRow = new HBox(8, roleBadgeLabel, userLabel, moduleChipLabel);
+        metaRow.getStyleClass().add("header-meta-row");
+        metaRow.setAlignment(Pos.CENTER_LEFT);
+
+        headerContextTitleLabel = new Label();
+        headerContextTitleLabel.getStyleClass().add("header-context-title");
+
+        headerContextCopyLabel = new Label();
+        headerContextCopyLabel.getStyleClass().add("header-context-copy");
+        headerContextCopyLabel.setWrapText(true);
+        headerContextCopyLabel.setMaxWidth(280);
+
+        VBox contextCard = new VBox(4, headerContextTitleLabel, headerContextCopyLabel);
+        contextCard.getStyleClass().add("header-context-card");
+        contextCard.setAlignment(Pos.CENTER_LEFT);
+
+        var logoutButton = FusionUiFactory.createGhostButton("退出登录", 120, 38, () -> {
             activeModule = null;
             appSession.logout();
         }).getNode();
         logoutButton.getStyleClass().add("header-logout-button");
 
-        HBox statusRow = new HBox(12, roleBadgeLabel, userLabel, spacer, logoutButton);
-        statusRow.setAlignment(Pos.CENTER_LEFT);
+        HBox actionRow = new HBox(12, contextCard, logoutButton);
+        actionRow.setAlignment(Pos.CENTER_RIGHT);
 
-        VBox headerBox = new VBox(6, titleLabel, subtitleLabel, statusRow);
-        headerBox.getStyleClass().add("header-box");
-        headerBox.setPadding(new Insets(14, 22, 12, 22));
+        VBox summaryBox = new VBox(10, metaRow, actionRow);
+        summaryBox.setAlignment(Pos.CENTER_RIGHT);
+        summaryBox.setMinWidth(360);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox headerRow = new HBox(20, brandBox, spacer, summaryBox);
+        headerRow.setAlignment(Pos.CENTER_LEFT);
+
+        VBox headerBox = new VBox(headerRow);
+        headerBox.getStyleClass().add("header-shell");
+        headerBox.setPadding(new Insets(16, 22, 14, 22));
         return headerBox;
     }
 
@@ -202,13 +244,23 @@ public class AppShell {
         }
 
         activeModule = module;
+        updateHeader();
         updateSidebarSelection();
         showModule(module, true);
     }
 
     private void updateHeader() {
-        roleBadgeLabel.setText(appSession.getCurrentRole().displayName());
-        userLabel.setText("当前演示身份: " + appSession.getDisplayName());
+        UserRole currentRole = appSession.getCurrentRole();
+        String moduleName = activeModule == null ? "首页概览" : activeModule.moduleName();
+        String moduleDescription = activeModule == null
+                ? currentRole.displayName() + "当前还没有模块上下文。"
+                : activeModule.moduleDescription();
+
+        roleBadgeLabel.setText(currentRole.displayName());
+        userLabel.setText("演示身份 · " + appSession.getDisplayName());
+        moduleChipLabel.setText(moduleName);
+        headerContextTitleLabel.setText("当前聚焦 · " + moduleName);
+        headerContextCopyLabel.setText(moduleDescription);
     }
 
     private void updateSidebarSelection() {
@@ -255,7 +307,7 @@ public class AppShell {
         nextContent.setOpacity(0);
         host.getChildren().setAll(nextContent);
 
-        // 只留短淡入，不做位移动画，避免“卡片自己在动”的观感。
+        // 只保留短淡入，不做位移动画，避免“卡片自己在动”的观感。
         FadeTransition fadeTransition = new FadeTransition(MODULE_SWITCH_DURATION, nextContent);
         fadeTransition.setFromValue(0);
         fadeTransition.setToValue(1);
@@ -285,6 +337,9 @@ public class AppShell {
         moduleHost = null;
         roleBadgeLabel = null;
         userLabel = null;
+        moduleChipLabel = null;
+        headerContextTitleLabel = null;
+        headerContextCopyLabel = null;
         moduleHintLabel = null;
     }
 }

@@ -181,34 +181,82 @@
     -fx-text-fill: rgba(46,46,46,0.54);
 }
 
-.header-box {
-    -fx-background-color: rgba(255, 252, 246, 0.94);
+.header-shell {
+    -fx-background-color: rgba(255, 252, 246, 0.96);
     -fx-border-color: rgba(46,46,46,0.08);
     -fx-border-width: 0 0 1 0;
 }
 
-.header-logout-button {
-    -fx-min-width: 132px;
-}
-
-.page-title {
-    -fx-font-size: 26px;
+.header-brand-eyebrow {
+    -fx-font-size: 10px;
     -fx-font-weight: bold;
-    -fx-text-fill: #2e2e2e;
+    -fx-text-fill: #6aa087;
+    -fx-letter-spacing: 1.2px;
 }
 
-.page-subtitle {
+.header-brand-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #243631;
+}
+
+.header-brand-subtitle {
     -fx-font-size: 12px;
-    -fx-text-fill: #6c6c6c;
+    -fx-text-fill: rgba(46,46,46,0.66);
+    -fx-line-spacing: 3px;
 }
 
-.role-badge {
-    -fx-background-color: rgba(232,223,152,0.85);
+.header-meta-row {
+    -fx-alignment: center-left;
+}
+
+.header-role-chip,
+.header-user-chip,
+.header-module-chip {
     -fx-background-radius: 999px;
     -fx-padding: 6 11 6 11;
     -fx-font-size: 11px;
     -fx-font-weight: bold;
-    -fx-text-fill: #2e2e2e;
+}
+
+.header-role-chip {
+    -fx-background-color: rgba(167,205,184,0.34);
+    -fx-text-fill: #274137;
+}
+
+.header-user-chip {
+    -fx-background-color: rgba(46,46,46,0.06);
+    -fx-text-fill: rgba(46,46,46,0.78);
+}
+
+.header-module-chip {
+    -fx-background-color: rgba(232,223,152,0.48);
+    -fx-text-fill: #61572d;
+}
+
+.header-context-card {
+    -fx-background-color: rgba(255,255,255,0.78);
+    -fx-background-radius: 16px;
+    -fx-border-color: rgba(46,46,46,0.08);
+    -fx-border-radius: 16px;
+    -fx-padding: 10 14 10 14;
+}
+
+.header-context-title {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #243631;
+}
+
+.header-context-copy {
+    -fx-font-size: 12px;
+    -fx-line-spacing: 2px;
+    -fx-text-fill: rgba(46,46,46,0.66);
+}
+
+.header-logout-button {
+    -fx-min-width: 120px;
+    -fx-max-width: 120px;
 }
 
 .sidebar {
@@ -687,3 +735,4 @@
 .dashboard-metric-row {
     -fx-padding: 2 0 0 0;
 }
+

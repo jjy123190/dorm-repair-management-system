@@ -33,6 +33,10 @@ public final class UiAlerts {
         show(AlertTone.ERROR, title, UiErrorMessages.resolve(content));
     }
 
+    public static void error(String title, Throwable throwable) {
+        show(AlertTone.ERROR, title, UiErrorMessages.resolve(throwable));
+    }
+
     private static void show(AlertTone tone, String title, String content) {
         Window owner = resolveOwner();
 

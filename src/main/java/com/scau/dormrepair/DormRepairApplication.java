@@ -2,6 +2,7 @@ package com.scau.dormrepair;
 
 import com.scau.dormrepair.common.AppContext;
 import com.scau.dormrepair.ui.AppShell;
+import com.scau.dormrepair.ui.support.UiAlerts;
 import com.scau.dormrepair.ui.theme.DormVfxTheme;
 import io.vproxy.vfx.theme.Theme;
 import io.vproxy.vfx.ui.scene.VScene;
@@ -10,8 +11,8 @@ import io.vproxy.vfx.ui.stage.VStage;
 import io.vproxy.vfx.ui.stage.VStageInitParams;
 import io.vproxy.vfx.util.FXUtils;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Parent;
-import javafx.scene.control.Alert;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 
@@ -32,6 +33,7 @@ public class DormRepairApplication extends Application {
 
             VStage stage = new VStage(primaryStage, new VStageInitParams().setInitialScene(mainScene));
             stage.setTitle(appContext.properties().title());
+            stage.useLightBorder();
 
             if (appRoot instanceof Region region) {
                 FXUtils.observeWidthHeight(mainScene.getContentPane(), region);
@@ -76,10 +78,8 @@ public class DormRepairApplication extends Application {
     }
 
     private void showStartupError(Exception exception) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("启动失败");
-        alert.setHeaderText("宿舍报修与工单管理系统未能启动");
-        alert.setContentText(exception.getMessage());
-        alert.showAndWait();
+        // 启动失败也统一走项目自己的弹窗风格，避免回退到系统默认 Alert。
+        UiAlerts.error("启动失败", exception);
+        Platform.exit();
     }
 }

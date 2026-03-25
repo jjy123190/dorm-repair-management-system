@@ -1,4 +1,4 @@
-﻿# ABCD协作历史记录
+# ABCD协作历史记录
 
 这份文档专门记录 `A / B / C / D` 四块协作进度。
 
@@ -83,3 +83,21 @@
   - 提交号：以本次 push 后的最新提交为准
 - 下一步：
   - A / B / C / D 后续每条日志都按新模板补 push 结果
+### 2026-03-25 16:41 | A
+- 改动文件：
+  - `src/main/java/com/scau/dormrepair/DormRepairApplication.java`
+  - `src/main/java/com/scau/dormrepair/ui/AppShell.java`
+  - `src/main/java/com/scau/dormrepair/ui/support/UiAlerts.java`
+  - `src/main/resources/styles/app.css`
+- 完成内容：
+  - 重做工作台顶部壳层，把旧的大标题头部改成更紧凑的品牌区 + 当前模块摘要栏
+  - 启动失败不再回退系统默认 Alert，统一走项目自己的提示弹窗
+  - 同步补了 header 这层的新样式类，收紧退出按钮和角色/模块信息展示
+- 影响提醒：
+  - 这次动了 `AppShell.java` 和 `app.css`，B / C 如果本地还保留旧壳层缓存，先 pull 最新再接业务页
+  - 当前 `mvn -DskipTests compile` 仍然会带机器环境尾噪，但编译结果实际是 BUILD SUCCESS
+- Push 结果：
+  - 本次 A 改动将随当前这轮提交一起推送
+  - 提交号：以本次 push 后的最新提交为准
+- 下一步：
+  - 继续收登录页和工作台首页的高级感，尤其是顶层窗口感和信息密度
