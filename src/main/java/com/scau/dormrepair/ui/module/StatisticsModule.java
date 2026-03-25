@@ -1,25 +1,29 @@
 package com.scau.dormrepair.ui.module;
 
 import com.scau.dormrepair.common.AppContext;
+import com.scau.dormrepair.domain.enums.UserRole;
 import com.scau.dormrepair.domain.view.MonthlyRepairSummary;
+import java.util.EnumSet;
+import java.util.Set;
 import javafx.collections.FXCollections;
-import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.VBox;
 
 /**
  * 月度统计模块。
  */
-public class StatisticsModule implements WorkbenchModule {
-
-    private final AppContext appContext;
+public class StatisticsModule extends AbstractWorkbenchModule {
 
     public StatisticsModule(AppContext appContext) {
-        this.appContext = appContext;
+        super(appContext);
+    }
+
+    @Override
+    public String moduleCode() {
+        return "statistics";
     }
 
     @Override
@@ -28,14 +32,18 @@ public class StatisticsModule implements WorkbenchModule {
     }
 
     @Override
+    public String moduleDescription() {
+        return "查看月度汇总、完成率和后续报表扩展入口。";
+    }
+
+    @Override
+    public Set<UserRole> supportedRoles() {
+        return EnumSet.of(UserRole.ADMIN);
+    }
+
+    @Override
     public Parent createView() {
-        VBox container = new VBox(18);
-        container.setPadding(new Insets(24));
-
-        Label titleLabel = new Label("月度统计报表");
-        titleLabel.getStyleClass().add("section-title");
-
-        Label hintLabel = new Label("当前先用表格展示月度汇总，后续如果需要再补折线图、柱状图和导出功能。");
+        Label hintLabel = new Label("当前先用表格展示月度汇总，后续如果需要，再补折线图、柱状图和导出功能。");
         hintLabel.getStyleClass().add("plain-text");
         hintLabel.setWrapText(true);
 
@@ -51,8 +59,12 @@ public class StatisticsModule implements WorkbenchModule {
                 appContext.statisticsService().listMonthlySummary(6)
         ));
 
-        container.getChildren().addAll(titleLabel, hintLabel, tableView);
-        return container;
+        return createPage(
+                "月度统计报表",
+                "统计页先保证核心汇总能展示，等数据库和前端同学后续补图表、筛选条件和导出。",
+                hintLabel,
+                wrapPanel("月度汇总", tableView)
+        );
     }
 
     private TableColumn<MonthlyRepairSummary, Object> createColumn(String title, String property) {

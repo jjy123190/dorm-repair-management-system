@@ -14,6 +14,8 @@ public interface RepairRequestService {
 
     List<RecentRepairRequestView> listLatestSubmittedRequests(int limit);
 
+    List<RecentRepairRequestView> listStudentSubmittedRequests(Long studentId, int limit);
+
     List<RecentRepairRequestView> listPendingAssignmentRequests(int limit);
 
     void submitFeedback(SubmitRepairFeedbackCommand command);

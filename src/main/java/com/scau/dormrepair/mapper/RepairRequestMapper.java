@@ -31,5 +31,10 @@ public interface RepairRequestMapper {
 
     List<RecentRepairRequestView> selectLatestSubmittedRequests(@Param("limit") int limit);
 
+    List<RecentRepairRequestView> selectStudentSubmittedRequests(
+            @Param("studentId") Long studentId,
+            @Param("limit") int limit
+    );
+
     List<RecentRepairRequestView> selectPendingAssignmentRequests(@Param("limit") int limit);
 }

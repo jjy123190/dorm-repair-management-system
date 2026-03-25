@@ -91,4 +91,21 @@
         ORDER BY wo.assigned_at DESC, wo.id DESC
         LIMIT #{limit}
     </select>
+
+    <select id="selectWorkerActiveWorkOrders" resultType="com.scau.dormrepair.domain.view.ActiveWorkOrderView">
+        SELECT
+            wo.id,
+            wo.work_order_no,
+            rr.request_no,
+            wo.worker_id,
+            wo.priority,
+            wo.status,
+            wo.assigned_at
+        FROM work_orders wo
+        LEFT JOIN repair_requests rr ON rr.id = wo.repair_request_id
+        WHERE wo.worker_id = #{workerId}
+          AND wo.status IN ('ASSIGNED', 'ACCEPTED', 'IN_PROGRESS', 'WAITING_PARTS')
+        ORDER BY wo.assigned_at DESC, wo.id DESC
+        LIMIT #{limit}
+    </select>
 </mapper>

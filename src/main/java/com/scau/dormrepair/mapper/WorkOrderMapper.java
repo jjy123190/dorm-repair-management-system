@@ -26,4 +26,9 @@ public interface WorkOrderMapper {
     );
 
     List<ActiveWorkOrderView> selectActiveWorkOrders(@Param("limit") int limit);
+
+    List<ActiveWorkOrderView> selectWorkerActiveWorkOrders(
+            @Param("workerId") Long workerId,
+            @Param("limit") int limit
+    );
 }

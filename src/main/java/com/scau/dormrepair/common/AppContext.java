@@ -2,6 +2,7 @@ package com.scau.dormrepair.common;
 
 import com.scau.dormrepair.config.AppProperties;
 import com.scau.dormrepair.config.DatabaseConfig;
+import com.scau.dormrepair.config.SchemaCompatibilitySupport;
 import com.scau.dormrepair.service.DashboardService;
 import com.scau.dormrepair.service.RepairRequestService;
 import com.scau.dormrepair.service.StatisticsService;
@@ -14,8 +15,8 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
 
 /**
- * 应用上下文负责集中装配配置、数据库和业务服务。
- * 桌面端没有 Spring 容器，这里相当于手写一个最小可控的依赖注入入口。
+ * 应用上下文。
+ * 桌面端没有 Spring 容器，这里手动装配配置、数据库和服务实例。
  */
 public final class AppContext implements AutoCloseable {
 
@@ -23,6 +24,7 @@ public final class AppContext implements AutoCloseable {
     private final HikariDataSource dataSource;
     private final SqlSessionFactory sqlSessionFactory;
     private final MyBatisExecutor myBatisExecutor;
+    private final AppSession appSession;
     private final DashboardService dashboardService;
     private final RepairRequestService repairRequestService;
     private final WorkOrderService workOrderService;
@@ -38,18 +40,17 @@ public final class AppContext implements AutoCloseable {
         this.dataSource = dataSource;
         this.sqlSessionFactory = sqlSessionFactory;
         this.myBatisExecutor = myBatisExecutor;
+        this.appSession = new AppSession();
         this.dashboardService = new DashboardServiceImpl(myBatisExecutor);
         this.repairRequestService = new RepairRequestServiceImpl(myBatisExecutor);
         this.workOrderService = new WorkOrderServiceImpl(myBatisExecutor);
         this.statisticsService = new StatisticsServiceImpl(myBatisExecutor);
     }
 
-    /**
-     * 按统一入口完成配置读取和数据库装配。
-     */
     public static AppContext bootstrap() {
         AppProperties properties = AppProperties.load();
         HikariDataSource dataSource = DatabaseConfig.createDataSource(properties);
+        SchemaCompatibilitySupport.repair(dataSource);
         SqlSessionFactory sqlSessionFactory = DatabaseConfig.createSqlSessionFactory(dataSource);
         MyBatisExecutor myBatisExecutor = new MyBatisExecutor(sqlSessionFactory);
         return new AppContext(properties, dataSource, sqlSessionFactory, myBatisExecutor);
@@ -61,6 +62,10 @@ public final class AppContext implements AutoCloseable {
 
     public SqlSessionFactory sqlSessionFactory() {
         return sqlSessionFactory;
+    }
+
+    public AppSession appSession() {
+        return appSession;
     }
 
     public DashboardService dashboardService() {

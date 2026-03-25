@@ -93,6 +93,21 @@
         LIMIT #{limit}
     </select>
 
+    <select id="selectStudentSubmittedRequests" resultType="com.scau.dormrepair.domain.view.RecentRepairRequestView">
+        SELECT
+            id,
+            request_no,
+            student_name,
+            CONCAT(building_no_snapshot, '-', room_no_snapshot) AS location_text,
+            fault_category,
+            status,
+            submitted_at
+        FROM repair_requests
+        WHERE student_id = #{studentId}
+        ORDER BY submitted_at DESC, id DESC
+        LIMIT #{limit}
+    </select>
+
     <select id="selectPendingAssignmentRequests" resultType="com.scau.dormrepair.domain.view.RecentRepairRequestView">
         SELECT
             id,

@@ -10,6 +10,9 @@
 
 ## 2. 先看哪些文件
 
+- 当前分工：优先按 [项目协作根基.md](项目协作根基.md) 里的 ABCD 拆分协作
+- 协作根基：[项目协作根基.md](项目协作根基.md)
+- 协作历史记录：[ABCD协作历史记录.md](ABCD协作历史记录.md)
 - 项目总入口：[README.md](README.md)
 - 文档总索引：[docs/README.md](docs/README.md)
 - 架构说明：[docs/architecture/系统架构与协作约定.md](docs/architecture/系统架构与协作约定.md)
@@ -20,7 +23,16 @@
 - MySQL DDL 草案：[sql/mysql/01_init_schema_v1.sql](sql/mysql/01_init_schema_v1.sql)
 - 老师资料索引：[docs/teacher-materials/README.md](docs/teacher-materials/README.md)
 
-## 3. 代码结构
+## 3. 协作启动规则
+
+- 每次开始改之前，先执行 `git pull origin main`，确保本地文件最新
+- `pull` 完后先读：
+  - [项目协作根基.md](项目协作根基.md)
+  - [ABCD协作历史记录.md](ABCD协作历史记录.md)
+- 凡是改动，结束前必须在 [ABCD协作历史记录.md](ABCD协作历史记录.md) 追加日志
+- 如果改了共享文件，日志里必须明确写出来
+
+## 4. 代码结构
 
 当前 Java 包按下面的桌面端分层组织：
 
@@ -37,7 +49,7 @@
 - `com.scau.dormrepair.ui`：JavaFX 主工作台
 - `com.scau.dormrepair.ui.module`：模块页面
 
-## 4. 分层约束
+## 5. 分层约束
 
 - `ui` 只负责界面布局、按钮事件、表格展示
 - `service.impl` 负责业务流程、状态流转、事务一致性
@@ -45,7 +57,7 @@
 - `domain.entity` 只做数据承载，不塞流程逻辑
 - 新增业务时，优先沿用 `command -> service -> mapper -> table` 这条链
 
-## 5. 数据库约束
+## 6. 数据库约束
 
 - 当前推荐最小落地方案仍然是 `8` 张核心表
 - 表名统一 `snake_case`
@@ -54,7 +66,7 @@
 - 图片正式落库走 `repair_request_images`，不要再退回单字段拼接
 - 当前仓库默认本地连接：`root / 123456 / dorm_repair_db`
 
-## 6. 当前明确未完成项
+## 7. 当前明确未完成项
 
 - 登录鉴权未落地
 - 文件上传未落地
@@ -63,7 +75,7 @@
 - 图表化统计和导出未落地
 - 初始化测试数据脚本未补
 
-## 7. 旧方案说明
+## 8. 旧方案说明
 
 - `docs/api/` 仅作历史归档，不再作为当前实现依据
 - 当前主线不要再新增 `controller / dto / repository` 那套 Web 分层

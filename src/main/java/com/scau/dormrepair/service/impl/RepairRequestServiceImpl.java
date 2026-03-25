@@ -67,6 +67,19 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     }
 
     @Override
+    public List<RecentRepairRequestView> listStudentSubmittedRequests(Long studentId, int limit) {
+        if (studentId == null) {
+            throw new BusinessException("学生ID不能为空");
+        }
+
+        // 学生端历史记录只看自己的数据，避免演示时把全站工单都混进来。
+        int safeLimit = Math.min(Math.max(limit, 1), 20);
+        return myBatisExecutor.executeRead(
+                session -> session.getMapper(RepairRequestMapper.class).selectStudentSubmittedRequests(studentId, safeLimit)
+        );
+    }
+
+    @Override
     public List<RecentRepairRequestView> listPendingAssignmentRequests(int limit) {
         int safeLimit = Math.min(Math.max(limit, 1), 20);
         return myBatisExecutor.executeRead(

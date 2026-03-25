@@ -139,6 +139,19 @@ public class WorkOrderServiceImpl implements WorkOrderService {
         );
     }
 
+    @Override
+    public List<ActiveWorkOrderView> listWorkerActiveWorkOrders(Long workerId, int limit) {
+        if (workerId == null) {
+            throw new BusinessException("维修员ID不能为空");
+        }
+
+        // 维修员工作台应该只看到派给自己的在途工单，不应该把别人的处理单混进来。
+        int safeLimit = Math.min(Math.max(limit, 1), 20);
+        return myBatisExecutor.executeRead(
+                session -> session.getMapper(WorkOrderMapper.class).selectWorkerActiveWorkOrders(workerId, safeLimit)
+        );
+    }
+
     private boolean isFinishedStatus(WorkOrderStatus workOrderStatus) {
         return workOrderStatus == WorkOrderStatus.COMPLETED
                 || workOrderStatus == WorkOrderStatus.CANCELLED

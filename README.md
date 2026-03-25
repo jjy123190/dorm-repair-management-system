@@ -1,4 +1,4 @@
-# 宿舍报修与工单管理系统
+﻿# 宿舍报修与工单管理系统
 
 当前主线已切换为 `JavaFX + MyBatis + MySQL` 桌面应用，用来突出数据库课设里的 SQL、事务、状态流转和统计查询能力，不再继续走普通的 `Spring Boot Web` 同质化路线。
 
@@ -63,6 +63,8 @@ mvn test
 
 ## 协作入口
 
+- 协作根基：`项目协作根基.md`
+- 协作历史记录：`ABCD协作历史记录.md`
 - 文档索引：`docs/README.md`
 - 协作约束：`AGENTS.md`
 - 架构说明：`docs/architecture/系统架构与协作约定.md`
@@ -73,6 +75,14 @@ mvn test
 - 数据库设计：`docs/database/MySQL最小表设计.md`
 - MySQL DDL：`sql/mysql/01_init_schema_v1.sql`
 - 老师资料：`docs/teacher-materials/README.md`
+
+## 协作前提
+
+- 每次开始改之前，先执行 `git pull origin main`，确保本地代码最新
+- `pull` 完后先读：
+  - `项目协作根基.md`
+  - `ABCD协作历史记录.md`
+- 凡是改动，结束前必须把本次进度和改动文件写进 `ABCD协作历史记录.md`
 
 ## 代码结构
 

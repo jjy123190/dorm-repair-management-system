@@ -15,4 +15,6 @@ public interface WorkOrderService {
     void updateStatus(UpdateWorkOrderStatusCommand command);
 
     List<ActiveWorkOrderView> listActiveWorkOrders(int limit);
+
+    List<ActiveWorkOrderView> listWorkerActiveWorkOrders(Long workerId, int limit);
 }
