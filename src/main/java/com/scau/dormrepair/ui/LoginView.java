@@ -14,6 +14,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.text.TextAlignment;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -232,20 +233,27 @@ public class LoginView {
     ) {
         Label titleLabel = new Label(role.displayName());
         titleLabel.getStyleClass().add("login-role-name");
+        titleLabel.setMaxWidth(Double.MAX_VALUE);
+        titleLabel.setAlignment(Pos.CENTER);
+        titleLabel.setTextAlignment(TextAlignment.CENTER);
 
         Label subtitleLabel = new Label(shortRoleHint(role));
         subtitleLabel.getStyleClass().add("login-role-copy");
         subtitleLabel.setWrapText(true);
         subtitleLabel.setMaxWidth(Double.MAX_VALUE);
+        subtitleLabel.setAlignment(Pos.CENTER);
+        subtitleLabel.setTextAlignment(TextAlignment.CENTER);
 
         VBox body = new VBox(8, titleLabel, subtitleLabel);
+        body.getStyleClass().add("login-role-card-body");
         body.setFillWidth(true);
-        body.setAlignment(Pos.TOP_LEFT);
+        body.setAlignment(Pos.CENTER);
+        body.setPadding(new Insets(16, 18, 18, 18));
 
         var card = FusionUiFactory.createActionCard(
                 body,
                 0,
-                108,
+                120,
                 () -> {
                     selectedRole.set(role);
                     nameField.setText(defaultName(role));
@@ -253,6 +261,7 @@ public class LoginView {
                 "login-role-card"
         );
         card.getNode().setMaxWidth(Double.MAX_VALUE);
+        card.getNode().setAlignment(Pos.CENTER);
         roleCards.put(role, card.getNode());
         return card.getNode();
     }

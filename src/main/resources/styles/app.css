@@ -138,6 +138,10 @@
     -fx-border-radius: 20px;
 }
 
+.login-role-card-body {
+    -fx-alignment: center;
+}
+
 .login-role-card-active {
     -fx-background-color: linear-gradient(to bottom right, rgba(167,205,184,0.30), rgba(232,223,152,0.32));
     -fx-border-color: rgba(167,205,184,0.48);
