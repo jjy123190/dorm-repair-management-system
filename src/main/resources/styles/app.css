@@ -615,6 +615,7 @@
     -fx-font-weight: bold;
     -fx-font-size: 11px;
     -fx-padding: 0 6 0 6;
+    -fx-alignment: CENTER;
     -fx-text-overrun: ellipsis;
 }
 
@@ -638,6 +639,13 @@
     -fx-padding: 8 10 8 10;
     -fx-font-size: 12px;
     -fx-border-color: transparent rgba(46,46,46,0.10) transparent transparent;
+}
+
+.table-view .scroll-bar:horizontal {
+    -fx-opacity: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-padding: 0;
 }
 
 .dashboard-hero-card {
