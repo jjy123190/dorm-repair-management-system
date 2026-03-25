@@ -322,3 +322,31 @@
   - 已 push
   - 提交号：`025bd08`
 
+### 2026-03-25 21:30 | A
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/ui/module/AbstractWorkbenchModule.java`
+  - `src/main/resources/styles/app.css`
+- 完成内容
+  - 共享表格从 `UNCONSTRAINED_RESIZE_POLICY` 改回受控缩放，列宽按固定比例收进可视区域
+  - 去掉会把表格撑出横向滚动的宽度绑定，改成固定比例首选宽度作为统一基线
+  - 表头标题、表体单元格和表格横向滚动条一起收口，避免表头表体继续显得歪
+- 影响提醒 / 下一步
+  - 后续不要再把共享表格切回 `UNCONSTRAINED_RESIZE_POLICY`
+  - 如果某张表仍然特殊错位，要查该页单独的列定义，不要先怀疑共享 CSS
+- Push 结果
+  - 待 push
+
+### 2026-03-25 21:34 | A
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/ui/module/AbstractWorkbenchModule.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/StudentRepairHistoryModule.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/DashboardModule.java`
+- 完成内容
+  - 给共享表格底座补了“按实际行数收表高”的能力，避免记录条数很少时还撑出一大块空表
+  - 学生报修记录页和首页最近报修表改成按真实数据条数收高度，去掉半截行和多余滚动条带来的“表格歪了”观感
+- 影响提醒 / 下一步
+  - 小数据量表格优先走 `fitTableHeightToRows(...)`，不要再硬塞一个很大的固定高度
+  - 如果某张大表仍然需要滚动，再单独给那张表保留固定高度
+- Push 结果
+  - 待 push
+

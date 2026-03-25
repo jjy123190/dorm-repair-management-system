@@ -3,7 +3,6 @@ package com.scau.dormrepair.ui.module;
 import com.scau.dormrepair.common.AppContext;
 import java.util.Arrays;
 import com.scau.dormrepair.ui.component.FusionUiFactory;
-import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -163,10 +162,11 @@ public abstract class AbstractWorkbenchModule implements WorkbenchModule {
     }
 
     protected <T> void configureFixedTable(TableView<T> tableView, double prefHeight, double... columnWeights) {
-        // 表格统一走固定列比和禁拖拽策略，避免用户自己拖乱列宽、重排列顺序或把表头交互弄得很跳。
-        tableView.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
+        // 表格统一走受控缩放策略，让所有列始终收在可视区域内，避免表头和表体因为横向滚动条出现错位。
+        tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         tableView.setTableMenuButtonVisible(false);
         tableView.setEditable(false);
+        tableView.setFixedCellSize(38);
         tableView.setMinWidth(0);
         tableView.setMaxWidth(Double.MAX_VALUE);
         tableView.setPrefHeight(prefHeight);
@@ -179,11 +179,19 @@ public abstract class AbstractWorkbenchModule implements WorkbenchModule {
             column.setReorderable(false);
             column.setResizable(false);
             column.setStyle("-fx-alignment: CENTER;");
-            column.prefWidthProperty().bind(Bindings.createDoubleBinding(
-                    () -> Math.max(96, tableView.getWidth() * (weight / weightSum)),
-                    tableView.widthProperty()
-            ));
+            // 这里用固定比例的首选宽度作为“黄金分配”基线，真正铺满宽度交给 CONSTRAINED_RESIZE_POLICY 完成。
+            column.setPrefWidth(Math.max(96, 960 * (weight / weightSum)));
         }
+    }
+
+    protected void fitTableHeightToRows(TableView<?> tableView, int itemCount, int minVisibleRows, int maxVisibleRows) {
+        // 数据条数不多时，直接按可见行数收表高，避免空白行和滚动条把表头表体挤得像没对齐。
+        int visibleRows = Math.max(minVisibleRows, Math.min(maxVisibleRows, Math.max(itemCount, 1)));
+        double headerHeight = 44;
+        double totalHeight = headerHeight + visibleRows * tableView.getFixedCellSize() + 4;
+        tableView.setMinHeight(totalHeight);
+        tableView.setPrefHeight(totalHeight);
+        tableView.setMaxHeight(totalHeight);
     }
 
     private Node prepareContentNode(Node node) {

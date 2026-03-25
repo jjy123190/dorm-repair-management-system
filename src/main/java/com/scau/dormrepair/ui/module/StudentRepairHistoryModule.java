@@ -93,6 +93,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         historyTable.setItems(FXCollections.observableArrayList(
                 appContext.repairRequestService().listStudentSubmittedRequests(studentId, 20)
         ));
+        fitTableHeightToRows(historyTable, historyTable.getItems().size(), 1, 8);
     }
 
     private TableColumn<RecentRepairRequestView, String> createTextColumn(String title, String property, double minWidth) {

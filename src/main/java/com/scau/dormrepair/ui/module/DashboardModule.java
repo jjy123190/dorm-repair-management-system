@@ -80,6 +80,7 @@ public class DashboardModule extends AbstractWorkbenchModule {
         tableView.setItems(FXCollections.observableArrayList(
                 appContext.dashboardService().listRecentRepairRequests(5)
         ));
+        fitTableHeightToRows(tableView, tableView.getItems().size(), 1, 5);
 
         return createPage(
                 "系统总览",
