@@ -6,9 +6,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
@@ -17,8 +14,8 @@ import javafx.stage.StageStyle;
 import javafx.stage.Window;
 
 /**
- * 业务提示统一走项目自己的轻量弹窗。
- * 这里不再使用带标题栏的 VStage 外壳，只保留中间那张圆角卡片。
+ * 统一项目内的轻提示弹窗。
+ * 这里只保留一层圆角内容卡片，不再额外套标题栏或外层壳。
  */
 public final class UiAlerts {
 
@@ -53,31 +50,24 @@ public final class UiAlerts {
         contentLabel.setWrapText(true);
         contentLabel.setMaxWidth(Double.MAX_VALUE);
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
         Stage[] stageRef = new Stage[1];
-        var okButton = FusionUiFactory.createPrimaryButton("确定", 108, 36, () -> {
+        var okButton = FusionUiFactory.createPrimaryButton("\u786e\u5b9a", 132, 38, () -> {
             if (stageRef[0] != null) {
                 stageRef[0].close();
             }
         });
+        okButton.getNode().getStyleClass().add("dialog-confirm-button");
 
-        HBox actionRow = new HBox(12, spacer, okButton.getNode());
-        actionRow.setAlignment(Pos.CENTER_RIGHT);
+        HBox actionRow = new HBox(okButton.getNode());
+        actionRow.setAlignment(Pos.CENTER);
 
-        VBox body = new VBox(16, chipLabel, titleLabel, contentLabel, actionRow);
+        VBox body = new VBox(18, chipLabel, titleLabel, contentLabel, actionRow);
         body.getStyleClass().addAll("dialog-shell", tone.shellStyleClass);
-        body.setPadding(new Insets(20));
-        body.setPrefWidth(420);
-        body.setMaxWidth(420);
+        body.setPadding(new Insets(24, 26, 24, 26));
+        body.setPrefWidth(380);
+        body.setMaxWidth(380);
 
-        // 透明舞台只负责承载阴影和居中，视觉上只剩里层圆角卡片。
-        StackPane root = new StackPane(body);
-        root.setAlignment(Pos.CENTER);
-        root.setPadding(new Insets(18));
-
-        Scene scene = new Scene(root);
+        Scene scene = new Scene(body);
         scene.setFill(Color.TRANSPARENT);
         if (UiAlerts.class.getResource("/styles/app.css") != null) {
             scene.getStylesheets().add(UiAlerts.class.getResource("/styles/app.css").toExternalForm());
@@ -91,8 +81,6 @@ public final class UiAlerts {
             dialog.initOwner(owner);
         }
         dialog.setScene(scene);
-
-        // 不再显示外层标题栏，只在显示后按主窗口中心定位这张卡片。
         dialog.setOnShown(event -> {
             if (owner == null) {
                 dialog.centerOnScreen();
@@ -120,8 +108,8 @@ public final class UiAlerts {
     }
 
     private enum AlertTone {
-        INFO("操作提示", "dialog-chip-info", "dialog-shell-info"),
-        ERROR("失败提示", "dialog-chip-error", "dialog-shell-error");
+        INFO("\u64cd\u4f5c\u63d0\u793a", "dialog-chip-info", "dialog-shell-info"),
+        ERROR("\u5931\u8d25\u63d0\u793a", "dialog-chip-error", "dialog-shell-error");
 
         private final String chipText;
         private final String chipStyleClass;

@@ -211,11 +211,20 @@
 }
 
 .header-meta-row {
-    -fx-alignment: center-left;
+    -fx-alignment: center;
 }
 
 .header-status-box {
-    -fx-alignment: center-right;
+    -fx-alignment: center;
+}
+
+.header-summary-card {
+    -fx-alignment: center;
+    -fx-background-color: rgba(255,252,247,0.74);
+    -fx-background-radius: 18px;
+    -fx-border-color: rgba(46,46,46,0.08);
+    -fx-border-radius: 18px;
+    -fx-padding: 12 14 12 14;
 }
 
 .header-role-chip,
@@ -246,11 +255,29 @@
     -fx-font-size: 12px;
     -fx-line-spacing: 2px;
     -fx-text-fill: rgba(46,46,46,0.66);
+    -fx-text-alignment: center;
 }
 
-.header-logout-button {
-    -fx-min-width: 112px;
-    -fx-max-width: 112px;
+.header-logout-action {
+    -fx-min-width: 132px;
+    -fx-pref-width: 132px;
+    -fx-max-width: 132px;
+    -fx-min-height: 40px;
+    -fx-pref-height: 40px;
+    -fx-max-height: 40px;
+    -fx-background-color: rgba(167,205,184,0.92);
+    -fx-background-radius: 14px;
+    -fx-border-color: transparent;
+    -fx-text-fill: #243631;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-alignment: center;
+    -fx-content-display: center;
+    -fx-padding: 0;
+}
+
+.header-logout-action:hover {
+    -fx-background-color: rgba(167,205,184,1);
 }
 
 .sidebar {
@@ -749,18 +776,18 @@
 
 .dialog-shell {
     -fx-background-color: rgba(255,252,247,0.98);
-    -fx-background-radius: 20px;
-    -fx-border-color: rgba(46,46,46,0.10);
-    -fx-border-radius: 20px;
+    -fx-background-radius: 24px;
+    -fx-border-color: transparent;
+    -fx-border-radius: 24px;
     -fx-effect: none;
 }
 
 .dialog-shell-info {
-    -fx-border-color: rgba(167,205,184,0.34);
+    -fx-background-color: rgba(252,249,242,0.98);
 }
 
 .dialog-shell-error {
-    -fx-border-color: rgba(184,168,68,0.34);
+    -fx-background-color: rgba(252,249,242,0.98);
 }
 
 .dialog-chip {
@@ -790,6 +817,11 @@
     -fx-font-size: 13px;
     -fx-line-spacing: 3px;
     -fx-text-fill: rgba(46,46,46,0.80);
+}
+
+.dialog-confirm-button {
+    -fx-min-width: 132px;
+    -fx-max-width: 132px;
 }
 
 .dashboard-metric-board {

@@ -190,3 +190,21 @@
   - 已 push
   - 提交号：`5edd465`
 
+### 2026-03-25 19:58 | A
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/ui/AppShell.java`
+  - `src/main/java/com/scau/dormrepair/ui/support/UiAlerts.java`
+  - `src/main/java/com/scau/dormrepair/ui/support/UiMotion.java`
+  - `src/main/resources/styles/app.css`
+- 完成内容
+  - 头部右侧信息区改成居中摘要卡，退出按钮不再孤零零偏在一边
+  - 弹窗去掉外层壳和描边，只保留一层圆角内容卡片，确认按钮改为居中
+  - 下拉框公共入口彻底改成空动画实现，避免组件再因为弹层逻辑出现乱动错觉
+  - 同步补齐头部摘要卡、弹窗和确认按钮的主题样式
+- 影响提醒 / 下一步
+  - `AppShell.java`、`UiAlerts.java`、`UiMotion.java`、`app.css` 都属于 A 共享文件，队友改前先 pull
+  - 如果后面还出现组件“自己变大”或“位置乱飘”，优先先查共享样式和公共 support，不要先怀疑业务逻辑
+- Push 结果
+  - 未 push
+  - 提交号：待补
+

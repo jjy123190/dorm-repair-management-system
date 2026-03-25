@@ -6,29 +6,21 @@ import com.scau.dormrepair.common.DemoAccountDirectory.DemoAccount;
 import com.scau.dormrepair.domain.command.CreateRepairRequestCommand;
 import com.scau.dormrepair.domain.enums.FaultCategory;
 import com.scau.dormrepair.domain.enums.UserRole;
-import com.scau.dormrepair.domain.view.RecentRepairRequestView;
 import com.scau.dormrepair.ui.component.FusionUiFactory;
 import com.scau.dormrepair.ui.support.UiAlerts;
 import com.scau.dormrepair.ui.support.UiDisplayText;
 import com.scau.dormrepair.ui.support.UiMotion;
-import java.time.format.DateTimeFormatter;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import javafx.beans.binding.Bindings;
-import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -37,11 +29,10 @@ import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 
 /**
- * Student repair module.
+ * 学生报修页只负责提交新报修。
+ * 最近记录已经单独拆到独立页面，避免一屏里表单和表格互相抢空间。
  */
 public class StudentRepairModule extends AbstractWorkbenchModule {
-
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     public StudentRepairModule(AppContext appContext) {
         super(appContext);
@@ -54,12 +45,12 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
 
     @Override
     public String moduleName() {
-        return "学生报修";
+        return "\u63d0\u4ea4\u62a5\u4fee";
     }
 
     @Override
     public String moduleDescription() {
-        return "\u63d0\u4ea4\u81ea\u5df1\u7684\u62a5\u4fee\u7533\u8bf7\uff0c\u5e76\u67e5\u770b\u6700\u8fd1\u51e0\u6761\u5904\u7406\u8bb0\u5f55\u3002";
+        return "\u586b\u5199\u5bbf\u820d\u3001\u8054\u7cfb\u65b9\u5f0f\u548c\u6545\u969c\u63cf\u8ff0\uff0c\u63d0\u4ea4\u65b0\u7684\u62a5\u4fee\u7533\u8bf7\u3002";
     }
 
     @Override
@@ -79,21 +70,13 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
             throw new IllegalStateException("\u5b66\u751f\u8eab\u4efd\u672a\u521d\u59cb\u5316\uff0c\u65e0\u6cd5\u8fdb\u5165\u62a5\u4fee\u6a21\u5757\u3002");
         }
 
-        TableView<RecentRepairRequestView> historyTable = buildHistoryTable();
-        refreshStudentHistory(historyTable, currentStudent.id());
-
-        Node repairFormPanel = buildRepairForm(currentStudent, historyTable);
-        Node historyPanel = wrapPanel("\u6700\u8fd1\u62a5\u4fee\u8bb0\u5f55", historyTable);
-
-        GridPane contentGrid = createRatioWorkspace(58, 42, repairFormPanel, historyPanel);
-
-        VBox content = new VBox(18, buildSummaryStrip(currentStudent), contentGrid);
+        VBox content = new VBox(18, buildSummaryStrip(currentStudent), buildRepairForm(currentStudent));
         content.setFillWidth(true);
         content.setMaxWidth(Double.MAX_VALUE);
 
         return createPage(
                 "\u5b66\u751f\u62a5\u4fee\u5de5\u4f5c\u533a",
-                "\u5148\u628a\u5bbf\u820d\u4f4d\u7f6e\u3001\u8054\u7cfb\u65b9\u5f0f\u548c\u6545\u969c\u63cf\u8ff0\u8865\u9f50\uff0c\u518d\u63d0\u4ea4\u5230\u6570\u636e\u5e93\u91cc\uff1b\u53f3\u4fa7\u5386\u53f2\u8868\u53ea\u663e\u793a\u5f53\u524d\u5b66\u751f\u81ea\u5df1\u7684\u8bb0\u5f55\u3002",
+                "\u8fd9\u4e2a\u9875\u9762\u53ea\u8d1f\u8d23\u63d0\u4ea4\u62a5\u4fee\u3002\u300c\u62a5\u4fee\u8bb0\u5f55\u300d\u5df2\u72ec\u7acb\u6210\u9875\uff0c\u4e0d\u518d\u8ddf\u8868\u5355\u6324\u5728\u4e00\u5c4f\u91cc\u3002",
                 content
         );
     }
@@ -109,15 +92,15 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         );
     }
 
-    private Node buildRepairForm(DemoAccount currentStudent, TableView<RecentRepairRequestView> historyTable) {
+    private Node buildRepairForm(DemoAccount currentStudent) {
         TextField buildingField = new TextField();
-        buildingField.setPromptText("\u4f8b\u5982\u0020\u0031\u0033\u680b");
+        buildingField.setPromptText("\u4f8b\u5982 13\u680b");
 
         TextField roomField = new TextField();
-        roomField.setPromptText("例如 402");
+        roomField.setPromptText("\u4f8b\u5982 402");
 
         TextField phoneField = new TextField();
-        phoneField.setPromptText("联系电话");
+        phoneField.setPromptText("\u8054\u7cfb\u7535\u8bdd");
 
         ComboBox<FaultCategory> faultCategoryBox = new ComboBox<>();
         faultCategoryBox.setConverter(new StringConverter<>() {
@@ -132,7 +115,7 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
             }
         });
         faultCategoryBox.getItems().addAll(FaultCategory.values());
-        faultCategoryBox.setPromptText("选择故障类型");
+        faultCategoryBox.setPromptText("\u9009\u62e9\u6545\u969c\u7c7b\u578b");
         faultCategoryBox.setVisibleRowCount(6);
         faultCategoryBox.setMinHeight(44);
         faultCategoryBox.setPrefHeight(44);
@@ -152,10 +135,10 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         imageUrlsArea.setPrefRowCount(3);
         imageUrlsArea.setWrapText(true);
 
-        Button resetButton = new Button("清空表单");
+        Button resetButton = new Button("\u6e05\u7a7a\u8868\u5355");
         resetButton.getStyleClass().add("nav-button");
 
-        Node submitButton = FusionUiFactory.createPrimaryButton("提交报修申请", 180, 40, () -> {
+        Node submitButton = FusionUiFactory.createPrimaryButton("\u63d0\u4ea4\u62a5\u4fee\u7533\u8bf7", 180, 40, () -> {
             try {
                 CreateRepairRequestCommand command = new CreateRepairRequestCommand(
                         currentStudent.id(),
@@ -170,36 +153,33 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
                 );
 
                 Long repairRequestId = appContext.repairRequestService().create(command);
-                refreshStudentHistory(historyTable, currentStudent.id());
-                clearAfterSubmit(descriptionArea, imageUrlsArea, faultCategoryBox);
-                UiAlerts.info("提交成功", "报修申请已保存，记录 ID=" + repairRequestId);
+                clearAfterSubmit(buildingField, roomField, phoneField, descriptionArea, imageUrlsArea, faultCategoryBox);
+                UiAlerts.info(
+                        "\u63d0\u4ea4\u6210\u529f",
+                        "\u62a5\u4fee\u7533\u8bf7\u5df2\u4fdd\u5b58\uff0c\u8bb0\u5f55 ID=" + repairRequestId + "\u3002\u6700\u8fd1\u8bb0\u5f55\u8bf7\u53bb\u300c\u62a5\u4fee\u8bb0\u5f55\u300d\u9875\u9762\u67e5\u770b\u3002"
+                );
             } catch (RuntimeException exception) {
-                UiAlerts.error("提交失败", exception.getMessage());
+                UiAlerts.error("\u63d0\u4ea4\u5931\u8d25", exception.getMessage());
             }
         }).getNode();
 
-        resetButton.setOnAction(event -> {
-            buildingField.clear();
-            roomField.clear();
-            phoneField.clear();
-            descriptionArea.clear();
-            imageUrlsArea.clear();
-            faultCategoryBox.getSelectionModel().clearSelection();
-        });
+        resetButton.setOnAction(event ->
+                clearAfterSubmit(buildingField, roomField, phoneField, descriptionArea, imageUrlsArea, faultCategoryBox)
+        );
 
         GridPane roomRow = new GridPane();
-        roomRow.setHgap(12);
+        roomRow.setHgap(16);
         roomRow.setMinWidth(0);
         roomRow.getColumnConstraints().addAll(percentColumn(50), percentColumn(50));
-        roomRow.add(createFieldBlock("宿舍楼栋", buildingField), 0, 0);
+        roomRow.add(createFieldBlock("\u5bbf\u820d\u697c\u680b", buildingField), 0, 0);
         roomRow.add(createFieldBlock("\u623f\u95f4\u53f7", roomField), 1, 0);
 
         GridPane contactRow = new GridPane();
-        contactRow.setHgap(12);
+        contactRow.setHgap(16);
         contactRow.setMinWidth(0);
         contactRow.getColumnConstraints().addAll(percentColumn(32), percentColumn(68));
-        contactRow.add(createFieldBlock("联系电话", phoneField), 0, 0);
-        contactRow.add(createFieldBlock("故障类型", faultCategoryBox), 1, 0);
+        contactRow.add(createFieldBlock("\u8054\u7cfb\u7535\u8bdd", phoneField), 0, 0);
+        contactRow.add(createFieldBlock("\u6545\u969c\u7c7b\u578b", faultCategoryBox), 1, 0);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -209,40 +189,17 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         actionRow.setMinWidth(0);
 
         VBox formBox = new VBox(
-                12,
+                16,
                 roomRow,
                 contactRow,
-                createFieldBlock("故障描述", descriptionArea),
-                createFieldBlock("图片地址", imageUrlsArea),
+                createFieldBlock("\u6545\u969c\u63cf\u8ff0", descriptionArea),
+                createFieldBlock("\u56fe\u7247\u5730\u5740", imageUrlsArea),
                 actionRow
         );
         formBox.setFillWidth(true);
         formBox.setMaxWidth(Double.MAX_VALUE);
 
-        return wrapPanel("填写报修表单", formBox);
-    }
-
-    private TableView<RecentRepairRequestView> buildHistoryTable() {
-        TableView<RecentRepairRequestView> historyTable = new TableView<>();
-        historyTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        historyTable.setMinWidth(0);
-        historyTable.setMaxWidth(Double.MAX_VALUE);
-        historyTable.setPrefHeight(360);
-        historyTable.setPlaceholder(new Label("暂无记录"));
-        historyTable.getColumns().addAll(
-                createTextColumn("报修单号", "requestNo", 98),
-                createTextColumn("宿舍", "locationText", 88),
-                createFaultColumn(),
-                createStatusColumn(),
-                createDateTimeColumn("提交时间")
-        );
-        return historyTable;
-    }
-
-    private void refreshStudentHistory(TableView<RecentRepairRequestView> historyTable, Long studentId) {
-        historyTable.setItems(FXCollections.observableArrayList(
-                appContext.repairRequestService().listStudentSubmittedRequests(studentId, 10)
-        ));
+        return wrapPanel("\u586b\u5199\u62a5\u4fee\u8868\u5355", formBox);
     }
 
     private List<String> splitImageUrls(String rawText) {
@@ -256,52 +213,19 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
     }
 
     private void clearAfterSubmit(
+            TextField buildingField,
+            TextField roomField,
+            TextField phoneField,
             TextArea descriptionArea,
             TextArea imageUrlsArea,
             ComboBox<FaultCategory> faultCategoryBox
     ) {
+        buildingField.clear();
+        roomField.clear();
+        phoneField.clear();
         descriptionArea.clear();
         imageUrlsArea.clear();
         faultCategoryBox.getSelectionModel().clearSelection();
-    }
-
-    private TableColumn<RecentRepairRequestView, String> createTextColumn(String title, String property, double minWidth) {
-        TableColumn<RecentRepairRequestView, String> column = new TableColumn<>(title);
-        column.setCellValueFactory(new PropertyValueFactory<>(property));
-        column.setMinWidth(minWidth);
-        return column;
-    }
-
-    private TableColumn<RecentRepairRequestView, String> createFaultColumn() {
-        TableColumn<RecentRepairRequestView, String> column = new TableColumn<>("故障类型");
-        column.setCellValueFactory(cell ->
-                Bindings.createStringBinding(() -> UiDisplayText.faultCategory(cell.getValue().getFaultCategory()))
-        );
-        column.setMinWidth(96);
-        return column;
-    }
-
-    private TableColumn<RecentRepairRequestView, String> createStatusColumn() {
-        TableColumn<RecentRepairRequestView, String> column = new TableColumn<>("\u72b6\u6001");
-        column.setCellValueFactory(cell ->
-                Bindings.createStringBinding(() -> UiDisplayText.repairRequestStatus(cell.getValue().getStatus()))
-        );
-        column.setMinWidth(76);
-        return column;
-    }
-
-    private TableColumn<RecentRepairRequestView, String> createDateTimeColumn(String title) {
-        TableColumn<RecentRepairRequestView, String> column = new TableColumn<>(title);
-        column.setCellValueFactory(cell ->
-                Bindings.createStringBinding(() -> {
-                    if (cell.getValue().getSubmittedAt() == null) {
-                        return "";
-                    }
-                    return TIME_FORMATTER.format(cell.getValue().getSubmittedAt());
-                })
-        );
-        column.setMinWidth(136);
-        return column;
     }
 
     private ListCell<FaultCategory> createFaultCategoryCell() {

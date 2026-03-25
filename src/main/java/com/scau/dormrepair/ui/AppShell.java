@@ -3,10 +3,10 @@ package com.scau.dormrepair.ui;
 import com.scau.dormrepair.common.AppContext;
 import com.scau.dormrepair.common.AppSession;
 import com.scau.dormrepair.domain.enums.UserRole;
-import com.scau.dormrepair.ui.component.FusionUiFactory;
 import com.scau.dormrepair.ui.module.AdminDispatchModule;
 import com.scau.dormrepair.ui.module.DashboardModule;
 import com.scau.dormrepair.ui.module.StatisticsModule;
+import com.scau.dormrepair.ui.module.StudentRepairHistoryModule;
 import com.scau.dormrepair.ui.module.StudentRepairModule;
 import com.scau.dormrepair.ui.module.WorkbenchModule;
 import com.scau.dormrepair.ui.module.WorkerProcessingModule;
@@ -29,8 +29,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 /**
- * 顶层壳层只负责三件事：身份切换、模块导航、模块内容承载。
- * 业务页面自己的说明和字段布局留在模块内部，避免壳层和模块重复表达同一段信息。
+ * 顶层壳层只负责身份、导航和模块承载。
+ * 具体业务说明留在模块内部，避免头部、侧栏和正文重复说同一段话。
  */
 public class AppShell {
 
@@ -56,6 +56,7 @@ public class AppShell {
         this.modules = List.of(
                 new DashboardModule(appContext),
                 new StudentRepairModule(appContext),
+                new StudentRepairHistoryModule(appContext),
                 new AdminDispatchModule(appContext),
                 new WorkerProcessingModule(appContext),
                 new StatisticsModule(appContext)
@@ -66,7 +67,6 @@ public class AppShell {
     }
 
     public Parent createContent() {
-        // 只监听认证状态，避免 login() 时角色和认证同时变化导致整页反复重绘。
         appSession.authenticatedProperty().addListener((observable, oldValue, newValue) -> renderCurrentView());
         renderCurrentView();
         return root;
@@ -102,13 +102,12 @@ public class AppShell {
     private void syncWorkbench() {
         List<WorkbenchModule> availableModules = availableModules();
         if (availableModules.isEmpty()) {
-            throw new IllegalStateException("当前角色没有可用模块，请检查模块权限配置。");
+            throw new IllegalStateException("\u5f53\u524d\u89d2\u8272\u6ca1\u6709\u53ef\u7528\u6a21\u5757\uff0c\u8bf7\u68c0\u67e5\u6a21\u5757\u6743\u9650\u914d\u7f6e\u3002");
         }
 
         UserRole currentRole = appSession.getCurrentRole();
         boolean roleChanged = currentRole != renderedRole;
         if (roleChanged) {
-            // 角色切换后清空缓存，避免把上一种身份的表单状态带回来。
             renderedRole = currentRole;
             moduleViewCache.clear();
             activeModule = null;
@@ -129,7 +128,7 @@ public class AppShell {
 
     private VBox buildHeader() {
         VBox brandBox = buildHeaderBrand();
-        HBox summaryBox = buildHeaderSummary();
+        VBox summaryBox = buildHeaderSummary();
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -147,10 +146,10 @@ public class AppShell {
         Label eyebrowLabel = new Label("DESKTOP WORKBENCH");
         eyebrowLabel.getStyleClass().add("header-brand-eyebrow");
 
-        Label titleLabel = new Label("宿舍报修与工单管理系统");
+        Label titleLabel = new Label("\u5bbf\u820d\u62a5\u4fee\u4e0e\u5de5\u5355\u7ba1\u7406\u7cfb\u7edf");
         titleLabel.getStyleClass().add("header-brand-title");
 
-        Label subtitleLabel = new Label("顶部只保留当前身份、模块和动作，具体说明回到业务页内部展示。");
+        Label subtitleLabel = new Label("\u9876\u90e8\u53ea\u4fdd\u7559\u5f53\u524d\u8eab\u4efd\u3001\u6a21\u5757\u548c\u52a8\u4f5c\uff0c\u5177\u4f53\u8bf4\u660e\u4ea4\u7ed9\u9875\u9762\u4e3b\u4f53\u3002");
         subtitleLabel.getStyleClass().add("header-brand-subtitle");
         subtitleLabel.setWrapText(true);
         subtitleLabel.setMaxWidth(360);
@@ -161,7 +160,7 @@ public class AppShell {
         return brandBox;
     }
 
-    private HBox buildHeaderSummary() {
+    private VBox buildHeaderSummary() {
         roleBadgeLabel = new Label();
         roleBadgeLabel.getStyleClass().add("header-role-chip");
 
@@ -177,7 +176,7 @@ public class AppShell {
 
         HBox metaRow = new HBox(8, roleBadgeLabel, userLabel, moduleChipLabel);
         metaRow.getStyleClass().add("header-meta-row");
-        metaRow.setAlignment(Pos.CENTER_LEFT);
+        metaRow.setAlignment(Pos.CENTER);
 
         headerFocusLabel = new Label();
         headerFocusLabel.getStyleClass().add("header-focus-copy");
@@ -186,17 +185,20 @@ public class AppShell {
 
         VBox statusBox = new VBox(8, metaRow, headerFocusLabel);
         statusBox.getStyleClass().add("header-status-box");
-        statusBox.setAlignment(Pos.CENTER_RIGHT);
+        statusBox.setAlignment(Pos.CENTER);
 
-        var logoutButton = FusionUiFactory.createGhostButton("退出登录", 120, 38, () -> {
+        Button logoutButton = new Button("\u9000\u51fa\u767b\u5f55");
+        logoutButton.getStyleClass().add("header-logout-action");
+        logoutButton.setOnAction(event -> {
             activeModule = null;
             appSession.logout();
-        }).getNode();
-        logoutButton.getStyleClass().add("header-logout-button");
+        });
 
-        HBox summaryBox = new HBox(14, statusBox, logoutButton);
-        summaryBox.setAlignment(Pos.CENTER_RIGHT);
-        summaryBox.setMinWidth(360);
+        VBox summaryBox = new VBox(10, statusBox, logoutButton);
+        summaryBox.getStyleClass().add("header-summary-card");
+        summaryBox.setAlignment(Pos.CENTER);
+        summaryBox.setMinWidth(320);
+        summaryBox.setPrefWidth(320);
         return summaryBox;
     }
 
@@ -205,10 +207,10 @@ public class AppShell {
         sidebar.getStyleClass().add("sidebar");
         sidebar.setPadding(new Insets(18));
 
-        Label navTitle = new Label("工作模块");
+        Label navTitle = new Label("\u5de5\u4f5c\u6a21\u5757");
         navTitle.getStyleClass().add("sidebar-title");
 
-        Label navHint = new Label("导航只保留模块入口，具体业务解释放回模块页面里，避免左侧也重复讲一遍。");
+        Label navHint = new Label("\u5de6\u4fa7\u53ea\u4fdd\u7559\u6a21\u5757\u5165\u53e3\uff0c\u5177\u4f53\u4e1a\u52a1\u8bf4\u660e\u56de\u5230\u9875\u9762\u4e3b\u4f53\u5185\uff0c\u907f\u514d\u91cd\u590d\u3002");
         navHint.getStyleClass().add("sidebar-hint");
         navHint.setWrapText(true);
 
@@ -242,16 +244,15 @@ public class AppShell {
     }
 
     private void updateHeader() {
-        UserRole currentRole = appSession.getCurrentRole();
-        String moduleName = activeModule == null ? "首页概览" : activeModule.moduleName();
+        String moduleName = activeModule == null ? "\u9996\u9875\u6982\u89c8" : activeModule.moduleName();
+        String focusText = activeModule == null
+                ? "\u5148\u770b\u7cfb\u7edf\u5168\u5c40\u72b6\u6001\uff0c\u518d\u8fdb\u5165\u5177\u4f53\u4e1a\u52a1\u3002"
+                : activeModule.moduleDescription();
 
-        roleBadgeLabel.setText(currentRole.displayName());
-        userLabel.setText("演示身份 · " + appSession.getDisplayName());
+        roleBadgeLabel.setText(appSession.getCurrentRole().displayName());
+        userLabel.setText("\u6f14\u793a\u8eab\u4efd \u00b7 " + appSession.getDisplayName());
         moduleChipLabel.setText(moduleName);
-        headerFocusLabel.setText("当前聚焦："
-                + moduleName
-                + "。"
-                + (activeModule == null ? "先看全局状态，再进入具体业务模块。" : activeModule.moduleDescription()));
+        headerFocusLabel.setText(focusText);
     }
 
     private void updateSidebarSelection() {
@@ -280,8 +281,6 @@ public class AppShell {
         if (!module.cacheViewOnSwitch()) {
             return module.createView();
         }
-
-        // 表单模块保留节点实例，切出去再回来时不用重建整页。
         return moduleViewCache.computeIfAbsent(module.moduleCode(), ignored -> module.createView());
     }
 
@@ -294,7 +293,7 @@ public class AppShell {
 
     private void login(String displayName, UserRole role) {
         if (role == null) {
-            throw new IllegalArgumentException("请选择登录角色");
+            throw new IllegalArgumentException("\u8bf7\u9009\u62e9\u767b\u5f55\u89d2\u8272");
         }
         appSession.login(displayName, role);
     }
