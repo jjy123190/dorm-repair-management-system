@@ -1,8 +1,10 @@
 package com.scau.dormrepair.ui.module;
 
 import com.scau.dormrepair.common.AppContext;
-import java.util.Arrays;
 import com.scau.dormrepair.ui.component.FusionUiFactory;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Function;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -12,14 +14,15 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 /**
- * 模块基类。
- * 统一页面标题、说明和面板样式，后面新增模块直接继承。
+ * 工作台模块共享底座。
+ * 这里统一页面标题、面板样式、左右布局比例和静态表格结构，避免每个模块各写一套。
  */
 public abstract class AbstractWorkbenchModule implements WorkbenchModule {
 
@@ -38,14 +41,15 @@ public abstract class AbstractWorkbenchModule implements WorkbenchModule {
 
         Label titleLabel = new Label(title);
         titleLabel.getStyleClass().add("section-title");
-
         container.getChildren().add(titleLabel);
+
         if (description != null && !description.isBlank()) {
             Label descriptionLabel = new Label(description);
             descriptionLabel.getStyleClass().add("plain-text");
             descriptionLabel.setWrapText(true);
             container.getChildren().add(descriptionLabel);
         }
+
         for (Node contentNode : contentNodes) {
             if (contentNode instanceof Region region) {
                 region.setMaxWidth(Double.MAX_VALUE);
@@ -54,7 +58,6 @@ public abstract class AbstractWorkbenchModule implements WorkbenchModule {
             container.getChildren().add(contentNode);
         }
 
-        // 页面内容居中后，两侧会自然留出呼吸空间，不会整块贴着滚动区域边界堆满。
         StackPane shell = new StackPane(container);
         shell.getStyleClass().add("workbench-page-shell");
         shell.setAlignment(Pos.TOP_CENTER);
@@ -86,7 +89,6 @@ public abstract class AbstractWorkbenchModule implements WorkbenchModule {
     }
 
     protected GridPane createRatioWorkspace(double leftPercent, double rightPercent, Node leftContent, Node rightContent) {
-        // 左右工作区统一走固定比例，避免窗口重排时两边互相抢宽度。
         GridPane workspace = new GridPane();
         workspace.setHgap(18);
         workspace.setVgap(18);
@@ -99,7 +101,6 @@ public abstract class AbstractWorkbenchModule implements WorkbenchModule {
     }
 
     protected VBox createFieldBlock(String labelText, Region input) {
-        // 表单标签和输入控件保持同一套间距，后面模块只关心字段本身。
         Label label = new Label(labelText);
         label.getStyleClass().add("form-label");
 
@@ -113,7 +114,6 @@ public abstract class AbstractWorkbenchModule implements WorkbenchModule {
     }
 
     protected Node createInlineSummaryCard(String tagText, Node content, String... styleClasses) {
-        // 小型摘要卡只负责承载“当前选择/当前工单”这类上下文，不再让每个模块重复拼壳。
         Label tagLabel = new Label(tagText);
         tagLabel.getStyleClass().add("dashboard-mini-tag");
 
@@ -129,7 +129,6 @@ public abstract class AbstractWorkbenchModule implements WorkbenchModule {
     }
 
     protected Node createIdentityBanner(String tagText, String titleText, String descriptionText, String... styleClasses) {
-        // 顶部身份条统一成一张摘要卡，模块只传身份和说明，不再各写一套大字+说明布局。
         Label tagLabel = new Label(tagText);
         tagLabel.getStyleClass().add("dashboard-mini-tag");
 
@@ -163,8 +162,10 @@ public abstract class AbstractWorkbenchModule implements WorkbenchModule {
         return column;
     }
 
+    /**
+     * 管理员和维修员的业务表仍然需要选择态，所以保留受控 TableView 版本。
+     */
     protected <T> void configureFixedTable(TableView<T> tableView, double prefHeight, double... columnWeights) {
-        // 表格统一走受控缩放策略，让所有列始终收在可视区域内，避免表头和表体因为横向滚动条出现错位。
         tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         tableView.setTableMenuButtonVisible(false);
         tableView.setEditable(false);
@@ -181,13 +182,11 @@ public abstract class AbstractWorkbenchModule implements WorkbenchModule {
             column.setReorderable(false);
             column.setResizable(false);
             column.setStyle("-fx-alignment: CENTER;");
-            // 这里用固定比例的首选宽度作为“黄金分配”基线，真正铺满宽度交给 CONSTRAINED_RESIZE_POLICY 完成。
             column.setPrefWidth(Math.max(96, 960 * (weight / weightSum)));
         }
     }
 
     protected void fitTableHeightToRows(TableView<?> tableView, int itemCount, int minVisibleRows, int maxVisibleRows) {
-        // 数据条数不多时，直接按可见行数收表高，避免空白行和滚动条把表头表体挤得像没对齐。
         int visibleRows = Math.max(minVisibleRows, Math.min(maxVisibleRows, Math.max(itemCount, 1)));
         double headerHeight = 44;
         double totalHeight = headerHeight + visibleRows * tableView.getFixedCellSize() + 4;
@@ -196,11 +195,87 @@ public abstract class AbstractWorkbenchModule implements WorkbenchModule {
         tableView.setMaxHeight(totalHeight);
     }
 
+    /**
+     * 只读展示型表格直接用静态网格，列宽、边界线、空白行完全受控，不再受 TableView 皮肤影响。
+     */
+    protected <T> Node createStaticDataTable(
+            List<StaticTableColumn<T>> columns,
+            List<T> rows,
+            int minVisibleRows
+    ) {
+        VBox tableBox = new VBox();
+        tableBox.getStyleClass().add("static-table");
+        tableBox.setFillWidth(true);
+        tableBox.setMaxWidth(Double.MAX_VALUE);
+        tableBox.getChildren().add(createStaticTableRow(columns, null, true));
+
+        int visibleRows = Math.max(minVisibleRows, rows.size());
+        for (int index = 0; index < visibleRows; index++) {
+            T rowItem = index < rows.size() ? rows.get(index) : null;
+            tableBox.getChildren().add(createStaticTableRow(columns, rowItem, false));
+        }
+        return tableBox;
+    }
+
+    protected <T> StaticTableColumn<T> staticColumn(
+            String title,
+            double weight,
+            Function<T, String> valueProvider
+    ) {
+        return new StaticTableColumn<>(title, weight, valueProvider);
+    }
+
+    private <T> GridPane createStaticTableRow(List<StaticTableColumn<T>> columns, T rowItem, boolean headerRow) {
+        GridPane row = new GridPane();
+        row.getStyleClass().add(headerRow ? "static-table-header-row" : "static-table-body-row");
+        row.setMaxWidth(Double.MAX_VALUE);
+        row.setMinWidth(0);
+
+        double weightSum = columns.stream().mapToDouble(StaticTableColumn::weight).sum();
+        for (StaticTableColumn<T> column : columns) {
+            row.getColumnConstraints().add(percentColumn(column.weight() * 100 / weightSum));
+        }
+
+        for (int index = 0; index < columns.size(); index++) {
+            StaticTableColumn<T> column = columns.get(index);
+            String text = headerRow ? column.title() : safeCellText(rowItem == null ? "" : column.valueProvider().apply(rowItem));
+
+            Label label = new Label(text);
+            label.getStyleClass().add(headerRow ? "static-table-header-cell" : "static-table-cell");
+            label.setWrapText(false);
+            label.setAlignment(Pos.CENTER);
+            label.setMaxWidth(Double.MAX_VALUE);
+            label.setMinWidth(0);
+
+            HBox cellShell = new HBox(label);
+            cellShell.getStyleClass().add(headerRow ? "static-table-header-cell-shell" : "static-table-cell-shell");
+            if (index == columns.size() - 1) {
+                cellShell.getStyleClass().add("static-table-last-cell-shell");
+            }
+            cellShell.setAlignment(Pos.CENTER);
+            cellShell.setMaxWidth(Double.MAX_VALUE);
+            cellShell.setMinWidth(0);
+            row.add(cellShell, index, 0);
+        }
+        return row;
+    }
+
     private Node prepareContentNode(Node node) {
         if (node instanceof Region region) {
             region.setMaxWidth(Double.MAX_VALUE);
             region.setMinWidth(0);
         }
         return node;
+    }
+
+    private String safeCellText(String value) {
+        return value == null ? "" : value;
+    }
+
+    protected record StaticTableColumn<T>(
+            String title,
+            double weight,
+            Function<T, String> valueProvider
+    ) {
     }
 }

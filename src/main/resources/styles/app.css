@@ -529,6 +529,56 @@
     -fx-text-fill: #2e2e2e;
 }
 
+.static-table {
+    -fx-background-color: rgba(255,255,255,0.82);
+    -fx-background-radius: 16px;
+    -fx-border-color: rgba(46,46,46,0.10);
+    -fx-border-radius: 16px;
+}
+
+.static-table-header-row {
+    -fx-background-color: linear-gradient(to bottom, #f3ede1, #ece4d5);
+    -fx-background-radius: 16px 16px 0 0;
+    -fx-border-color: transparent transparent rgba(46,46,46,0.10) transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.static-table-body-row {
+    -fx-background-color: rgba(255,255,255,0.74);
+    -fx-border-color: transparent transparent rgba(46,46,46,0.08) transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.static-table-header-cell-shell,
+.static-table-cell-shell {
+    -fx-alignment: center;
+    -fx-min-height: 48px;
+    -fx-pref-height: 48px;
+    -fx-max-height: 48px;
+    -fx-border-color: transparent rgba(46,46,46,0.10) transparent transparent;
+    -fx-border-width: 0 1 0 0;
+    -fx-padding: 0 10 0 10;
+}
+
+.static-table-last-cell-shell {
+    -fx-border-color: transparent;
+}
+
+.static-table-header-cell {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2e2e2e;
+    -fx-alignment: center;
+    -fx-text-alignment: center;
+}
+
+.static-table-cell {
+    -fx-font-size: 12px;
+    -fx-text-fill: #2e2e2e;
+    -fx-alignment: center;
+    -fx-text-alignment: center;
+}
+
 .table-view {
     -fx-background-color: transparent;
     -fx-border-color: transparent;

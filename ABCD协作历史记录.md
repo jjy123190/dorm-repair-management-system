@@ -386,3 +386,22 @@
   - 已 push
   - 提交号：`bab640b`
 
+### 2026-03-26 10:18 | A
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/ui/module/AbstractWorkbenchModule.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/DashboardModule.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/StudentRepairHistoryModule.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/StatisticsModule.java`
+  - `src/main/resources/styles/app.css`
+- 完成内容
+  - 把首页最近报修、学生报修记录、月度统计这三类只读表格从 `TableView` 改成共享静态数据网格
+  - 静态表格统一锁定列宽比例、边界线、行高和空白行，不再允许表头表体错位，也不再依赖滚动条和列拖拽
+  - `AbstractWorkbenchModule` 现在同时维护两套底座：只读表用静态网格，管理员/维修员这类需要选择态的表仍保留受控 `TableView`
+  - 用 `clean compile` 重新编译确认新类文件已经落到 `target/classes`
+- 影响提醒 / 下一步
+  - 后续新增只读展示表格优先走 `createStaticDataTable(...)`，不要再默认上 `TableView`
+  - 如果某张表仍然要支持行选择，再单独保留 `TableView`，不要把只读表也带回去
+- Push 结果
+  - 待 push
+  - 提交号：待本轮提交后回填
+

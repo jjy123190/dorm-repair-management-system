@@ -4,16 +4,12 @@ import com.scau.dormrepair.common.AppContext;
 import com.scau.dormrepair.domain.enums.UserRole;
 import com.scau.dormrepair.domain.view.MonthlyRepairSummary;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
-import javafx.collections.FXCollections;
 import javafx.scene.Parent;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.cell.PropertyValueFactory;
 
 /**
- * 月度统计模块。
+ * 月度统计页先稳定展示核心汇总，不把交互复杂度堆上去。
  */
 public class StatisticsModule extends AbstractWorkbenchModule {
 
@@ -33,7 +29,7 @@ public class StatisticsModule extends AbstractWorkbenchModule {
 
     @Override
     public String moduleDescription() {
-        return "查看月度汇总、完成率和后续报表扩展入口。";
+        return "";
     }
 
     @Override
@@ -43,33 +39,29 @@ public class StatisticsModule extends AbstractWorkbenchModule {
 
     @Override
     public Parent createView() {
-        Label hintLabel = new Label("当前先用表格展示月度汇总，后续如果需要，再补折线图、柱状图和导出功能。");
-        hintLabel.getStyleClass().add("plain-text");
-        hintLabel.setWrapText(true);
-
-        TableView<MonthlyRepairSummary> tableView = new TableView<>();
-        tableView.getColumns().addAll(
-                createColumn("月份", "monthLabel"),
-                createColumn("报修总数", "totalRequests"),
-                createColumn("已完成", "completedRequests"),
-                createColumn("完成率(%)", "completionRate")
-        );
-        configureFixedTable(tableView, 420, 1.618, 1.0, 1.0, 1.382);
-        tableView.setItems(FXCollections.observableArrayList(
-                appContext.statisticsService().listMonthlySummary(6)
-        ));
-
+        List<MonthlyRepairSummary> monthlyRows = appContext.statisticsService().listMonthlySummary(6);
         return createPage(
                 "月度统计报表",
-                "统计页先保证核心汇总能展示，等数据库和前端同学后续补图表、筛选条件和导出。",
-                hintLabel,
-                wrapPanel("月度汇总", tableView)
+                "",
+                wrapPanel("月度汇总", buildSummaryTable(monthlyRows))
         );
     }
 
-    private TableColumn<MonthlyRepairSummary, Object> createColumn(String title, String property) {
-        TableColumn<MonthlyRepairSummary, Object> column = new TableColumn<>(title);
-        column.setCellValueFactory(new PropertyValueFactory<>(property));
-        return column;
+    private Parent buildSummaryTable(List<MonthlyRepairSummary> monthlyRows) {
+        return (Parent) createStaticDataTable(
+                List.of(
+                        staticColumn("月份", 1.618, MonthlyRepairSummary::getMonthLabel),
+                        staticColumn("报修总数", 1.0, item -> String.valueOf(safeLong(item.getTotalRequests()))),
+                        staticColumn("已完成", 1.0, item -> String.valueOf(safeLong(item.getCompletedRequests()))),
+                        staticColumn("完成率(%)", 1.382, item ->
+                                item.getCompletionRate() == null ? "0.00" : item.getCompletionRate().toPlainString())
+                ),
+                monthlyRows,
+                4
+        );
+    }
+
+    private long safeLong(Long value) {
+        return value == null ? 0L : value;
     }
 }
