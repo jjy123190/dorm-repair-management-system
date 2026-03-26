@@ -17,11 +17,17 @@ import com.scau.dormrepair.mapper.RepairRequestMapper;
 import com.scau.dormrepair.service.RepairRequestService;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * 报修申请服务实现。
  */
 public class RepairRequestServiceImpl implements RepairRequestService {
+
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^[0-9+\\-\\s]{6,32}$");
+    private static final Pattern ROOM_PATTERN = Pattern.compile("^[A-Za-z0-9\\-]{1,32}$");
+    private static final int MAX_DESCRIPTION_LENGTH = 1000;
+    private static final int MAX_IMAGE_COUNT = 5;
 
     private final MyBatisExecutor myBatisExecutor;
 
@@ -37,11 +43,11 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         repairRequest.setRequestNo(BusinessNumberGenerator.nextRepairRequestNo());
         repairRequest.setStudentId(command.studentId());
         repairRequest.setStudentName(command.studentName().trim());
-        repairRequest.setContactPhone(command.contactPhone().trim());
+        repairRequest.setContactPhone(normalizePhone(command.contactPhone()));
         repairRequest.setDormRoomId(command.dormRoomId());
         repairRequest.setDormAreaSnapshot(command.dormAreaSnapshot().trim());
         repairRequest.setBuildingNoSnapshot(command.buildingNoSnapshot().trim());
-        repairRequest.setRoomNoSnapshot(command.roomNoSnapshot().trim());
+        repairRequest.setRoomNoSnapshot(command.roomNoSnapshot().trim().toUpperCase());
         repairRequest.setFaultCategory(command.faultCategory());
         repairRequest.setDescription(command.description().trim());
         repairRequest.setStatus(RepairRequestStatus.SUBMITTED);
@@ -72,10 +78,9 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     @Override
     public List<RecentRepairRequestView> listStudentSubmittedRequests(Long studentId, int limit) {
         if (studentId == null) {
-            throw new BusinessException("学生ID不能为空");
+            throw new BusinessException("学生 ID 不能为空。");
         }
 
-        // 学生历史页只看自己的记录，避免把全站报修单都带进来。
         int safeLimit = Math.min(Math.max(limit, 1), 20);
         return myBatisExecutor.executeRead(
                 session -> session.getMapper(RepairRequestMapper.class).selectStudentSubmittedRequests(studentId, safeLimit)
@@ -85,10 +90,10 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     @Override
     public StudentRepairDetailView getStudentRequestDetail(Long studentId, Long requestId) {
         if (studentId == null) {
-            throw new BusinessException("瀛︾敓ID涓嶈兘涓虹┖");
+            throw new BusinessException("学生 ID 不能为空。");
         }
         if (requestId == null) {
-            throw new BusinessException("鎶ヤ慨璁板綍ID涓嶈兘涓虹┖");
+            throw new BusinessException("报修记录 ID 不能为空。");
         }
 
         return myBatisExecutor.executeRead(session -> {
@@ -98,7 +103,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             StudentRepairDetailView detailView =
                     repairRequestMapper.selectStudentRequestDetail(studentId, requestId);
             if (detailView == null) {
-                throw new ResourceNotFoundException("鏈壘鍒板綋鍓嶅鐢熺殑鎶ヤ慨璁板綍锛孖D=" + requestId);
+                throw new ResourceNotFoundException("未找到当前学生的报修记录，ID=" + requestId);
             }
 
             detailView.setImageUrls(
@@ -122,7 +127,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     @Override
     public void submitFeedback(SubmitRepairFeedbackCommand command) {
         if (command.rating() == null || command.rating() < 1 || command.rating() > 5) {
-            throw new BusinessException("评分必须在 1 到 5 之间");
+            throw new BusinessException("评分必须在 1 到 5 之间。");
         }
 
         myBatisExecutor.executeWrite(session -> {
@@ -134,10 +139,10 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                 throw new ResourceNotFoundException("未找到报修单，ID=" + command.repairRequestId());
             }
             if (repairRequest.getStatus() != RepairRequestStatus.COMPLETED) {
-                throw new BusinessException("只有已完成的报修单才能评价");
+                throw new BusinessException("只有已完成的报修单才能评价。");
             }
             if (repairFeedbackMapper.selectByRepairRequestId(command.repairRequestId()) != null) {
-                throw new BusinessException("该报修单已经评价过");
+                throw new BusinessException("该报修单已经评价过。");
             }
 
             RepairFeedback repairFeedback = new RepairFeedback();
@@ -150,30 +155,42 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         });
     }
 
-    /**
-     * 提交报修前先把宿舍区、楼栋、房间和联系方式兜住，避免脏数据直接入库。
-     */
     private void validateCreateCommand(CreateRepairRequestCommand command) {
         if (command.studentName() == null || command.studentName().isBlank()) {
-            throw new BusinessException("学生姓名不能为空");
+            throw new BusinessException("学生姓名不能为空。");
         }
         if (command.contactPhone() == null || command.contactPhone().isBlank()) {
-            throw new BusinessException("联系电话不能为空");
+            throw new BusinessException("联系电话不能为空。");
+        }
+        if (!PHONE_PATTERN.matcher(normalizePhone(command.contactPhone())).matches()) {
+            throw new BusinessException("联系电话格式不正确，请输入常用手机号或座机号。");
         }
         if (command.dormAreaSnapshot() == null || command.dormAreaSnapshot().isBlank()) {
-            throw new BusinessException("宿舍区不能为空");
+            throw new BusinessException("宿舍区不能为空。");
         }
         if (command.buildingNoSnapshot() == null || command.buildingNoSnapshot().isBlank()) {
-            throw new BusinessException("宿舍楼不能为空");
+            throw new BusinessException("宿舍楼不能为空。");
         }
         if (command.roomNoSnapshot() == null || command.roomNoSnapshot().isBlank()) {
-            throw new BusinessException("房间号不能为空");
+            throw new BusinessException("房间号不能为空。");
+        }
+        if (!ROOM_PATTERN.matcher(command.roomNoSnapshot().trim()).matches()) {
+            throw new BusinessException("房间号仅支持字母、数字和短横线。");
         }
         if (command.faultCategory() == null) {
-            throw new BusinessException("故障类型不能为空");
+            throw new BusinessException("故障类型不能为空。");
         }
         if (command.description() == null || command.description().isBlank()) {
-            throw new BusinessException("故障描述不能为空");
+            throw new BusinessException("故障描述不能为空。");
+        }
+        if (command.description().trim().length() < 5) {
+            throw new BusinessException("故障描述至少填写 5 个字，方便后续派单处理。");
+        }
+        if (command.description().trim().length() > MAX_DESCRIPTION_LENGTH) {
+            throw new BusinessException("故障描述不能超过 " + MAX_DESCRIPTION_LENGTH + " 个字符。");
+        }
+        if (sanitizeImages(command.imageUrls()).size() > MAX_IMAGE_COUNT) {
+            throw new BusinessException("最多只能上传 " + MAX_IMAGE_COUNT + " 张图片。");
         }
     }
 
@@ -184,6 +201,12 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         return imageUrls.stream()
                 .filter(imageUrl -> imageUrl != null && !imageUrl.isBlank())
                 .map(String::trim)
+                .distinct()
+                .limit(MAX_IMAGE_COUNT)
                 .toList();
+    }
+
+    private String normalizePhone(String phone) {
+        return phone == null ? "" : phone.trim().replace("　", " ");
     }
 }

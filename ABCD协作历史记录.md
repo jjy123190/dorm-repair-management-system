@@ -481,5 +481,23 @@
   - 已 push 到 `origin/codex/b-student-mainchain`
   - 代码提交号：`20b7339`
   - 日志提交号：`a154b08`
+
+### 2026-03-26 16:11 | B
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/ui/module/StudentRepairModule.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/StudentRepairHistoryModule.java`
+  - `src/main/java/com/scau/dormrepair/service/impl/RepairRequestServiceImpl.java`
+  - `src/main/java/com/scau/dormrepair/ui/support/ProjectImageStore.java`
+- 完成内容
+  - 学生报修页升级成“左侧提交表单 + 右侧填写概况与最近提交记录”的工作区，不再只是单列表单
+  - 图片上传补齐数量、格式、大小、去重校验，并继续沿用项目 `pics/` 目录落地方案
+  - service 层加强了联系电话、房间号、描述长度和图片数量校验，避免脏数据直接进入学生报修主链
+  - 学生报修记录页补了手动刷新入口，详情展示继续限定为“当前学生只看自己的记录”
+- 影响提醒 / 下一步
+  - 我这边仍然没有看到你提到的第二张图片，所以这轮是按仓库文档、现有结构和已落地代码继续高级化补强
+  - 当前环境没有 `mvn` 和 `java` 命令，没法本机完成编译验证；建议你在装好 JDK/Maven 的机器上再跑一次 `mvn compile`
+- Push 结果
+  - 待 commit / push
+  - 提交号：待补
 >>>>>>> codex/b-student-mainchain
 

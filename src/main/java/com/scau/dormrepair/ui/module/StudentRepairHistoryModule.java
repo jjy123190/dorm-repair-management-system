@@ -15,16 +15,21 @@ import java.util.List;
 import java.util.Set;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 /**
- * 学生报修记录页单独成页，负责查看本人历史记录和单条详情。
+ * 学生报修记录页，负责查看本人历史记录和单条详情。
  */
 public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
 
@@ -66,23 +71,26 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
             throw new IllegalStateException("学生身份未初始化，无法进入报修记录模块。");
         }
 
-        List<RecentRepairRequestView> historyRows =
-                appContext.repairRequestService().listStudentSubmittedRequests(currentStudent.id(), 20);
-
         TableView<RecentRepairRequestView> historyTable = buildHistoryTable();
-        historyTable.setItems(FXCollections.observableArrayList(historyRows));
-
         VBox detailPanel = buildDetailPanel(currentStudent, historyTable);
+
+        Button refreshButton = new Button("刷新记录");
+        refreshButton.getStyleClass().add("nav-button");
+        refreshButton.setOnAction(event -> refreshHistory(historyTable, currentStudent.id()));
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox toolbar = new HBox(12, spacer, refreshButton);
+        toolbar.setAlignment(Pos.CENTER_RIGHT);
+
         GridPane workspace = createRatioWorkspace(
                 52,
                 48,
-                wrapPanel("最近报修记录", historyTable),
-                wrapPanel("记录详情", detailPanel)
+                wrapPanel("我的报修记录", new VBox(12, toolbar, historyTable)),
+                wrapPanel("当前记录详情", detailPanel)
         );
 
-        if (!historyRows.isEmpty()) {
-            historyTable.getSelectionModel().selectFirst();
-        }
+        refreshHistory(historyTable, currentStudent.id());
 
         VBox content = new VBox(18, workspace);
         content.setFillWidth(true);
@@ -100,6 +108,17 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         );
         configureFixedTable(historyTable, 460, 1.618, 1.382, 1.236, 0.764, 1.382);
         return historyTable;
+    }
+
+    private void refreshHistory(TableView<RecentRepairRequestView> historyTable, Long studentId) {
+        List<RecentRepairRequestView> historyRows =
+                appContext.repairRequestService().listStudentSubmittedRequests(studentId, 20);
+        historyTable.setItems(FXCollections.observableArrayList(historyRows));
+        if (!historyRows.isEmpty()) {
+            historyTable.getSelectionModel().selectFirst();
+        } else {
+            historyTable.getSelectionModel().clearSelection();
+        }
     }
 
     private VBox buildDetailPanel(DemoAccount currentStudent, TableView<RecentRepairRequestView> historyTable) {

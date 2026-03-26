@@ -7,16 +7,20 @@ import com.scau.dormrepair.domain.command.CreateRepairRequestCommand;
 import com.scau.dormrepair.domain.entity.DormBuilding;
 import com.scau.dormrepair.domain.enums.FaultCategory;
 import com.scau.dormrepair.domain.enums.UserRole;
+import com.scau.dormrepair.domain.view.RecentRepairRequestView;
 import com.scau.dormrepair.ui.component.FusionUiFactory;
+import com.scau.dormrepair.ui.support.ProjectImageStore;
 import com.scau.dormrepair.ui.support.UiAlerts;
 import com.scau.dormrepair.ui.support.UiDisplayText;
 import com.scau.dormrepair.ui.support.UiMotion;
-import com.scau.dormrepair.ui.support.ProjectImageStore;
 import java.io.File;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import javafx.beans.binding.Bindings;
+import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -24,8 +28,11 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -36,9 +43,11 @@ import javafx.stage.Window;
 import javafx.util.StringConverter;
 
 /**
- * 学生报修页只负责提交新的报修单。
+ * 学生报修页，负责提交新报修并查看最近提交概况。
  */
 public class StudentRepairModule extends AbstractWorkbenchModule {
+
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     public StudentRepairModule(AppContext appContext) {
         super(appContext);
@@ -51,12 +60,12 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
 
     @Override
     public String moduleName() {
-        return "\u63d0\u4ea4\u62a5\u4fee";
+        return "提交报修";
     }
 
     @Override
     public String moduleDescription() {
-        return "\u5148\u9009\u5bbf\u820d\u533a\u548c\u697c\u680b\uff0c\u518d\u8865\u5168\u8054\u7cfb\u65b9\u5f0f\u548c\u6545\u969c\u63cf\u8ff0\uff0c\u63d0\u4ea4\u65b0\u7684\u62a5\u4fee\u7533\u8bf7\u3002";
+        return "按宿舍区、楼栋、房间、故障类型和图片完成报修提交，并在右侧实时查看当前填写概况。";
     }
 
     @Override
@@ -73,49 +82,65 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
     public Parent createView() {
         DemoAccount currentStudent = DemoAccountDirectory.resolveCurrent(appContext.appSession());
         if (currentStudent == null) {
-            throw new IllegalStateException("\u5b66\u751f\u8eab\u4efd\u672a\u521d\u59cb\u5316\uff0c\u65e0\u6cd5\u8fdb\u5165\u62a5\u4fee\u6a21\u5757\u3002");
+            throw new IllegalStateException("学生身份未初始化，无法进入报修模块。");
         }
 
-        VBox content = new VBox(18, buildRepairForm(currentStudent));
+        TableView<RecentRepairRequestView> recentTable = buildRecentTable();
+        refreshRecentRequests(recentTable, currentStudent.id());
+
+        GridPane workspace = buildRepairWorkspace(currentStudent, recentTable);
+        VBox content = new VBox(18, workspace);
         content.setFillWidth(true);
         content.setMaxWidth(Double.MAX_VALUE);
 
-        return createPage(
-                "\u5b66\u751f\u62a5\u4fee\u5de5\u4f5c\u533a",
-                "",
-                content
-        );
+        return createPage("学生报修工作区", "", content);
     }
 
-    private Node buildRepairForm(DemoAccount currentStudent) {
+    private GridPane buildRepairWorkspace(DemoAccount currentStudent, TableView<RecentRepairRequestView> recentTable) {
         ComboBox<String> dormAreaBox = createDormAreaBox();
         ComboBox<DormBuilding> buildingBox = createDormBuildingBox();
 
         TextField roomField = new TextField();
-        roomField.setPromptText("\u4f8b\u5982 402");
+        roomField.setPromptText("例如 402");
 
         TextField phoneField = new TextField();
-        phoneField.setPromptText("\u8054\u7cfb\u7535\u8bdd");
+        phoneField.setPromptText("联系电话");
 
         ComboBox<FaultCategory> faultCategoryBox = createFaultCategoryBox();
 
         TextArea descriptionArea = new TextArea();
-        descriptionArea.setPromptText("\u8bf7\u5177\u4f53\u8bf4\u660e\u6545\u969c\u73b0\u8c61\u3001\u662f\u5426\u7d27\u6025\u3001\u662f\u5426\u5f71\u54cd\u6b63\u5e38\u751f\u6d3b\u3002");
+        descriptionArea.setPromptText("请具体说明故障现象、是否紧急、是否影响正常生活。");
         descriptionArea.setPrefRowCount(4);
         descriptionArea.setWrapText(true);
 
         List<File> selectedImageFiles = new ArrayList<>();
-        VBox imageUploadBox = createImageUploadBox(selectedImageFiles);
+        Label draftLocationValue = createDraftValueLabel("待补全");
+        Label draftFaultValue = createDraftValueLabel("待选择");
+        Label draftImageCountValue = createDraftValueLabel("0 张");
+        Label draftRecentHintValue = createDraftValueLabel("提交后可在“报修记录”模块查看完整详情。");
+        VBox imageUploadBox = createImageUploadBox(selectedImageFiles, draftImageCountValue);
 
-        dormAreaBox.valueProperty().addListener((observable, oldValue, newValue) ->
-                reloadBuildingsByArea(newValue, buildingBox)
+        dormAreaBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            reloadBuildingsByArea(newValue, buildingBox);
+            refreshDraftLocation(dormAreaBox, buildingBox, roomField, draftLocationValue);
+        });
+        buildingBox.valueProperty().addListener((observable, oldValue, newValue) ->
+                refreshDraftLocation(dormAreaBox, buildingBox, roomField, draftLocationValue)
+        );
+        roomField.textProperty().addListener((observable, oldValue, newValue) ->
+                refreshDraftLocation(dormAreaBox, buildingBox, roomField, draftLocationValue)
+        );
+        faultCategoryBox.valueProperty().addListener((observable, oldValue, newValue) ->
+                draftFaultValue.setText(newValue == null ? "待选择" : UiDisplayText.faultCategory(newValue))
         );
 
-        Button resetButton = new Button("\u6e05\u7a7a\u8868\u5355");
+        Button resetButton = new Button("清空表单");
         resetButton.getStyleClass().add("nav-button");
 
-        Node submitButton = FusionUiFactory.createPrimaryButton("\u63d0\u4ea4\u62a5\u4fee\u7533\u8bf7", 180, 40, () -> {
+        Node submitButton = FusionUiFactory.createPrimaryButton("提交报修申请", 180, 40, () -> {
             try {
+                ProjectImageStore.validateImageFiles(selectedImageFiles);
+
                 DormBuilding selectedBuilding = buildingBox.getValue();
                 CreateRepairRequestCommand command = new CreateRepairRequestCommand(
                         currentStudent.id(),
@@ -141,41 +166,50 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
                         imageUploadBox,
                         faultCategoryBox
                 );
+                draftFaultValue.setText("待选择");
+                draftImageCountValue.setText("0 张");
+                draftRecentHintValue.setText("本次报修已提交，右侧最近记录已自动刷新。");
+                refreshDraftLocation(dormAreaBox, buildingBox, roomField, draftLocationValue);
+                refreshRecentRequests(recentTable, currentStudent.id());
                 UiAlerts.info(
-                        "\u63d0\u4ea4\u6210\u529f",
-                        "\u62a5\u4fee\u7533\u8bf7\u5df2\u4fdd\u5b58\uff0c\u8bb0\u5f55 ID=" + repairRequestId + "\u3002\u6700\u8fd1\u8bb0\u5f55\u8bf7\u53bb\u300c\u62a5\u4fee\u8bb0\u5f55\u300d\u9875\u9762\u67e5\u770b\u3002"
+                        "提交成功",
+                        "报修申请已保存，记录 ID=" + repairRequestId + "。最近记录已同步刷新。"
                 );
             } catch (RuntimeException exception) {
-                UiAlerts.error("\u63d0\u4ea4\u5931\u8d25", exception.getMessage());
+                UiAlerts.error("提交失败", exception.getMessage());
             }
         }).getNode();
 
-        resetButton.setOnAction(event ->
-                clearAfterSubmit(
-                        dormAreaBox,
-                        buildingBox,
-                        roomField,
-                        phoneField,
-                        descriptionArea,
-                        selectedImageFiles,
-                        imageUploadBox,
-                        faultCategoryBox
-                )
-        );
+        resetButton.setOnAction(event -> {
+            clearAfterSubmit(
+                    dormAreaBox,
+                    buildingBox,
+                    roomField,
+                    phoneField,
+                    descriptionArea,
+                    selectedImageFiles,
+                    imageUploadBox,
+                    faultCategoryBox
+            );
+            draftLocationValue.setText("待补全");
+            draftFaultValue.setText("待选择");
+            draftImageCountValue.setText("0 张");
+            draftRecentHintValue.setText("提交后可在“报修记录”模块查看完整详情。");
+        });
 
         GridPane dormRow = new GridPane();
         dormRow.setHgap(16);
         dormRow.setMinWidth(0);
         dormRow.getColumnConstraints().addAll(percentColumn(50), percentColumn(50));
-        dormRow.add(createFieldBlock("\u5bbf\u820d\u533a", dormAreaBox), 0, 0);
-        dormRow.add(createFieldBlock("\u5bbf\u820d\u697c", buildingBox), 1, 0);
+        dormRow.add(createFieldBlock("宿舍区", dormAreaBox), 0, 0);
+        dormRow.add(createFieldBlock("宿舍楼", buildingBox), 1, 0);
 
         GridPane contactRow = new GridPane();
         contactRow.setHgap(16);
         contactRow.setMinWidth(0);
         contactRow.getColumnConstraints().addAll(percentColumn(50), percentColumn(50));
-        contactRow.add(createFieldBlock("\u623f\u95f4\u53f7", roomField), 0, 0);
-        contactRow.add(createFieldBlock("\u8054\u7cfb\u7535\u8bdd", phoneField), 1, 0);
+        contactRow.add(createFieldBlock("房间号", roomField), 0, 0);
+        contactRow.add(createFieldBlock("联系电话", phoneField), 1, 0);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -188,21 +222,42 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
                 16,
                 dormRow,
                 contactRow,
-                createFieldBlock("\u6545\u969c\u7c7b\u578b", faultCategoryBox),
-                createFieldBlock("\u6545\u969c\u63cf\u8ff0", descriptionArea),
-                createFieldBlock("\u56fe\u7247\u4e0a\u4f20", imageUploadBox),
+                createFieldBlock("故障类型", faultCategoryBox),
+                createFieldBlock("故障描述", descriptionArea),
+                createFieldBlock("图片上传", imageUploadBox),
                 actionRow
         );
         formBox.setFillWidth(true);
         formBox.setMaxWidth(Double.MAX_VALUE);
 
-        return wrapPanel("\u586b\u5199\u62a5\u4fee\u8868\u5355", formBox);
+        VBox summaryBox = new VBox(
+                14,
+                createDetailBlock("当前学生", createDraftValueLabel(currentStudent.displayName())),
+                createDetailBlock("报修位置", draftLocationValue),
+                createDetailBlock("故障类型", draftFaultValue),
+                createDetailBlock("已选图片", draftImageCountValue),
+                createDetailBlock("提交提示", draftRecentHintValue)
+        );
+
+        VBox sideBox = new VBox(
+                16,
+                wrapPanel("填写概况", summaryBox),
+                wrapPanel("最近提交记录", recentTable)
+        );
+        sideBox.setFillWidth(true);
+
+        return createRatioWorkspace(
+                58,
+                42,
+                wrapPanel("填写报修表单", formBox),
+                sideBox
+        );
     }
 
     private ComboBox<String> createDormAreaBox() {
         ComboBox<String> dormAreaBox = new ComboBox<>();
         dormAreaBox.getItems().setAll(appContext.dormCatalogService().listDormAreas());
-        dormAreaBox.setPromptText("\u9009\u62e9\u5bbf\u820d\u533a");
+        dormAreaBox.setPromptText("选择宿舍区");
         dormAreaBox.setVisibleRowCount(5);
         dormAreaBox.setMinHeight(44);
         dormAreaBox.setPrefHeight(44);
@@ -214,7 +269,7 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
 
     private ComboBox<DormBuilding> createDormBuildingBox() {
         ComboBox<DormBuilding> buildingBox = new ComboBox<>();
-        buildingBox.setPromptText("\u5148\u9009\u5bbf\u820d\u533a\u518d\u9009\u5bbf\u820d\u697c");
+        buildingBox.setPromptText("先选宿舍区再选宿舍楼");
         buildingBox.setDisable(true);
         buildingBox.setVisibleRowCount(5);
         buildingBox.setMinHeight(44);
@@ -252,7 +307,7 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
             }
         });
         faultCategoryBox.getItems().addAll(FaultCategory.values());
-        faultCategoryBox.setPromptText("\u9009\u62e9\u6545\u969c\u7c7b\u578b");
+        faultCategoryBox.setPromptText("选择故障类型");
         faultCategoryBox.setVisibleRowCount(7);
         faultCategoryBox.setMinHeight(44);
         faultCategoryBox.setPrefHeight(44);
@@ -264,19 +319,37 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         return faultCategoryBox;
     }
 
+    private TableView<RecentRepairRequestView> buildRecentTable() {
+        TableView<RecentRepairRequestView> recentTable = new TableView<>();
+        recentTable.getColumns().addAll(
+                createTextColumn("报修单号", "requestNo"),
+                createTextColumn("宿舍", "locationText"),
+                createStatusColumn(),
+                createDateTimeColumn()
+        );
+        configureFixedTable(recentTable, 268, 1.382, 1.382, 0.764, 1.236);
+        return recentTable;
+    }
+
+    private void refreshRecentRequests(TableView<RecentRepairRequestView> recentTable, Long studentId) {
+        recentTable.setItems(FXCollections.observableArrayList(
+                appContext.repairRequestService().listStudentSubmittedRequests(studentId, 6)
+        ));
+    }
+
     private void reloadBuildingsByArea(String dormArea, ComboBox<DormBuilding> buildingBox) {
         buildingBox.getItems().clear();
         buildingBox.getSelectionModel().clearSelection();
 
         if (dormArea == null || dormArea.isBlank()) {
             buildingBox.setDisable(true);
-            buildingBox.setPromptText("\u5148\u9009\u5bbf\u820d\u533a\u518d\u9009\u5bbf\u820d\u697c");
+            buildingBox.setPromptText("先选宿舍区再选宿舍楼");
             return;
         }
 
         buildingBox.getItems().setAll(appContext.dormCatalogService().listBuildingsByArea(dormArea));
         buildingBox.setDisable(false);
-        buildingBox.setPromptText("\u9009\u62e9" + dormArea + "\u7684\u697c\u680b");
+        buildingBox.setPromptText("选择 " + dormArea + " 的楼栋");
     }
 
     private void clearAfterSubmit(
@@ -293,23 +366,32 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         buildingBox.getItems().clear();
         buildingBox.getSelectionModel().clearSelection();
         buildingBox.setDisable(true);
-        buildingBox.setPromptText("\u5148\u9009\u5bbf\u820d\u533a\u518d\u9009\u5bbf\u820d\u697c");
+        buildingBox.setPromptText("先选宿舍区再选宿舍楼");
         roomField.clear();
         phoneField.clear();
         descriptionArea.clear();
         selectedImageFiles.clear();
-        refreshImagePreview(imageUploadBox, selectedImageFiles);
+        ImageUploadState uploadState = (ImageUploadState) imageUploadBox.getUserData();
+        if (uploadState != null) {
+            refreshImagePreview(uploadState.previewBox(), selectedImageFiles, uploadState.uploadCountLabel(), uploadState.draftCountLabel());
+        }
         faultCategoryBox.getSelectionModel().clearSelection();
     }
 
-    private VBox createImageUploadBox(List<File> selectedImageFiles) {
-        Button chooseButton = new Button("\u9009\u62e9\u56fe\u7247");
+    private VBox createImageUploadBox(List<File> selectedImageFiles, Label draftImageCountLabel) {
+        Label imageCountLabel = createDraftValueLabel("已选 0 / " + ProjectImageStore.MAX_IMAGE_COUNT + " 张");
+
+        Button chooseButton = new Button("选择图片");
         chooseButton.getStyleClass().add("nav-button");
 
-        Button clearButton = new Button("\u6e05\u7a7a\u56fe\u7247");
+        Button clearButton = new Button("清空图片");
         clearButton.getStyleClass().add("nav-button");
 
-        Label helperLabel = new Label("\u9009\u4e2d\u540e\u5148\u5728\u8fd9\u91cc\u9884\u89c8\uff0c\u63d0\u4ea4\u65f6\u518d\u81ea\u52a8\u590d\u5236\u5230\u9879\u76ee pics/ \u76ee\u5f55\u3002");
+        Label helperLabel = new Label(
+                "支持 png、jpg、jpeg、webp、bmp、gif，最多 "
+                        + ProjectImageStore.MAX_IMAGE_COUNT
+                        + " 张，单张不超过 8MB。提交时会自动复制到项目 pics/ 目录。"
+        );
         helperLabel.getStyleClass().add("helper-text");
         helperLabel.setWrapText(true);
 
@@ -317,7 +399,7 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         previewBox.getStyleClass().add("upload-preview-box");
         previewBox.setFillWidth(true);
         previewBox.setMaxWidth(Double.MAX_VALUE);
-        refreshImagePreview(previewBox, selectedImageFiles);
+        refreshImagePreview(previewBox, selectedImageFiles, imageCountLabel, draftImageCountLabel);
 
         chooseButton.setOnAction(event -> {
             List<File> chosenFiles = chooseImageFiles(chooseButton);
@@ -332,26 +414,37 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
                     selectedImageFiles.add(chosenFile);
                 }
             }
-            refreshImagePreview(previewBox, selectedImageFiles);
+
+            try {
+                ProjectImageStore.validateImageFiles(selectedImageFiles);
+                refreshImagePreview(previewBox, selectedImageFiles, imageCountLabel, draftImageCountLabel);
+            } catch (RuntimeException exception) {
+                selectedImageFiles.removeIf(file -> chosenFiles.stream()
+                        .anyMatch(chosen -> chosen.toPath().equals(file.toPath())));
+                refreshImagePreview(previewBox, selectedImageFiles, imageCountLabel, draftImageCountLabel);
+                UiAlerts.error("图片校验失败", exception.getMessage());
+            }
         });
 
         clearButton.setOnAction(event -> {
             selectedImageFiles.clear();
-            refreshImagePreview(previewBox, selectedImageFiles);
+            refreshImagePreview(previewBox, selectedImageFiles, imageCountLabel, draftImageCountLabel);
         });
 
         HBox toolbar = new HBox(12, chooseButton, clearButton);
         toolbar.setAlignment(Pos.CENTER_LEFT);
 
-        return new VBox(10, helperLabel, toolbar, previewBox);
+        VBox uploadBox = new VBox(10, helperLabel, imageCountLabel, toolbar, previewBox);
+        uploadBox.setUserData(new ImageUploadState(previewBox, imageCountLabel, draftImageCountLabel));
+        return uploadBox;
     }
 
     private List<File> chooseImageFiles(Node ownerNode) {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("\u9009\u62e9\u62a5\u4fee\u56fe\u7247");
+        chooser.setTitle("选择报修图片");
         chooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter(
-                        "\u56fe\u7247\u6587\u4ef6",
+                        "图片文件",
                         "*.png",
                         "*.jpg",
                         "*.jpeg",
@@ -369,11 +462,19 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         return selectedFiles;
     }
 
-    private void refreshImagePreview(VBox previewBox, List<File> selectedImageFiles) {
+    private void refreshImagePreview(
+            VBox previewBox,
+            List<File> selectedImageFiles,
+            Label imageCountLabel,
+            Label draftImageCountLabel
+    ) {
         previewBox.getChildren().clear();
+        String countText = "已选 " + selectedImageFiles.size() + " / " + ProjectImageStore.MAX_IMAGE_COUNT + " 张";
+        imageCountLabel.setText(countText);
+        draftImageCountLabel.setText(selectedImageFiles.size() + " 张");
 
         if (selectedImageFiles.isEmpty()) {
-            Label emptyLabel = new Label("\u6682\u672a\u9009\u62e9\u56fe\u7247\u3002");
+            Label emptyLabel = new Label("暂未选择图片。");
             emptyLabel.getStyleClass().add("helper-text");
             previewBox.getChildren().add(emptyLabel);
             return;
@@ -386,6 +487,62 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
             imageLabel.setWrapText(true);
             previewBox.getChildren().add(imageLabel);
         }
+    }
+
+    private void refreshDraftLocation(
+            ComboBox<String> dormAreaBox,
+            ComboBox<DormBuilding> buildingBox,
+            TextField roomField,
+            Label targetLabel
+    ) {
+        String area = dormAreaBox.getValue();
+        DormBuilding building = buildingBox.getValue();
+        String room = roomField.getText() == null ? "" : roomField.getText().trim();
+
+        if (area == null || area.isBlank() || building == null || room.isBlank()) {
+            targetLabel.setText("待补全");
+            return;
+        }
+        targetLabel.setText(area + " " + building.getBuildingNo() + "-" + room.toUpperCase());
+    }
+
+    private VBox createDetailBlock(String labelText, Label valueLabel) {
+        valueLabel.getStyleClass().add("plain-text");
+        return createFieldBlock(labelText, valueLabel);
+    }
+
+    private Label createDraftValueLabel(String text) {
+        Label label = new Label(text);
+        label.setWrapText(true);
+        label.setMaxWidth(Double.MAX_VALUE);
+        return label;
+    }
+
+    private TableColumn<RecentRepairRequestView, String> createTextColumn(String title, String property) {
+        TableColumn<RecentRepairRequestView, String> column = new TableColumn<>(title);
+        column.setCellValueFactory(new PropertyValueFactory<>(property));
+        return column;
+    }
+
+    private TableColumn<RecentRepairRequestView, String> createStatusColumn() {
+        TableColumn<RecentRepairRequestView, String> column = new TableColumn<>("状态");
+        column.setCellValueFactory(cell ->
+                Bindings.createStringBinding(() -> UiDisplayText.repairRequestStatus(cell.getValue().getStatus()))
+        );
+        return column;
+    }
+
+    private TableColumn<RecentRepairRequestView, String> createDateTimeColumn() {
+        TableColumn<RecentRepairRequestView, String> column = new TableColumn<>("提交时间");
+        column.setCellValueFactory(cell ->
+                Bindings.createStringBinding(() -> {
+                    if (cell.getValue().getSubmittedAt() == null) {
+                        return "";
+                    }
+                    return TIME_FORMATTER.format(cell.getValue().getSubmittedAt());
+                })
+        );
+        return column;
     }
 
     private ListCell<DormBuilding> createDormBuildingCell() {
@@ -406,5 +563,12 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
                 setText(empty || item == null ? "" : UiDisplayText.faultCategory(item));
             }
         };
+    }
+
+    private record ImageUploadState(
+            VBox previewBox,
+            Label uploadCountLabel,
+            Label draftCountLabel
+    ) {
     }
 }
