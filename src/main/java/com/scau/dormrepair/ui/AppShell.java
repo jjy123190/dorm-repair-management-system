@@ -21,20 +21,19 @@ import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.OverrunStyle;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 /**
- * 桌面端壳层只负责三件事：
- * 1. 固定顶部身份区
- * 2. 固定左侧模块入口
- * 3. 承载中间业务页面
- * 这样模块切换时，顶部和侧栏不会因为正文内容不同而上下抖动。
+ * 工作台壳层只保留三类稳定信息：
+ * 1. 左侧系统标题
+ * 2. 右上角当前身份标签
+ * 3. 退出动作
+ *
+ * 模块说明和业务提示全部回到页面主体，避免顶部壳层跟着模块切换上下抖动。
  */
 public class AppShell {
 
@@ -47,9 +46,7 @@ public class AppShell {
 
     private BorderPane workbenchShell;
     private StackPane moduleHost;
-    private Label roleBadgeLabel;
-    private Label userLabel;
-    private Label moduleChipLabel;
+    private Label identityChipLabel;
     private WorkbenchModule activeModule;
     private UserRole renderedRole;
 
@@ -139,22 +136,8 @@ public class AppShell {
         brandBox.setFillWidth(true);
         brandBox.setMaxWidth(Double.MAX_VALUE);
 
-        roleBadgeLabel = new Label();
-        roleBadgeLabel.getStyleClass().add("header-role-chip");
-
-        userLabel = new Label();
-        userLabel.getStyleClass().add("header-user-chip");
-        userLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
-        userLabel.setMaxWidth(160);
-
-        moduleChipLabel = new Label();
-        moduleChipLabel.getStyleClass().add("header-module-chip");
-        moduleChipLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
-        moduleChipLabel.setMaxWidth(140);
-
-        HBox metaRow = new HBox(8, roleBadgeLabel, userLabel, moduleChipLabel);
-        metaRow.getStyleClass().add("header-meta-row");
-        metaRow.setAlignment(Pos.CENTER);
+        identityChipLabel = new Label();
+        identityChipLabel.getStyleClass().add("header-identity-chip");
 
         Button logoutButton = new Button("退出登录");
         logoutButton.getStyleClass().add("header-logout-action");
@@ -163,15 +146,15 @@ public class AppShell {
             appSession.logout();
         });
 
-        VBox summaryBox = new VBox(12, metaRow, logoutButton);
+        VBox summaryBox = new VBox(12, identityChipLabel, logoutButton);
         summaryBox.getStyleClass().add("header-summary-card");
         summaryBox.setAlignment(Pos.CENTER);
-        summaryBox.setMinWidth(320);
-        summaryBox.setPrefWidth(320);
-        summaryBox.setMaxWidth(320);
-        summaryBox.setMinHeight(78);
-        summaryBox.setPrefHeight(78);
-        summaryBox.setMaxHeight(78);
+        summaryBox.setMinWidth(240);
+        summaryBox.setPrefWidth(240);
+        summaryBox.setMaxWidth(240);
+        summaryBox.setMinHeight(96);
+        summaryBox.setPrefHeight(96);
+        summaryBox.setMaxHeight(96);
 
         BorderPane headerRow = new BorderPane();
         headerRow.setLeft(brandBox);
@@ -179,10 +162,10 @@ public class AppShell {
 
         VBox headerBox = new VBox(headerRow);
         headerBox.getStyleClass().add("header-shell");
-        headerBox.setPadding(new Insets(14, 22, 14, 22));
-        headerBox.setMinHeight(108);
-        headerBox.setPrefHeight(108);
-        headerBox.setMaxHeight(108);
+        headerBox.setPadding(new Insets(16, 22, 16, 22));
+        headerBox.setMinHeight(110);
+        headerBox.setPrefHeight(110);
+        headerBox.setMaxHeight(110);
         return headerBox;
     }
 
@@ -217,7 +200,6 @@ public class AppShell {
         try {
             updateHeader();
             updateSidebarSelection();
-            // 每次都强制刷新中间主体，避免缓存页和导航状态偶发串页。
             showModule(module, true);
         } catch (RuntimeException exception) {
             activeModule = previousModule;
@@ -227,7 +209,7 @@ public class AppShell {
                 try {
                     showModule(previousModule, false);
                 } catch (RuntimeException ignored) {
-                    // 这里只做兜底，不覆盖真正的报错原因。
+                    // 这里只做兜底，不覆盖真正的原始报错。
                 }
             }
             UiAlerts.error("页面加载失败", exception);
@@ -235,10 +217,7 @@ public class AppShell {
     }
 
     private void updateHeader() {
-        String moduleName = activeModule == null ? "首页概览" : activeModule.moduleName();
-        roleBadgeLabel.setText(appSession.getCurrentRole().displayName());
-        userLabel.setText("演示身份 · " + appSession.getDisplayName());
-        moduleChipLabel.setText(moduleName);
+        identityChipLabel.setText(appSession.getCurrentRole().displayName() + "•" + appSession.getDisplayName());
     }
 
     private void updateSidebarSelection() {
@@ -286,8 +265,6 @@ public class AppShell {
         renderedRole = null;
         workbenchShell = null;
         moduleHost = null;
-        roleBadgeLabel = null;
-        userLabel = null;
-        moduleChipLabel = null;
+        identityChipLabel = null;
     }
 }

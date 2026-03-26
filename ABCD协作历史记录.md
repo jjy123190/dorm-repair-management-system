@@ -402,6 +402,21 @@
   - 后续新增只读展示表格优先走 `createStaticDataTable(...)`，不要再默认上 `TableView`
   - 如果某张表仍然要支持行选择，再单独保留 `TableView`，不要把只读表也带回去
 - Push 结果
+  - 已 push
+  - 提交号：`c82e8ab`
+
+### 2026-03-26 11:12 | A
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/ui/AppShell.java`
+  - `src/main/resources/styles/app.css`
+- 完成内容
+  - 顶部右上 summary 区改成单一身份标签，只显示 `角色•姓名`，不再拆成“演示身份”“当前模块”“首页概览”这类多 chip
+  - 顶部壳层只保留正式系统标题和退出按钮，summary 卡高度保持固定，不再因为模块切换产生额外文本或布局抖动
+  - 重新用 `clean compile` 验证，确认新的壳层类文件已经落到 `target/classes`
+- 影响提醒 / 下一步
+  - 后续不要再把模块名塞回右上 summary 区，当前模块应由左侧导航和页面标题表达
+  - 如果用户还要继续收壳层观感，优先改 `AppShell.java` 和 `app.css`，不要去业务页重复拼 header 信息
+- Push 结果
   - 待 push
   - 提交号：待本轮提交后回填
 

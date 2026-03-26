@@ -210,45 +210,22 @@
     -fx-line-spacing: 3px;
 }
 
-.header-meta-row {
-    -fx-alignment: center;
-}
-
-.header-status-box {
-    -fx-alignment: center;
-}
-
 .header-summary-card {
     -fx-alignment: center;
     -fx-background-color: rgba(255,252,247,0.74);
     -fx-background-radius: 18px;
     -fx-border-color: rgba(46,46,46,0.08);
     -fx-border-radius: 18px;
-    -fx-padding: 10 14 10 14;
+    -fx-padding: 12 14 12 14;
 }
 
-.header-role-chip,
-.header-user-chip,
-.header-module-chip {
+.header-identity-chip {
     -fx-background-radius: 999px;
-    -fx-padding: 6 11 6 11;
-    -fx-font-size: 11px;
+    -fx-padding: 7 16 7 16;
+    -fx-font-size: 12px;
     -fx-font-weight: bold;
-}
-
-.header-role-chip {
     -fx-background-color: rgba(167,205,184,0.34);
     -fx-text-fill: #274137;
-}
-
-.header-user-chip {
-    -fx-background-color: rgba(46,46,46,0.06);
-    -fx-text-fill: rgba(46,46,46,0.78);
-}
-
-.header-module-chip {
-    -fx-background-color: rgba(232,223,152,0.48);
-    -fx-text-fill: #61572d;
 }
 
 .header-focus-copy {
