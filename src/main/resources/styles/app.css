@@ -341,6 +341,54 @@
     -fx-text-fill: #2e2e2e;
 }
 
+.student-progress-step {
+    -fx-background-color: rgba(255,255,255,0.72);
+    -fx-background-radius: 14px;
+    -fx-border-color: rgba(46,46,46,0.08);
+    -fx-border-radius: 14px;
+    -fx-padding: 12 12 12 12;
+}
+
+.student-progress-step-active {
+    -fx-background-color: linear-gradient(to bottom right, rgba(232,243,236,0.96), rgba(244,247,239,0.96));
+    -fx-border-color: rgba(106,160,135,0.42);
+}
+
+.student-progress-step-done {
+    -fx-background-color: linear-gradient(to bottom right, rgba(255,248,231,0.98), rgba(250,244,226,0.94));
+    -fx-border-color: rgba(184,168,68,0.28);
+}
+
+.student-progress-step-closed {
+    -fx-background-color: rgba(245,239,231,0.92);
+    -fx-border-color: rgba(111,100,48,0.18);
+}
+
+.student-progress-index {
+    -fx-background-color: rgba(46,46,46,0.08);
+    -fx-background-radius: 999px;
+    -fx-padding: 4 9 4 9;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2e2e2e;
+}
+
+.student-progress-title {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2e2e2e;
+}
+
+.student-progress-copy {
+    -fx-font-size: 11px;
+    -fx-text-fill: rgba(46,46,46,0.68);
+    -fx-line-spacing: 2px;
+}
+
+.student-thumb {
+    -fx-cursor: hand;
+}
+
 .workbench-page {
     -fx-fill-width: true;
 }

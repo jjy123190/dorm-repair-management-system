@@ -36,6 +36,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
@@ -144,6 +145,15 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         Label imageCountValue = createDetailValueLabel("");
         Label descriptionValue = createDetailValueLabel("");
         Label feedbackStatusValue = createDetailValueLabel("当前还没有评价记录。");
+        HBox progressTrack = new HBox(10);
+        progressTrack.setAlignment(Pos.CENTER_LEFT);
+        progressTrack.getChildren().addAll(
+                createProgressStep("1", "已提交", "学生已成功发起报修"),
+                createProgressStep("2", "已派单", "管理员已接入处理流程"),
+                createProgressStep("3", "处理中", "维修人员正在处理问题"),
+                createProgressStep("4", "已完成", "本次报修处理结束")
+        );
+        Label progressSummaryValue = createDetailValueLabel("请选择一条记录查看当前进度。");
 
         FlowPane imageThumbPane = new FlowPane(10, 10);
         imageThumbPane.setPrefWrapLength(260);
@@ -195,6 +205,8 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
                 imageCountValue,
                 descriptionValue,
                 feedbackStatusValue,
+                progressTrack,
+                progressSummaryValue,
                 imageThumbPane,
                 previewImage,
                 previewHint,
@@ -215,11 +227,13 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
             imageCountValue.setText("");
             descriptionValue.setText("");
             feedbackStatusValue.setText("当前还没有评价记录。");
+            progressSummaryValue.setText("请选择一条记录查看当前进度。");
             imageThumbPane.getChildren().clear();
             previewImage.setImage(null);
             previewImage.setVisible(false);
             previewImage.setManaged(false);
             previewHint.setText("当前没有可预览图片。");
+            updateProgressTrack(progressTrack, null);
             ratingBox.getSelectionModel().clearSelection();
             feedbackArea.clear();
             anonymousBox.setSelected(false);
@@ -280,6 +294,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
                 createDetailBlock("宿舍位置", locationValue),
                 createDetailBlock("联系电话", phoneValue),
                 createDetailBlock("故障类型", categoryValue),
+                createFieldBlock("处理进度", new VBox(10, progressSummaryValue, progressTrack)),
                 createDetailBlock("提交时间", submittedAtValue),
                 createDetailBlock("完成时间", completedAtValue),
                 createDetailBlock("图片数量", imageCountValue),
@@ -303,6 +318,8 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         detailState.completedAtValue.setText(formatTime(detailView.getCompletedAt()));
         detailState.imageCountValue.setText(String.valueOf(detailView.getImageUrls().size()));
         detailState.descriptionValue.setText(nullToEmpty(detailView.getDescription()));
+        detailState.progressSummaryValue.setText(buildProgressSummary(detailView));
+        updateProgressTrack(detailState.progressTrack, detailView.getStatus());
 
         renderImagePreview(detailState, detailView.getImageUrls());
 
@@ -375,6 +392,73 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         previewImage.setVisible(true);
         previewImage.setManaged(true);
         previewHint.setText("正在预览已上传图片。");
+    }
+
+    private String buildProgressSummary(StudentRepairDetailView detailView) {
+        if (detailView.getStatus() == null) {
+            return "当前状态暂不可用。";
+        }
+        return switch (detailView.getStatus()) {
+            case SUBMITTED -> "当前处于“已提交”，等待管理员审核并派单。";
+            case ASSIGNED -> "当前处于“已派单”，说明管理员已经把工单分配给维修人员。";
+            case IN_PROGRESS -> "当前处于“处理中”，维修人员正在跟进本次报修。";
+            case COMPLETED -> "当前处于“已完成”，如果确认处理结果，可在下方提交评价。";
+            case REJECTED -> "当前报修已被驳回，建议根据说明重新提交。";
+            case CANCELLED -> "当前报修已取消，本次流程已经结束。";
+        };
+    }
+
+    private HBox createProgressStep(String indexText, String titleText, String descriptionText) {
+        Label indexLabel = new Label(indexText);
+        indexLabel.getStyleClass().add("student-progress-index");
+
+        Label titleLabel = new Label(titleText);
+        titleLabel.getStyleClass().add("student-progress-title");
+
+        Label descriptionLabel = new Label(descriptionText);
+        descriptionLabel.getStyleClass().add("student-progress-copy");
+        descriptionLabel.setWrapText(true);
+
+        VBox card = new VBox(6, indexLabel, titleLabel, descriptionLabel);
+        card.getStyleClass().add("student-progress-step");
+        card.setFillWidth(true);
+        card.setMaxWidth(Double.MAX_VALUE);
+
+        StackPane shell = new StackPane(card);
+        shell.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(shell, Priority.ALWAYS);
+        return shell;
+    }
+
+    private void updateProgressTrack(HBox progressTrack, RepairRequestStatus status) {
+        int completedIndex;
+        if (status == null) {
+            completedIndex = -1;
+        } else {
+            completedIndex = switch (status) {
+                case SUBMITTED -> 0;
+                case ASSIGNED -> 1;
+                case IN_PROGRESS -> 2;
+                case COMPLETED -> 3;
+                case REJECTED, CANCELLED -> -1;
+            };
+        }
+
+        for (int index = 0; index < progressTrack.getChildren().size(); index++) {
+            StackPane shell = (StackPane) progressTrack.getChildren().get(index);
+            VBox card = (VBox) shell.getChildren().get(0);
+            card.getStyleClass().removeAll("student-progress-step-active", "student-progress-step-done", "student-progress-step-closed");
+
+            if (completedIndex >= 0) {
+                if (index < completedIndex) {
+                    card.getStyleClass().add("student-progress-step-done");
+                } else if (index == completedIndex) {
+                    card.getStyleClass().add("student-progress-step-active");
+                }
+            } else if (status == RepairRequestStatus.REJECTED || status == RepairRequestStatus.CANCELLED) {
+                card.getStyleClass().add("student-progress-step-closed");
+            }
+        }
     }
 
     private Path resolveProjectPath(String storedPath) {
@@ -450,6 +534,8 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         private final Label imageCountValue;
         private final Label descriptionValue;
         private final Label feedbackStatusValue;
+        private final HBox progressTrack;
+        private final Label progressSummaryValue;
         private final FlowPane imageThumbPane;
         private final ImageView previewImage;
         private final Label previewHint;
@@ -470,6 +556,8 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
                 Label imageCountValue,
                 Label descriptionValue,
                 Label feedbackStatusValue,
+                HBox progressTrack,
+                Label progressSummaryValue,
                 FlowPane imageThumbPane,
                 ImageView previewImage,
                 Label previewHint,
@@ -489,6 +577,8 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
             this.imageCountValue = imageCountValue;
             this.descriptionValue = descriptionValue;
             this.feedbackStatusValue = feedbackStatusValue;
+            this.progressTrack = progressTrack;
+            this.progressSummaryValue = progressSummaryValue;
             this.imageThumbPane = imageThumbPane;
             this.previewImage = previewImage;
             this.previewHint = previewHint;
