@@ -11,6 +11,9 @@ import com.scau.dormrepair.ui.component.FusionUiFactory;
 import com.scau.dormrepair.ui.support.UiAlerts;
 import com.scau.dormrepair.ui.support.UiDisplayText;
 import com.scau.dormrepair.ui.support.UiMotion;
+import com.scau.dormrepair.ui.support.ProjectImageStore;
+import java.io.File;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -19,6 +22,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -27,6 +31,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
+import javafx.stage.Window;
 import javafx.util.StringConverter;
 
 /**
@@ -98,10 +104,8 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         descriptionArea.setPrefRowCount(4);
         descriptionArea.setWrapText(true);
 
-        TextArea imageUrlsArea = new TextArea();
-        imageUrlsArea.setPromptText("\u6682\u65f6\u7528\u56fe\u7247\u5730\u5740\u4ee3\u66ff\u4e0a\u4f20\u529f\u80fd\uff0c\u4e00\u884c\u4e00\u5f20\u3002");
-        imageUrlsArea.setPrefRowCount(3);
-        imageUrlsArea.setWrapText(true);
+        List<File> selectedImageFiles = new ArrayList<>();
+        VBox imageUploadBox = createImageUploadBox(selectedImageFiles);
 
         dormAreaBox.valueProperty().addListener((observable, oldValue, newValue) ->
                 reloadBuildingsByArea(newValue, buildingBox)
@@ -123,7 +127,7 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
                         roomField.getText(),
                         faultCategoryBox.getValue(),
                         descriptionArea.getText(),
-                        splitImageUrls(imageUrlsArea.getText())
+                        ProjectImageStore.copyImagesToProject(selectedImageFiles)
                 );
 
                 Long repairRequestId = appContext.repairRequestService().create(command);
@@ -133,7 +137,8 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
                         roomField,
                         phoneField,
                         descriptionArea,
-                        imageUrlsArea,
+                        selectedImageFiles,
+                        imageUploadBox,
                         faultCategoryBox
                 );
                 UiAlerts.info(
@@ -152,7 +157,8 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
                         roomField,
                         phoneField,
                         descriptionArea,
-                        imageUrlsArea,
+                        selectedImageFiles,
+                        imageUploadBox,
                         faultCategoryBox
                 )
         );
@@ -184,7 +190,7 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
                 contactRow,
                 createFieldBlock("\u6545\u969c\u7c7b\u578b", faultCategoryBox),
                 createFieldBlock("\u6545\u969c\u63cf\u8ff0", descriptionArea),
-                createFieldBlock("\u56fe\u7247\u5730\u5740", imageUrlsArea),
+                createFieldBlock("\u56fe\u7247\u4e0a\u4f20", imageUploadBox),
                 actionRow
         );
         formBox.setFillWidth(true);
@@ -273,23 +279,14 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         buildingBox.setPromptText("\u9009\u62e9" + dormArea + "\u7684\u697c\u680b");
     }
 
-    private List<String> splitImageUrls(String rawText) {
-        if (rawText == null || rawText.isBlank()) {
-            return List.of();
-        }
-        return rawText.lines()
-                .map(String::trim)
-                .filter(line -> !line.isBlank())
-                .toList();
-    }
-
     private void clearAfterSubmit(
             ComboBox<String> dormAreaBox,
             ComboBox<DormBuilding> buildingBox,
             TextField roomField,
             TextField phoneField,
             TextArea descriptionArea,
-            TextArea imageUrlsArea,
+            List<File> selectedImageFiles,
+            VBox imageUploadBox,
             ComboBox<FaultCategory> faultCategoryBox
     ) {
         dormAreaBox.getSelectionModel().clearSelection();
@@ -300,8 +297,95 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         roomField.clear();
         phoneField.clear();
         descriptionArea.clear();
-        imageUrlsArea.clear();
+        selectedImageFiles.clear();
+        refreshImagePreview(imageUploadBox, selectedImageFiles);
         faultCategoryBox.getSelectionModel().clearSelection();
+    }
+
+    private VBox createImageUploadBox(List<File> selectedImageFiles) {
+        Button chooseButton = new Button("\u9009\u62e9\u56fe\u7247");
+        chooseButton.getStyleClass().add("nav-button");
+
+        Button clearButton = new Button("\u6e05\u7a7a\u56fe\u7247");
+        clearButton.getStyleClass().add("nav-button");
+
+        Label helperLabel = new Label("\u9009\u4e2d\u540e\u5148\u5728\u8fd9\u91cc\u9884\u89c8\uff0c\u63d0\u4ea4\u65f6\u518d\u81ea\u52a8\u590d\u5236\u5230\u9879\u76ee pics/ \u76ee\u5f55\u3002");
+        helperLabel.getStyleClass().add("helper-text");
+        helperLabel.setWrapText(true);
+
+        VBox previewBox = new VBox(8);
+        previewBox.getStyleClass().add("upload-preview-box");
+        previewBox.setFillWidth(true);
+        previewBox.setMaxWidth(Double.MAX_VALUE);
+        refreshImagePreview(previewBox, selectedImageFiles);
+
+        chooseButton.setOnAction(event -> {
+            List<File> chosenFiles = chooseImageFiles(chooseButton);
+            if (chosenFiles.isEmpty()) {
+                return;
+            }
+
+            for (File chosenFile : chosenFiles) {
+                boolean exists = selectedImageFiles.stream()
+                        .anyMatch(existingFile -> existingFile.toPath().equals(chosenFile.toPath()));
+                if (!exists) {
+                    selectedImageFiles.add(chosenFile);
+                }
+            }
+            refreshImagePreview(previewBox, selectedImageFiles);
+        });
+
+        clearButton.setOnAction(event -> {
+            selectedImageFiles.clear();
+            refreshImagePreview(previewBox, selectedImageFiles);
+        });
+
+        HBox toolbar = new HBox(12, chooseButton, clearButton);
+        toolbar.setAlignment(Pos.CENTER_LEFT);
+
+        return new VBox(10, helperLabel, toolbar, previewBox);
+    }
+
+    private List<File> chooseImageFiles(Node ownerNode) {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("\u9009\u62e9\u62a5\u4fee\u56fe\u7247");
+        chooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter(
+                        "\u56fe\u7247\u6587\u4ef6",
+                        "*.png",
+                        "*.jpg",
+                        "*.jpeg",
+                        "*.webp",
+                        "*.bmp",
+                        "*.gif"
+                )
+        );
+
+        Window ownerWindow = ownerNode.getScene() == null ? null : ownerNode.getScene().getWindow();
+        List<File> selectedFiles = chooser.showOpenMultipleDialog(ownerWindow);
+        if (selectedFiles == null || selectedFiles.isEmpty()) {
+            return List.of();
+        }
+        return selectedFiles;
+    }
+
+    private void refreshImagePreview(VBox previewBox, List<File> selectedImageFiles) {
+        previewBox.getChildren().clear();
+
+        if (selectedImageFiles.isEmpty()) {
+            Label emptyLabel = new Label("\u6682\u672a\u9009\u62e9\u56fe\u7247\u3002");
+            emptyLabel.getStyleClass().add("helper-text");
+            previewBox.getChildren().add(emptyLabel);
+            return;
+        }
+
+        for (int index = 0; index < selectedImageFiles.size(); index++) {
+            File selectedFile = selectedImageFiles.get(index);
+            Label imageLabel = new Label((index + 1) + ". " + selectedFile.getName());
+            imageLabel.getStyleClass().add("upload-preview-item");
+            imageLabel.setWrapText(true);
+            previewBox.getChildren().add(imageLabel);
+        }
     }
 
     private ListCell<DormBuilding> createDormBuildingCell() {

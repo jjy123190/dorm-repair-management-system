@@ -3,6 +3,7 @@ package com.scau.dormrepair.ui.support;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.animation.Interpolator;
 import javafx.application.Platform;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
@@ -61,12 +62,9 @@ public final class UiMotion {
                 return;
             }
 
-            double baseStep = Math.max(0.045, 1.0 / Math.max(18.0, listView.getItems().size() * 2.2));
-            double deltaFactor = Math.min(3.2, Math.max(0.45, Math.abs(event.getDeltaY()) / 80.0));
-            double direction = event.getDeltaY() > 0 ? -1.0 : 1.0;
-
             double currentTarget = readTarget(verticalBar);
-            double nextTarget = clamp(currentTarget + direction * baseStep * deltaFactor, 0.0, 1.0);
+            double deltaRatio = -event.getDeltaY() / Math.max(520.0, listView.getItems().size() * 36.0);
+            double nextTarget = clamp(currentTarget + deltaRatio, 0.0, 1.0);
             writeTarget(verticalBar, nextTarget);
             playSmoothScroll(verticalBar, nextTarget);
             event.consume();
@@ -92,8 +90,12 @@ public final class UiMotion {
 
         Timeline timeline = new Timeline(
                 new KeyFrame(
-                        Duration.millis(110),
-                        new KeyValue(scrollBar.valueProperty(), targetValue)
+                        Duration.ZERO,
+                        new KeyValue(scrollBar.valueProperty(), scrollBar.getValue(), Interpolator.EASE_OUT)
+                ),
+                new KeyFrame(
+                        Duration.millis(180),
+                        new KeyValue(scrollBar.valueProperty(), targetValue, Interpolator.SPLINE(0.22, 0.78, 0.18, 1.0))
                 )
         );
         timeline.setOnFinished(event -> scrollBar.getProperties().remove(SMOOTH_SCROLL_TIMELINE));

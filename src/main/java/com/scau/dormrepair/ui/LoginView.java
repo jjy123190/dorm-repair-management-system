@@ -14,7 +14,6 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.text.TextAlignment;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -22,23 +21,24 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextAlignment;
 
 /**
- * 登录页只负责把演示身份送进工作台。
- * 这里故意不用下拉框，改成固定角色入口，减少交互噪音和布局问题。
+ * 登录页只负责选择当前登录角色并进入工作台。
+ * 当前阶段先走本地登录占位，界面口径按正式系统展示，不再出现演示措辞。
  */
 public class LoginView {
 
     private static final Map<UserRole, String> ROLE_HINTS = Map.of(
-            UserRole.STUDENT, "提交报修、跟进进度、完成评价。",
-            UserRole.ADMIN, "审核分类、派单催办、查看统计。",
-            UserRole.WORKER, "接单处理、更新状态、回填结果。"
+            UserRole.STUDENT, "提交报修、查看进度、完成评价",
+            UserRole.ADMIN, "审核分类、派单催办、查看统计",
+            UserRole.WORKER, "接单处理、更新状态、回填结果"
     );
 
     private static final Map<UserRole, String> ROLE_LABELS = Map.of(
             UserRole.STUDENT, "学生入口",
-            UserRole.ADMIN, "管理员入口",
-            UserRole.WORKER, "维修员入口"
+            UserRole.ADMIN, "宿管管理员入口",
+            UserRole.WORKER, "维修人员入口"
     );
 
     private final AppContext appContext;
@@ -70,7 +70,7 @@ public class LoginView {
     }
 
     private VBox buildHeroPane() {
-        Label chipLabel = new Label("SCAU · Desktop Edition");
+        Label chipLabel = new Label("SCAU DORM REPAIR");
         chipLabel.getStyleClass().add("login-hero-chip");
 
         Label titleLabel = new Label("宿舍报修与工单管理系统");
@@ -78,23 +78,23 @@ public class LoginView {
         titleLabel.setWrapText(true);
         titleLabel.setMaxWidth(Double.MAX_VALUE);
 
-        Label copyLabel = new Label("把学生报修、管理员派单、维修处理和月度统计收进同一个桌面工作台里，答辩时先讲清业务主线，再展开数据库实现。");
+        Label copyLabel = new Label("围绕学生报修、管理员派单、维修处理和结果反馈，统一承接宿舍维修业务的完整闭环。");
         copyLabel.getStyleClass().add("login-hero-copy");
         copyLabel.setWrapText(true);
         copyLabel.setMaxWidth(Double.MAX_VALUE);
 
         VBox flowBox = new VBox(
                 12,
-                createFlowItem("01", "学生发起", "填写宿舍、房间、故障类型和描述。"),
-                createFlowItem("02", "管理员派单", "审核分类并把工单分配给维修员。"),
-                createFlowItem("03", "维修闭环", "维修员回填结果，学生完成评价。")
+                createFlowItem("01", "提交报修", "学生填写宿舍区、楼栋、房间、故障类型和故障描述。"),
+                createFlowItem("02", "审核派单", "管理员审核报修内容，分类后分派给对应维修人员。"),
+                createFlowItem("03", "处理反馈", "维修人员更新状态并回填处理结果，形成完整记录。")
         );
         flowBox.getStyleClass().add("login-flow-box");
 
         HBox stripRow = new HBox(
                 14,
-                createStripCard("3", "演示角色"),
-                createStripCard("工单流转", "核心主线"),
+                createStripCard("3", "核心角色"),
+                createStripCard("工单闭环", "核心流程"),
                 createStripCard("MyBatis", "数据访问")
         );
         stripRow.getStyleClass().add("login-strip-row");
@@ -116,19 +116,19 @@ public class LoginView {
         ObjectProperty<UserRole> selectedRole = new SimpleObjectProperty<>(UserRole.STUDENT);
         Map<UserRole, StackPane> roleCards = new EnumMap<>(UserRole.class);
 
-        Label chipLabel = new Label("演示入口");
+        Label chipLabel = new Label("身份登录");
         chipLabel.getStyleClass().add("login-entry-chip");
 
         Label titleLabel = new Label("进入工作台");
         titleLabel.getStyleClass().add("login-entry-title");
 
-        Label introLabel = new Label("直接选择要演示的角色，再填写显示名称。登录页不再堆额外控件，只保留进入工作台必需的信息。");
+        Label introLabel = new Label("请选择当前登录身份并填写显示名称，进入对应业务工作台。");
         introLabel.getStyleClass().add("login-entry-intro");
         introLabel.setWrapText(true);
         introLabel.setMaxWidth(Double.MAX_VALUE);
 
         TextField nameField = new TextField(defaultName(UserRole.STUDENT));
-        nameField.setPromptText("输入当前演示名称");
+        nameField.setPromptText("输入当前登录姓名");
 
         Label rolePreviewLabel = new Label();
         rolePreviewLabel.getStyleClass().add("login-role-preview-title");
@@ -163,7 +163,7 @@ public class LoginView {
         Label fieldLabel = new Label("显示名称");
         fieldLabel.getStyleClass().add("form-label");
 
-        Label noteLabel = new Label("当前先走本地演示登录，后面接真实用户表时只需要替换提交逻辑。");
+        Label noteLabel = new Label("当前先使用本地登录占位，后续接入真实用户表后可直接替换登录校验逻辑。");
         noteLabel.getStyleClass().add("login-entry-note");
         noteLabel.setWrapText(true);
         noteLabel.setMaxWidth(Double.MAX_VALUE);
