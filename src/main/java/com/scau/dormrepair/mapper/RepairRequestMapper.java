@@ -42,5 +42,16 @@ public interface RepairRequestMapper {
             @Param("requestId") Long requestId
     );
 
+    int increaseUrgeCount(
+            @Param("studentId") Long studentId,
+            @Param("requestId") Long requestId
+    );
+
+    int cancelStudentRequest(
+            @Param("studentId") Long studentId,
+            @Param("requestId") Long requestId,
+            @Param("status") RepairRequestStatus status
+    );
+
     List<RecentRepairRequestView> selectPendingAssignmentRequests(@Param("limit") int limit);
 }

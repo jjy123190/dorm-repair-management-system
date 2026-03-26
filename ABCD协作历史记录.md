@@ -546,3 +546,22 @@
   - 代码提交号：`492e03a`
   - 日志提交号：`78ccdee`
 
+### 2026-03-26 20:05 | B
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/service/RepairRequestService.java`
+  - `src/main/java/com/scau/dormrepair/service/impl/RepairRequestServiceImpl.java`
+  - `src/main/java/com/scau/dormrepair/mapper/RepairRequestMapper.java`
+  - `src/main/resources/mapper/RepairRequestMapper.xml`
+  - `src/main/java/com/scau/dormrepair/ui/module/StudentRepairHistoryModule.java`
+  - `src/main/resources/styles/app.css`
+- 完成内容
+  - 为学生报修主链补上“催办一次 / 取消报修”两类学生侧操作，并沿用现有 `repair_requests.urge_count` 与 `CANCELLED` 状态，不新增额外表结构
+  - service 与 mapper 层新增学生本人催办、取消的状态校验，限制为“只能操作自己的工单”，并按 `SUBMITTED / ASSIGNED / IN_PROGRESS` 等真实状态开放入口
+  - 学生报修详情页新增催办次数展示、操作状态横幅和按钮联动，评价提交后也会自动刷新当前详情与列表状态，整体闭环升级为“提交 -> 查询 -> 催办/取消 -> 完成后评价”
+  - 共享样式 `app.css` 补充学生侧操作横幅的空闲、可操作、关闭三种视觉状态
+- 影响提醒 / 下一步
+  - 这轮继续改动了共享文件 `app.css`，A / C / D 在接着开发前需要先 pull 最新
+  - 已在本地执行 `mvn -Dmaven.repo.local=.m2\repository compile`，当前项目编译通过
+- Push 结果
+  - 本轮待 commit + push
+

@@ -155,7 +155,9 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
             }
         });
 
-        state.feedbackButton.setOnAction(event -> submitFeedback(currentStudent, state));
+        state.feedbackButton.setOnAction(event -> submitFeedback(currentStudent, state, historyTable));
+        state.urgeButton.setOnAction(event -> urgeRequest(currentStudent, state, historyTable));
+        state.cancelButton.setOnAction(event -> cancelRequest(currentStudent, state, historyTable));
 
         ScrollPane imageScrollPane = new ScrollPane(state.imageThumbPane);
         imageScrollPane.setFitToWidth(true);
@@ -164,6 +166,9 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
 
         VBox previewBox = new VBox(10, state.previewHint, state.previewFrame);
         previewBox.getStyleClass().add("student-preview-box");
+
+        HBox actionRow = new HBox(12, state.urgeButton, state.cancelButton);
+        actionRow.setAlignment(Pos.CENTER_LEFT);
 
         VBox feedbackBox = new VBox(
                 10,
@@ -178,6 +183,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         VBox detailPanel = new VBox(
                 14,
                 createStatusSummaryRow(state),
+                createFieldBlock("学生侧操作", new VBox(10, state.actionBanner, actionRow)),
                 createFieldBlock("处理进度", new VBox(10, state.progressSummaryValue, state.progressTrack)),
                 createDetailBlock("报修单号", state.requestNoValue),
                 createDetailBlock("宿舍位置", state.locationValue),
@@ -185,6 +191,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
                 createDetailBlock("故障类别", state.categoryValue),
                 createDetailBlock("提交时间", state.submittedAtValue),
                 createDetailBlock("完成时间", state.completedAtValue),
+                createDetailBlock("催办次数", state.urgeCountValue),
                 createDetailBlock("图片数量", state.imageCountValue),
                 createDetailBlock("报修描述", state.descriptionValue),
                 createFieldBlock("图片缩略图", imageScrollPane),
@@ -205,6 +212,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         Label categoryValue = createDetailValueLabel("");
         Label submittedAtValue = createDetailValueLabel("");
         Label completedAtValue = createDetailValueLabel("");
+        Label urgeCountValue = createDetailValueLabel("0");
         Label imageCountValue = createDetailValueLabel("");
         Label descriptionValue = createDetailValueLabel("");
         Label progressSummaryValue = createDetailValueLabel("当前未加载工单状态。");
@@ -236,6 +244,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         previewFrame.setPrefHeight(220);
 
         Label previewHint = createDetailValueLabel("当前记录暂无可预览图片。");
+        Label actionBanner = createBadgeLabel("催办和取消会根据工单状态自动开放。");
         Label feedbackBanner = createBadgeLabel("评价入口会在工单完成后开放。");
 
         ComboBox<Integer> ratingBox = new ComboBox<>();
@@ -249,6 +258,10 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         feedbackArea.setPrefRowCount(3);
 
         CheckBox anonymousBox = new CheckBox("匿名评价");
+        Button urgeButton = new Button("催办一次");
+        urgeButton.getStyleClass().add("nav-button");
+        Button cancelButton = new Button("取消报修");
+        cancelButton.getStyleClass().add("nav-button");
         Button feedbackButton = new Button("提交评价");
         feedbackButton.getStyleClass().add("nav-button");
 
@@ -262,6 +275,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
                 categoryValue,
                 submittedAtValue,
                 completedAtValue,
+                urgeCountValue,
                 imageCountValue,
                 descriptionValue,
                 progressTrack,
@@ -270,10 +284,13 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
                 previewImage,
                 previewFrame,
                 previewHint,
+                actionBanner,
                 feedbackBanner,
                 ratingBox,
                 feedbackArea,
                 anonymousBox,
+                urgeButton,
+                cancelButton,
                 feedbackButton,
                 new ArrayList<>()
         );
@@ -301,11 +318,14 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         state.categoryValue.setText("");
         state.submittedAtValue.setText("");
         state.completedAtValue.setText("");
+        state.urgeCountValue.setText("0");
         state.imageCountValue.setText("0");
         state.descriptionValue.setText("");
         state.progressSummaryValue.setText("当前未加载工单状态。");
         updateProgressTrack(state.progressTrack, null);
         clearPreview(state);
+        state.actionBanner.setText("催办和取消会根据工单状态自动开放。");
+        applyActionBannerStyle(state.actionBanner, ActionBannerState.IDLE);
         state.feedbackBanner.setText("评价入口会在工单完成后开放。");
         applyFeedbackBannerStyle(state.feedbackBanner, FeedbackBannerState.IDLE);
         state.ratingBox.getSelectionModel().clearSelection();
@@ -314,6 +334,8 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         state.feedbackArea.setDisable(true);
         state.anonymousBox.setSelected(false);
         state.anonymousBox.setDisable(true);
+        state.urgeButton.setDisable(true);
+        state.cancelButton.setDisable(true);
         state.feedbackButton.setText("提交评价");
         state.feedbackButton.setDisable(true);
     }
@@ -328,10 +350,12 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         state.categoryValue.setText(UiDisplayText.faultCategory(detailView.getFaultCategory()));
         state.submittedAtValue.setText(formatTime(detailView.getSubmittedAt()));
         state.completedAtValue.setText(formatTime(detailView.getCompletedAt()));
+        state.urgeCountValue.setText(String.valueOf(detailView.getUrgeCount()));
         state.imageCountValue.setText(String.valueOf(detailView.getImageUrls().size()));
         state.descriptionValue.setText(nullToEmpty(detailView.getDescription()));
         state.progressSummaryValue.setText(buildProgressSummary(detailView));
         updateProgressTrack(state.progressTrack, detailView.getStatus());
+        renderActionState(state, detailView);
         renderImagePreview(state, detailView.getImageUrls());
         renderFeedbackState(state, detailView);
     }
@@ -370,7 +394,48 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         }
     }
 
-    private void submitFeedback(DemoAccount currentStudent, DetailState state) {
+    private void renderActionState(DetailState state, StudentRepairDetailView detailView) {
+        RepairRequestStatus status = detailView.getStatus();
+        boolean canUrge = status == RepairRequestStatus.SUBMITTED
+                || status == RepairRequestStatus.ASSIGNED
+                || status == RepairRequestStatus.IN_PROGRESS;
+        boolean canCancel = status == RepairRequestStatus.SUBMITTED
+                || status == RepairRequestStatus.ASSIGNED;
+
+        state.urgeButton.setDisable(!canUrge);
+        state.cancelButton.setDisable(!canCancel);
+
+        if (status == RepairRequestStatus.CANCELLED) {
+            state.actionBanner.setText("该工单已由学生侧取消，后续不会再进入处理流程。");
+            applyActionBannerStyle(state.actionBanner, ActionBannerState.CLOSED);
+            return;
+        }
+        if (status == RepairRequestStatus.REJECTED) {
+            state.actionBanner.setText("该工单已关闭，当前不支持继续催办或取消。");
+            applyActionBannerStyle(state.actionBanner, ActionBannerState.CLOSED);
+            return;
+        }
+        if (status == RepairRequestStatus.COMPLETED) {
+            state.actionBanner.setText("该工单已完成，催办和取消入口已自动关闭。");
+            applyActionBannerStyle(state.actionBanner, ActionBannerState.CLOSED);
+            return;
+        }
+        if (status == RepairRequestStatus.IN_PROGRESS) {
+            state.actionBanner.setText("维修人员已开始处理，可催办同步进度，但不再支持取消。");
+            applyActionBannerStyle(state.actionBanner, ActionBannerState.OPEN);
+            return;
+        }
+        if (status == RepairRequestStatus.ASSIGNED) {
+            state.actionBanner.setText("工单已派单，可继续催办，也可在正式处理前取消。");
+            applyActionBannerStyle(state.actionBanner, ActionBannerState.OPEN);
+            return;
+        }
+
+        state.actionBanner.setText("工单刚提交成功，支持催办提醒，也支持主动取消。");
+        applyActionBannerStyle(state.actionBanner, ActionBannerState.OPEN);
+    }
+
+    private void submitFeedback(DemoAccount currentStudent, DetailState state, TableView<RecentRepairRequestView> historyTable) {
         if (state.currentDetail == null) {
             UiAlerts.error("提交失败", "请先选择一条已完成的报修记录。");
             return;
@@ -384,14 +449,61 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
                     state.anonymousBox.isSelected()
             );
             appContext.repairRequestService().submitFeedback(command);
-            StudentRepairDetailView refreshed =
-                    appContext.repairRequestService().getStudentRequestDetail(currentStudent.id(), state.currentDetail.getId());
-            state.currentDetail = refreshed;
-            renderDetail(state, refreshed);
+            reloadCurrentDetail(currentStudent, state, historyTable);
             UiAlerts.info("评价已提交", "感谢反馈，评价结果已经同步到当前工单。");
         } catch (RuntimeException exception) {
             UiAlerts.error("提交失败", exception.getMessage());
         }
+    }
+
+    private void urgeRequest(DemoAccount currentStudent, DetailState state, TableView<RecentRepairRequestView> historyTable) {
+        if (state.currentDetail == null) {
+            UiAlerts.error("催办失败", "请先选择一条需要催办的报修记录。");
+            return;
+        }
+
+        try {
+            int urgeCount = appContext.repairRequestService()
+                    .urgeStudentRequest(currentStudent.id(), state.currentDetail.getId());
+            reloadCurrentDetail(currentStudent, state, historyTable);
+            UiAlerts.info("催办已提交", "本次催办已经记录，当前累计催办 " + urgeCount + " 次。");
+        } catch (RuntimeException exception) {
+            UiAlerts.error("催办失败", exception.getMessage());
+        }
+    }
+
+    private void cancelRequest(DemoAccount currentStudent, DetailState state, TableView<RecentRepairRequestView> historyTable) {
+        if (state.currentDetail == null) {
+            UiAlerts.error("取消失败", "请先选择一条需要取消的报修记录。");
+            return;
+        }
+
+        try {
+            appContext.repairRequestService().cancelStudentRequest(currentStudent.id(), state.currentDetail.getId());
+            reloadCurrentDetail(currentStudent, state, historyTable);
+            UiAlerts.info("报修已取消", "当前工单已从学生侧取消，状态已同步刷新。");
+        } catch (RuntimeException exception) {
+            UiAlerts.error("取消失败", exception.getMessage());
+        }
+    }
+
+    private void reloadCurrentDetail(DemoAccount currentStudent, DetailState state, TableView<RecentRepairRequestView> historyTable) {
+        Long currentRequestId = state.currentDetail == null ? null : state.currentDetail.getId();
+        refreshHistory(historyTable, currentStudent.id());
+        if (currentRequestId == null) {
+            clearDetail(state);
+            return;
+        }
+
+        for (RecentRepairRequestView item : historyTable.getItems()) {
+            if (currentRequestId.equals(item.getId())) {
+                historyTable.getSelectionModel().select(item);
+                return;
+            }
+        }
+
+        historyTable.getSelectionModel().clearSelection();
+        clearDetail(state);
     }
 
     private void renderImagePreview(DetailState state, List<String> imageUrls) {
@@ -593,6 +705,19 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         }
     }
 
+    private void applyActionBannerStyle(Label label, ActionBannerState state) {
+        label.getStyleClass().removeAll(
+                "student-action-banner-idle",
+                "student-action-banner-open",
+                "student-action-banner-closed"
+        );
+        switch (state) {
+            case IDLE -> label.getStyleClass().add("student-action-banner-idle");
+            case OPEN -> label.getStyleClass().add("student-action-banner-open");
+            case CLOSED -> label.getStyleClass().add("student-action-banner-closed");
+        }
+    }
+
     private Path resolveProjectPath(String storedPath) {
         if (storedPath == null || storedPath.isBlank()) {
             return null;
@@ -668,6 +793,12 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         DONE
     }
 
+    private enum ActionBannerState {
+        IDLE,
+        OPEN,
+        CLOSED
+    }
+
     private static final class DetailState {
         private StudentRepairDetailView currentDetail;
         private final Label requestNoValue;
@@ -678,6 +809,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         private final Label categoryValue;
         private final Label submittedAtValue;
         private final Label completedAtValue;
+        private final Label urgeCountValue;
         private final Label imageCountValue;
         private final Label descriptionValue;
         private final HBox progressTrack;
@@ -686,10 +818,13 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         private final ImageView previewImage;
         private final StackPane previewFrame;
         private final Label previewHint;
+        private final Label actionBanner;
         private final Label feedbackBanner;
         private final ComboBox<Integer> ratingBox;
         private final TextArea feedbackArea;
         private final CheckBox anonymousBox;
+        private final Button urgeButton;
+        private final Button cancelButton;
         private final Button feedbackButton;
         private final List<StackPane> thumbShells;
 
@@ -703,6 +838,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
                 Label categoryValue,
                 Label submittedAtValue,
                 Label completedAtValue,
+                Label urgeCountValue,
                 Label imageCountValue,
                 Label descriptionValue,
                 HBox progressTrack,
@@ -711,10 +847,13 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
                 ImageView previewImage,
                 StackPane previewFrame,
                 Label previewHint,
+                Label actionBanner,
                 Label feedbackBanner,
                 ComboBox<Integer> ratingBox,
                 TextArea feedbackArea,
                 CheckBox anonymousBox,
+                Button urgeButton,
+                Button cancelButton,
                 Button feedbackButton,
                 List<StackPane> thumbShells
         ) {
@@ -727,6 +866,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
             this.categoryValue = categoryValue;
             this.submittedAtValue = submittedAtValue;
             this.completedAtValue = completedAtValue;
+            this.urgeCountValue = urgeCountValue;
             this.imageCountValue = imageCountValue;
             this.descriptionValue = descriptionValue;
             this.progressTrack = progressTrack;
@@ -735,10 +875,13 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
             this.previewImage = previewImage;
             this.previewFrame = previewFrame;
             this.previewHint = previewHint;
+            this.actionBanner = actionBanner;
             this.feedbackBanner = feedbackBanner;
             this.ratingBox = ratingBox;
             this.feedbackArea = feedbackArea;
             this.anonymousBox = anonymousBox;
+            this.urgeButton = urgeButton;
+            this.cancelButton = cancelButton;
             this.feedbackButton = feedbackButton;
             this.thumbShells = thumbShells;
         }

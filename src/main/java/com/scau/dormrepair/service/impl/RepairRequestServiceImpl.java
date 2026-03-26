@@ -19,9 +19,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.regex.Pattern;
 
-/**
- * 报修申请服务实现。
- */
 public class RepairRequestServiceImpl implements RepairRequestService {
 
     private static final Pattern PHONE_PATTERN = Pattern.compile("^[0-9+\\-\\s]{6,32}$");
@@ -104,7 +101,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             StudentRepairDetailView detailView =
                     repairRequestMapper.selectStudentRequestDetail(studentId, requestId);
             if (detailView == null) {
-                throw new ResourceNotFoundException("未找到当前学生的报修记录，ID=" + requestId);
+                throw new ResourceNotFoundException("未找到当前学生对应的报修记录，ID=" + requestId);
             }
 
             detailView.setImageUrls(
@@ -113,6 +110,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                             .filter(imageUrl -> !imageUrl.isBlank())
                             .toList()
             );
+
             RepairFeedback repairFeedback = repairFeedbackMapper.selectByRepairRequestId(requestId);
             if (repairFeedback != null) {
                 detailView.setFeedbackRating(repairFeedback.getRating());
@@ -120,6 +118,71 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                 detailView.setFeedbackAnonymousFlag(repairFeedback.getAnonymousFlag());
             }
             return detailView;
+        });
+    }
+
+    @Override
+    public int urgeStudentRequest(Long studentId, Long requestId) {
+        if (studentId == null) {
+            throw new BusinessException("学生 ID 不能为空。");
+        }
+        if (requestId == null) {
+            throw new BusinessException("报修记录 ID 不能为空。");
+        }
+
+        return myBatisExecutor.executeWrite(session -> {
+            RepairRequestMapper repairRequestMapper = session.getMapper(RepairRequestMapper.class);
+            RepairRequest repairRequest = requireStudentOwnedRequest(repairRequestMapper, studentId, requestId);
+
+            if (repairRequest.getStatus() == RepairRequestStatus.COMPLETED
+                    || repairRequest.getStatus() == RepairRequestStatus.REJECTED
+                    || repairRequest.getStatus() == RepairRequestStatus.CANCELLED) {
+                throw new BusinessException("当前状态不支持催办。");
+            }
+
+            int affectedRows = repairRequestMapper.increaseUrgeCount(studentId, requestId);
+            if (affectedRows == 0) {
+                throw new BusinessException("当前报修暂时无法催办，请刷新后重试。");
+            }
+
+            RepairRequest refreshed = repairRequestMapper.selectById(requestId);
+            return refreshed == null || refreshed.getUrgeCount() == null ? 0 : refreshed.getUrgeCount();
+        });
+    }
+
+    @Override
+    public void cancelStudentRequest(Long studentId, Long requestId) {
+        if (studentId == null) {
+            throw new BusinessException("学生 ID 不能为空。");
+        }
+        if (requestId == null) {
+            throw new BusinessException("报修记录 ID 不能为空。");
+        }
+
+        myBatisExecutor.executeWrite(session -> {
+            RepairRequestMapper repairRequestMapper = session.getMapper(RepairRequestMapper.class);
+            RepairRequest repairRequest = requireStudentOwnedRequest(repairRequestMapper, studentId, requestId);
+
+            if (repairRequest.getStatus() == RepairRequestStatus.COMPLETED) {
+                throw new BusinessException("已完成报修不能取消。");
+            }
+            if (repairRequest.getStatus() == RepairRequestStatus.REJECTED
+                    || repairRequest.getStatus() == RepairRequestStatus.CANCELLED) {
+                throw new BusinessException("当前报修已经关闭，不能重复取消。");
+            }
+            if (repairRequest.getStatus() == RepairRequestStatus.IN_PROGRESS) {
+                throw new BusinessException("维修处理中不能直接取消，请联系管理员。");
+            }
+
+            int affectedRows = repairRequestMapper.cancelStudentRequest(
+                    studentId,
+                    requestId,
+                    RepairRequestStatus.CANCELLED
+            );
+            if (affectedRows == 0) {
+                throw new BusinessException("当前报修暂时无法取消，请刷新后重试。");
+            }
+            return null;
         });
     }
 
@@ -134,7 +197,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     @Override
     public void submitFeedback(SubmitRepairFeedbackCommand command) {
         if (command.rating() == null || command.rating() < 1 || command.rating() > 5) {
-            throw new BusinessException("评分必须在 1 到 5 之间。");
+            throw new BusinessException("评分只能在 1 到 5 分之间。");
         }
 
         myBatisExecutor.executeWrite(session -> {
@@ -143,13 +206,13 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
             RepairRequest repairRequest = repairRequestMapper.selectById(command.repairRequestId());
             if (repairRequest == null) {
-                throw new ResourceNotFoundException("未找到报修单，ID=" + command.repairRequestId());
+                throw new ResourceNotFoundException("未找到对应报修记录，ID=" + command.repairRequestId());
             }
             if (repairRequest.getStatus() != RepairRequestStatus.COMPLETED) {
-                throw new BusinessException("只有已完成的报修单才能评价。");
+                throw new BusinessException("只有已完成报修才能提交评价。");
             }
             if (repairFeedbackMapper.selectByRepairRequestId(command.repairRequestId()) != null) {
-                throw new BusinessException("该报修单已经评价过。");
+                throw new BusinessException("当前报修已经提交过评价。");
             }
 
             RepairFeedback repairFeedback = new RepairFeedback();
@@ -170,28 +233,28 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             throw new BusinessException("联系电话不能为空。");
         }
         if (!PHONE_PATTERN.matcher(normalizePhone(command.contactPhone())).matches()) {
-            throw new BusinessException("联系电话格式不正确，请输入常用手机号或座机号。");
+            throw new BusinessException("联系电话格式不正确，请输入数字、空格、加号或减号。");
         }
         if (command.dormAreaSnapshot() == null || command.dormAreaSnapshot().isBlank()) {
             throw new BusinessException("宿舍区不能为空。");
         }
         if (command.buildingNoSnapshot() == null || command.buildingNoSnapshot().isBlank()) {
-            throw new BusinessException("宿舍楼不能为空。");
+            throw new BusinessException("楼栋不能为空。");
         }
         if (command.roomNoSnapshot() == null || command.roomNoSnapshot().isBlank()) {
             throw new BusinessException("房间号不能为空。");
         }
         if (!ROOM_PATTERN.matcher(command.roomNoSnapshot().trim()).matches()) {
-            throw new BusinessException("房间号仅支持字母、数字和短横线。");
+            throw new BusinessException("房间号格式不正确，请只输入字母、数字或短横线。");
         }
         if (command.faultCategory() == null) {
-            throw new BusinessException("故障类型不能为空。");
+            throw new BusinessException("故障类别不能为空。");
         }
         if (command.description() == null || command.description().isBlank()) {
             throw new BusinessException("故障描述不能为空。");
         }
         if (command.description().trim().length() < 5) {
-            throw new BusinessException("故障描述至少填写 5 个字，方便后续派单处理。");
+            throw new BusinessException("故障描述至少需要 5 个字符。");
         }
         if (command.description().trim().length() > MAX_DESCRIPTION_LENGTH) {
             throw new BusinessException("故障描述不能超过 " + MAX_DESCRIPTION_LENGTH + " 个字符。");
@@ -214,6 +277,18 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     }
 
     private String normalizePhone(String phone) {
-        return phone == null ? "" : phone.trim().replace("　", " ");
+        return phone == null ? "" : phone.trim().replace('\u3000', ' ');
+    }
+
+    private RepairRequest requireStudentOwnedRequest(
+            RepairRequestMapper repairRequestMapper,
+            Long studentId,
+            Long requestId
+    ) {
+        RepairRequest repairRequest = repairRequestMapper.selectById(requestId);
+        if (repairRequest == null || repairRequest.getStudentId() == null || !studentId.equals(repairRequest.getStudentId())) {
+            throw new ResourceNotFoundException("未找到当前学生对应的报修记录，ID=" + requestId);
+        }
+        return repairRequest;
     }
 }

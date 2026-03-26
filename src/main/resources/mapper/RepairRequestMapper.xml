@@ -138,6 +138,22 @@
           AND id = #{requestId}
     </select>
 
+    <update id="increaseUrgeCount">
+        UPDATE repair_requests
+        SET urge_count = urge_count + 1
+        WHERE student_id = #{studentId}
+          AND id = #{requestId}
+          AND status IN ('SUBMITTED', 'ASSIGNED', 'IN_PROGRESS')
+    </update>
+
+    <update id="cancelStudentRequest">
+        UPDATE repair_requests
+        SET status = #{status}
+        WHERE student_id = #{studentId}
+          AND id = #{requestId}
+          AND status IN ('SUBMITTED', 'ASSIGNED')
+    </update>
+
     <select id="selectPendingAssignmentRequests" resultType="com.scau.dormrepair.domain.view.RecentRepairRequestView">
         SELECT
             id,
