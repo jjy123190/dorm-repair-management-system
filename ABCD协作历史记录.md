@@ -420,3 +420,19 @@
   - 已 push
   - 提交号：`452ec44`
 
+### 2026-03-26 12:52 | A
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/ui/support/UiMotion.java`
+  - `src/main/resources/styles/app.css`
+- 完成内容
+  - 把下拉控件的滚轮处理从空实现改成弹层内部的平滑滚动逻辑，只作用于 popup 里的 `ListView` 和竖向滚动条
+  - 通过短时 `Timeline` 缓动滚动条值，让楼栋和宿舍区下拉在滚轮滚动时不再一格一格硬跳
+  - 同时去掉下拉弹层的固定 cell 高度，改成更自然的行内边距，减少机械感
+  - 用 `clean compile` 重新编译确认新的交互类文件已经落到 `target/classes`
+- 影响提醒 / 下一步
+  - 后续如果再调下拉手感，优先改 `UiMotion.java`，不要再往组件本体上加位移或缩放动画
+  - 如果某个下拉仍旧发卡，先看是不是业务页单独覆盖了控件或弹层样式
+- Push 结果
+  - 待 push
+  - 提交号：待本轮提交后回填
+
