@@ -436,3 +436,26 @@
   - 已 push
   - 提交号：`74fd079`
 
+### 2026-03-26 14:20 | A
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/ui/LoginView.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/StudentRepairModule.java`
+  - `src/main/java/com/scau/dormrepair/ui/support/ProjectImageStore.java`
+  - `src/main/java/com/scau/dormrepair/ui/support/UiMotion.java`
+  - `src/main/resources/styles/app.css`
+  - `pics/.gitkeep`
+  - `AGENTS.md`
+  - `项目协作根基.md`
+- 完成内容
+  - 登录页去掉“演示入口”口吻，统一成正式应用的身份登录文案
+  - 学生报修页把“图片地址”占位改成真实图片选择：点击按钮打开本地文件选择器，页面内先预览文件名，提交时自动复制到项目 `pics/` 目录并以相对路径入库
+  - 新增 `ProjectImageStore` 统一处理项目内图片存储，后续本地演示上传都可以继续复用
+  - 下拉弹层滚轮继续收口成更连续的缓动，不再一格一格硬跳
+  - 协作文档同步改口径：本地图片上传已落地，后续剩下真实云存储接入
+- 影响提醒 / 下一步
+  - 当前图片上传是“本地选择 -> 复制到仓库 pics/ -> 相对路径入库”的演示方案，后面如果接对象存储，优先替换 `ProjectImageStore`
+  - `UiMotion.java` 和 `app.css` 仍然是下拉手感的共享入口，后续调滚轮不要再直接给组件本体加动画
+- Push 结果
+  - 已 push
+  - 提交号：`0b6a8c8`
+
