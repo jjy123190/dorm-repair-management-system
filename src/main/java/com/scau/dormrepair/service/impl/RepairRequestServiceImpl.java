@@ -1,11 +1,13 @@
 package com.scau.dormrepair.service.impl;
 
 import com.scau.dormrepair.common.BusinessNumberGenerator;
+import com.scau.dormrepair.common.DemoAccountDirectory;
 import com.scau.dormrepair.common.MyBatisExecutor;
 import com.scau.dormrepair.domain.command.CreateRepairRequestCommand;
 import com.scau.dormrepair.domain.command.SubmitRepairFeedbackCommand;
 import com.scau.dormrepair.domain.entity.RepairFeedback;
 import com.scau.dormrepair.domain.entity.RepairRequest;
+import com.scau.dormrepair.domain.entity.WorkOrder;
 import com.scau.dormrepair.domain.enums.RepairRequestStatus;
 import com.scau.dormrepair.domain.view.RecentRepairRequestView;
 import com.scau.dormrepair.domain.view.StudentRepairDetailView;
@@ -14,6 +16,7 @@ import com.scau.dormrepair.exception.ResourceNotFoundException;
 import com.scau.dormrepair.mapper.RepairFeedbackMapper;
 import com.scau.dormrepair.mapper.RepairRequestImageMapper;
 import com.scau.dormrepair.mapper.RepairRequestMapper;
+import com.scau.dormrepair.mapper.WorkOrderMapper;
 import com.scau.dormrepair.service.RepairRequestService;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -97,6 +100,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             RepairRequestMapper repairRequestMapper = session.getMapper(RepairRequestMapper.class);
             RepairRequestImageMapper imageMapper = session.getMapper(RepairRequestImageMapper.class);
             RepairFeedbackMapper repairFeedbackMapper = session.getMapper(RepairFeedbackMapper.class);
+            WorkOrderMapper workOrderMapper = session.getMapper(WorkOrderMapper.class);
 
             StudentRepairDetailView detailView =
                     repairRequestMapper.selectStudentRequestDetail(studentId, requestId);
@@ -110,6 +114,20 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                             .filter(imageUrl -> !imageUrl.isBlank())
                             .toList()
             );
+
+            WorkOrder workOrder = workOrderMapper.selectByRepairRequestId(requestId);
+            if (workOrder != null) {
+                detailView.setWorkOrderNo(workOrder.getWorkOrderNo());
+                detailView.setAssignmentNote(workOrder.getAssignmentNote());
+                detailView.setAssignedAt(workOrder.getAssignedAt());
+                detailView.setAcceptedAt(workOrder.getAcceptedAt());
+                if (workOrder.getWorkerId() != null) {
+                    detailView.setWorkerId(workOrder.getWorkerId());
+                    detailView.setWorkerName(DemoAccountDirectory.workerName(workOrder.getWorkerId()));
+                }
+            } else if (detailView.getWorkerId() != null) {
+                detailView.setWorkerName(DemoAccountDirectory.workerName(detailView.getWorkerId()));
+            }
 
             RepairFeedback repairFeedback = repairFeedbackMapper.selectByRepairRequestId(requestId);
             if (repairFeedback != null) {

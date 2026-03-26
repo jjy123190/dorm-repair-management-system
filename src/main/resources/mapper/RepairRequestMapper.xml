@@ -131,6 +131,7 @@
             description,
             status,
             urge_count,
+            worker_id,
             submitted_at,
             completed_at
         FROM repair_requests

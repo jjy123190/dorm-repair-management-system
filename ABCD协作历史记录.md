@@ -565,3 +565,22 @@
 - Push 结果
   - 本轮待 commit + push
 
+### 2026-03-26 20:15 | B
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/domain/view/StudentRepairDetailView.java`
+  - `src/main/java/com/scau/dormrepair/service/impl/RepairRequestServiceImpl.java`
+  - `src/main/resources/mapper/RepairRequestMapper.xml`
+  - `src/main/java/com/scau/dormrepair/ui/module/StudentRepairHistoryModule.java`
+  - `src/main/java/com/scau/dormrepair/ui/support/UiAlerts.java`
+  - `src/main/resources/styles/app.css`
+- 完成内容
+  - 学生报修详情页继续补强为“正式追踪视角”，现在会回显工单编号、维修人员、派单备注、派单时间、接单时间，并用处理时间线展示关键节点
+  - 学生详情查询不再只看 `repair_requests`，而是联动现有 `work_orders` 真实字段，把派单与接单过程接回 B 主链
+  - 取消报修前新增二次确认弹窗，避免误触后直接关单；弹窗仍沿用项目现有自定义对话框风格，没有退回默认 `Alert`
+  - 共享样式 `app.css` 补充了时间线卡片样式，学生详情页的产品感和演示观感进一步提升
+- 影响提醒 / 下一步
+  - 这轮继续改动了共享文件 `app.css` 和 `UiAlerts.java`，A / C / D 开发前需要先 pull 最新
+  - 已在本地执行 `mvn -Dmaven.repo.local=.m2\repository compile`，当前项目编译通过
+- Push 结果
+  - 本轮待 commit + push
+

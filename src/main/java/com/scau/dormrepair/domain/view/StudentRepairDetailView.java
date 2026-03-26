@@ -23,7 +23,13 @@ public class StudentRepairDetailView {
     private String description;
     private RepairRequestStatus status;
     private Integer urgeCount;
+    private Long workerId;
+    private String workerName;
+    private String workOrderNo;
+    private String assignmentNote;
     private LocalDateTime submittedAt;
+    private LocalDateTime assignedAt;
+    private LocalDateTime acceptedAt;
     private LocalDateTime completedAt;
     private Integer feedbackRating;
     private String feedbackComment;
@@ -126,12 +132,60 @@ public class StudentRepairDetailView {
         this.urgeCount = urgeCount;
     }
 
+    public Long getWorkerId() {
+        return workerId;
+    }
+
+    public void setWorkerId(Long workerId) {
+        this.workerId = workerId;
+    }
+
+    public String getWorkerName() {
+        return workerName;
+    }
+
+    public void setWorkerName(String workerName) {
+        this.workerName = workerName;
+    }
+
+    public String getWorkOrderNo() {
+        return workOrderNo;
+    }
+
+    public void setWorkOrderNo(String workOrderNo) {
+        this.workOrderNo = workOrderNo;
+    }
+
+    public String getAssignmentNote() {
+        return assignmentNote;
+    }
+
+    public void setAssignmentNote(String assignmentNote) {
+        this.assignmentNote = assignmentNote;
+    }
+
     public LocalDateTime getSubmittedAt() {
         return submittedAt;
     }
 
     public void setSubmittedAt(LocalDateTime submittedAt) {
         this.submittedAt = submittedAt;
+    }
+
+    public LocalDateTime getAssignedAt() {
+        return assignedAt;
+    }
+
+    public void setAssignedAt(LocalDateTime assignedAt) {
+        this.assignedAt = assignedAt;
+    }
+
+    public LocalDateTime getAcceptedAt() {
+        return acceptedAt;
+    }
+
+    public void setAcceptedAt(LocalDateTime acceptedAt) {
+        this.acceptedAt = acceptedAt;
     }
 
     public LocalDateTime getCompletedAt() {

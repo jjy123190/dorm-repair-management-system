@@ -34,6 +34,80 @@ public final class UiAlerts {
         show(AlertTone.ERROR, title, UiErrorMessages.resolve(throwable));
     }
 
+    public static boolean confirm(String title, String content, String confirmText) {
+        Window owner = resolveOwner();
+
+        Label chipLabel = new Label("\u64cd\u4f5c\u786e\u8ba4");
+        chipLabel.getStyleClass().addAll("dialog-chip", "dialog-chip-info");
+
+        Label titleLabel = new Label(title);
+        titleLabel.getStyleClass().add("dialog-title");
+        titleLabel.setWrapText(true);
+        titleLabel.setMaxWidth(Double.MAX_VALUE);
+
+        Label contentLabel = new Label(content);
+        contentLabel.getStyleClass().add("dialog-content");
+        contentLabel.setWrapText(true);
+        contentLabel.setMaxWidth(Double.MAX_VALUE);
+
+        boolean[] confirmed = new boolean[] {false};
+        Stage[] stageRef = new Stage[1];
+
+        var cancelButton = FusionUiFactory.createGhostButton("\u518d\u60f3\u60f3", 132, 38, () -> {
+            confirmed[0] = false;
+            if (stageRef[0] != null) {
+                stageRef[0].close();
+            }
+        });
+        var confirmButton = FusionUiFactory.createPrimaryButton(confirmText, 132, 38, () -> {
+            confirmed[0] = true;
+            if (stageRef[0] != null) {
+                stageRef[0].close();
+            }
+        });
+
+        cancelButton.getNode().getStyleClass().add("dialog-confirm-button");
+        confirmButton.getNode().getStyleClass().add("dialog-confirm-button");
+
+        HBox actionRow = new HBox(12, cancelButton.getNode(), confirmButton.getNode());
+        actionRow.setAlignment(Pos.CENTER);
+
+        VBox body = new VBox(18, chipLabel, titleLabel, contentLabel, actionRow);
+        body.getStyleClass().addAll("dialog-shell", "dialog-shell-info");
+        body.setPadding(new Insets(24, 26, 24, 26));
+        body.setPrefWidth(420);
+        body.setMaxWidth(420);
+
+        Scene scene = new Scene(body);
+        scene.setFill(Color.TRANSPARENT);
+        if (UiAlerts.class.getResource("/styles/app.css") != null) {
+            scene.getStylesheets().add(UiAlerts.class.getResource("/styles/app.css").toExternalForm());
+        }
+
+        Stage dialog = new Stage(StageStyle.TRANSPARENT);
+        stageRef[0] = dialog;
+        dialog.setResizable(false);
+        dialog.initModality(Modality.WINDOW_MODAL);
+        if (owner != null) {
+            dialog.initOwner(owner);
+        }
+        dialog.setScene(scene);
+        dialog.setOnShown(event -> {
+            if (owner == null) {
+                dialog.centerOnScreen();
+                return;
+            }
+            double x = owner.getX() + (owner.getWidth() - dialog.getWidth()) / 2;
+            double y = owner.getY() + (owner.getHeight() - dialog.getHeight()) / 2;
+            dialog.setX(Math.max(0, x));
+            dialog.setY(Math.max(0, y));
+        });
+
+        dialog.sizeToScene();
+        dialog.showAndWait();
+        return confirmed[0];
+    }
+
     private static void show(AlertTone tone, String title, String content) {
         Window owner = resolveOwner();
 

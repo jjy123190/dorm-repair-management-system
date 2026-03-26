@@ -196,6 +196,12 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
                 createDetailBlock("报修描述", state.descriptionValue),
                 createFieldBlock("图片缩略图", imageScrollPane),
                 createFieldBlock("大图预览", previewBox),
+                createDetailBlock("å·¥å•ç¼–å·", state.workOrderNoValue),
+                createDetailBlock("æ´¾å•æ—¶é—´", state.assignedAtValue),
+                createDetailBlock("æŽ¥å•æ—¶é—´", state.acceptedAtValue),
+                createDetailBlock("ç»´ä¿®äººå‘˜", state.workerNameValue),
+                createDetailBlock("æ´¾å•å¤‡æ³¨", state.assignmentNoteValue),
+                createFieldBlock("å¤„ç†æ—¶é—´çº¿", state.timelineBox),
                 feedbackBox
         );
         detailPanel.setFillWidth(true);
@@ -211,11 +217,18 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         Label phoneValue = createDetailValueLabel("");
         Label categoryValue = createDetailValueLabel("");
         Label submittedAtValue = createDetailValueLabel("");
+        Label assignedAtValue = createDetailValueLabel("");
+        Label acceptedAtValue = createDetailValueLabel("");
         Label completedAtValue = createDetailValueLabel("");
         Label urgeCountValue = createDetailValueLabel("0");
+        Label workOrderNoValue = createDetailValueLabel("");
+        Label workerNameValue = createDetailValueLabel("");
+        Label assignmentNoteValue = createDetailValueLabel("");
         Label imageCountValue = createDetailValueLabel("");
         Label descriptionValue = createDetailValueLabel("");
         Label progressSummaryValue = createDetailValueLabel("当前未加载工单状态。");
+        VBox timelineBox = new VBox(10);
+        timelineBox.setFillWidth(true);
 
         HBox progressTrack = new HBox(10);
         progressTrack.setAlignment(Pos.CENTER_LEFT);
@@ -274,12 +287,18 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
                 phoneValue,
                 categoryValue,
                 submittedAtValue,
+                assignedAtValue,
+                acceptedAtValue,
                 completedAtValue,
                 urgeCountValue,
+                workOrderNoValue,
+                workerNameValue,
+                assignmentNoteValue,
                 imageCountValue,
                 descriptionValue,
                 progressTrack,
                 progressSummaryValue,
+                timelineBox,
                 imageThumbPane,
                 previewImage,
                 previewFrame,
@@ -317,12 +336,18 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         state.phoneValue.setText("");
         state.categoryValue.setText("");
         state.submittedAtValue.setText("");
+        state.assignedAtValue.setText("");
+        state.acceptedAtValue.setText("");
         state.completedAtValue.setText("");
         state.urgeCountValue.setText("0");
+        state.workOrderNoValue.setText("");
+        state.workerNameValue.setText("");
+        state.assignmentNoteValue.setText("");
         state.imageCountValue.setText("0");
         state.descriptionValue.setText("");
         state.progressSummaryValue.setText("当前未加载工单状态。");
         updateProgressTrack(state.progressTrack, null);
+        renderTimeline(state, null);
         clearPreview(state);
         state.actionBanner.setText("催办和取消会根据工单状态自动开放。");
         applyActionBannerStyle(state.actionBanner, ActionBannerState.IDLE);
@@ -349,15 +374,96 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         state.phoneValue.setText(nullToEmpty(detailView.getContactPhone()));
         state.categoryValue.setText(UiDisplayText.faultCategory(detailView.getFaultCategory()));
         state.submittedAtValue.setText(formatTime(detailView.getSubmittedAt()));
+        state.assignedAtValue.setText(formatTime(detailView.getAssignedAt()));
+        state.acceptedAtValue.setText(formatTime(detailView.getAcceptedAt()));
         state.completedAtValue.setText(formatTime(detailView.getCompletedAt()));
         state.urgeCountValue.setText(String.valueOf(detailView.getUrgeCount()));
+        state.workOrderNoValue.setText(nullToEmpty(detailView.getWorkOrderNo()));
+        state.workerNameValue.setText(nullToEmpty(detailView.getWorkerName()));
+        state.assignmentNoteValue.setText(nullToEmpty(detailView.getAssignmentNote()));
         state.imageCountValue.setText(String.valueOf(detailView.getImageUrls().size()));
         state.descriptionValue.setText(nullToEmpty(detailView.getDescription()));
         state.progressSummaryValue.setText(buildProgressSummary(detailView));
         updateProgressTrack(state.progressTrack, detailView.getStatus());
+        renderTimeline(state, detailView);
         renderActionState(state, detailView);
         renderImagePreview(state, detailView.getImageUrls());
         renderFeedbackState(state, detailView);
+    }
+
+    private void renderTimeline(DetailState state, StudentRepairDetailView detailView) {
+        state.timelineBox.getChildren().clear();
+        if (detailView == null) {
+            state.timelineBox.getChildren().add(createTimelineCard("等待选择记录", "", "选中左侧报修后，这里会展示派单和处理节点。"));
+            return;
+        }
+
+        state.timelineBox.getChildren().add(createTimelineCard(
+                "学生提交报修",
+                formatTime(detailView.getSubmittedAt()),
+                "报修申请已经进入系统。"
+        ));
+
+        if (detailView.getAssignedAt() != null) {
+            String workerText = nullToEmpty(detailView.getWorkerName());
+            String noteText = nullToEmpty(detailView.getAssignmentNote());
+            String copy = workerText.isBlank() ? "管理员已完成派单。" : "已派给 " + workerText + " 处理。";
+            if (!noteText.isBlank()) {
+                copy = copy + " 派单备注：" + noteText;
+            }
+            state.timelineBox.getChildren().add(createTimelineCard(
+                    "管理员派单",
+                    formatTime(detailView.getAssignedAt()),
+                    copy
+            ));
+        }
+
+        if (detailView.getAcceptedAt() != null) {
+            String workerText = nullToEmpty(detailView.getWorkerName());
+            String copy = workerText.isBlank() ? "维修人员已接单，正在跟进。" : workerText + " 已接单，开始处理。";
+            state.timelineBox.getChildren().add(createTimelineCard(
+                    "维修人员接单",
+                    formatTime(detailView.getAcceptedAt()),
+                    copy
+            ));
+        }
+
+        if (detailView.getCompletedAt() != null) {
+            state.timelineBox.getChildren().add(createTimelineCard(
+                    "工单处理完成",
+                    formatTime(detailView.getCompletedAt()),
+                    "当前报修已经完结，可在下方补充评价。"
+            ));
+        } else if (detailView.getStatus() == RepairRequestStatus.CANCELLED) {
+            state.timelineBox.getChildren().add(createTimelineCard(
+                    "学生取消报修",
+                    "",
+                    "该工单已在学生侧关闭，后续不会再进入完成节点。"
+            ));
+        } else if (detailView.getStatus() == RepairRequestStatus.REJECTED) {
+            state.timelineBox.getChildren().add(createTimelineCard(
+                    "工单已关闭",
+                    "",
+                    "该工单已被关闭，处理流程在此结束。"
+            ));
+        }
+    }
+
+    private VBox createTimelineCard(String title, String timeText, String description) {
+        Label titleLabel = new Label(title);
+        titleLabel.getStyleClass().add("student-timeline-title");
+
+        Label timeLabel = new Label(timeText == null || timeText.isBlank() ? "时间待更新" : timeText);
+        timeLabel.getStyleClass().add("student-timeline-time");
+
+        Label descriptionLabel = new Label(description);
+        descriptionLabel.getStyleClass().add("student-timeline-copy");
+        descriptionLabel.setWrapText(true);
+
+        VBox box = new VBox(6, titleLabel, timeLabel, descriptionLabel);
+        box.getStyleClass().add("student-timeline-card");
+        box.setFillWidth(true);
+        return box;
     }
 
     private void renderFeedbackState(DetailState state, StudentRepairDetailView detailView) {
@@ -475,6 +581,15 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
     private void cancelRequest(DemoAccount currentStudent, DetailState state, TableView<RecentRepairRequestView> historyTable) {
         if (state.currentDetail == null) {
             UiAlerts.error("取消失败", "请先选择一条需要取消的报修记录。");
+            return;
+        }
+
+        boolean confirmed = UiAlerts.confirm(
+                "确认取消报修",
+                "取消后，当前工单将立即关闭，且不再继续进入维修流程。",
+                "确认取消"
+        );
+        if (!confirmed) {
             return;
         }
 
@@ -808,12 +923,18 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         private final Label phoneValue;
         private final Label categoryValue;
         private final Label submittedAtValue;
+        private final Label assignedAtValue;
+        private final Label acceptedAtValue;
         private final Label completedAtValue;
         private final Label urgeCountValue;
+        private final Label workOrderNoValue;
+        private final Label workerNameValue;
+        private final Label assignmentNoteValue;
         private final Label imageCountValue;
         private final Label descriptionValue;
         private final HBox progressTrack;
         private final Label progressSummaryValue;
+        private final VBox timelineBox;
         private final FlowPane imageThumbPane;
         private final ImageView previewImage;
         private final StackPane previewFrame;
@@ -837,12 +958,18 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
                 Label phoneValue,
                 Label categoryValue,
                 Label submittedAtValue,
+                Label assignedAtValue,
+                Label acceptedAtValue,
                 Label completedAtValue,
                 Label urgeCountValue,
+                Label workOrderNoValue,
+                Label workerNameValue,
+                Label assignmentNoteValue,
                 Label imageCountValue,
                 Label descriptionValue,
                 HBox progressTrack,
                 Label progressSummaryValue,
+                VBox timelineBox,
                 FlowPane imageThumbPane,
                 ImageView previewImage,
                 StackPane previewFrame,
@@ -865,12 +992,18 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
             this.phoneValue = phoneValue;
             this.categoryValue = categoryValue;
             this.submittedAtValue = submittedAtValue;
+            this.assignedAtValue = assignedAtValue;
+            this.acceptedAtValue = acceptedAtValue;
             this.completedAtValue = completedAtValue;
             this.urgeCountValue = urgeCountValue;
+            this.workOrderNoValue = workOrderNoValue;
+            this.workerNameValue = workerNameValue;
+            this.assignmentNoteValue = assignmentNoteValue;
             this.imageCountValue = imageCountValue;
             this.descriptionValue = descriptionValue;
             this.progressTrack = progressTrack;
             this.progressSummaryValue = progressSummaryValue;
+            this.timelineBox = timelineBox;
             this.imageThumbPane = imageThumbPane;
             this.previewImage = previewImage;
             this.previewFrame = previewFrame;
