@@ -8,6 +8,7 @@ import com.scau.dormrepair.domain.entity.RepairFeedback;
 import com.scau.dormrepair.domain.entity.RepairRequest;
 import com.scau.dormrepair.domain.enums.RepairRequestStatus;
 import com.scau.dormrepair.domain.view.RecentRepairRequestView;
+import com.scau.dormrepair.domain.view.StudentRepairDetailView;
 import com.scau.dormrepair.exception.BusinessException;
 import com.scau.dormrepair.exception.ResourceNotFoundException;
 import com.scau.dormrepair.mapper.RepairFeedbackMapper;
@@ -79,6 +80,35 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         return myBatisExecutor.executeRead(
                 session -> session.getMapper(RepairRequestMapper.class).selectStudentSubmittedRequests(studentId, safeLimit)
         );
+    }
+
+    @Override
+    public StudentRepairDetailView getStudentRequestDetail(Long studentId, Long requestId) {
+        if (studentId == null) {
+            throw new BusinessException("瀛︾敓ID涓嶈兘涓虹┖");
+        }
+        if (requestId == null) {
+            throw new BusinessException("鎶ヤ慨璁板綍ID涓嶈兘涓虹┖");
+        }
+
+        return myBatisExecutor.executeRead(session -> {
+            RepairRequestMapper repairRequestMapper = session.getMapper(RepairRequestMapper.class);
+            RepairRequestImageMapper imageMapper = session.getMapper(RepairRequestImageMapper.class);
+
+            StudentRepairDetailView detailView =
+                    repairRequestMapper.selectStudentRequestDetail(studentId, requestId);
+            if (detailView == null) {
+                throw new ResourceNotFoundException("鏈壘鍒板綋鍓嶅鐢熺殑鎶ヤ慨璁板綍锛孖D=" + requestId);
+            }
+
+            detailView.setImageUrls(
+                    imageMapper.selectByRepairRequestId(requestId).stream()
+                            .map(image -> image.getImageUrl() == null ? "" : image.getImageUrl().trim())
+                            .filter(imageUrl -> !imageUrl.isBlank())
+                            .toList()
+            );
+            return detailView;
+        });
     }
 
     @Override

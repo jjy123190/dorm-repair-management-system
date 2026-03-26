@@ -18,4 +18,16 @@
             )
         </foreach>
     </insert>
+
+    <select id="selectByRepairRequestId" resultType="com.scau.dormrepair.domain.entity.RepairRequestImage">
+        SELECT
+            id,
+            repair_request_id,
+            image_url,
+            sort_no,
+            created_at
+        FROM repair_request_images
+        WHERE repair_request_id = #{repairRequestId}
+        ORDER BY sort_no ASC, id ASC
+    </select>
 </mapper>

@@ -420,3 +420,24 @@
   - 已 push
   - 提交号：`452ec44`
 
+### 2026-03-26 13:04 | B
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/service/RepairRequestService.java`
+  - `src/main/java/com/scau/dormrepair/service/impl/RepairRequestServiceImpl.java`
+  - `src/main/java/com/scau/dormrepair/mapper/RepairRequestMapper.java`
+  - `src/main/java/com/scau/dormrepair/mapper/RepairRequestImageMapper.java`
+  - `src/main/java/com/scau/dormrepair/domain/view/StudentRepairDetailView.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/StudentRepairHistoryModule.java`
+  - `src/main/resources/mapper/RepairRequestMapper.xml`
+  - `src/main/resources/mapper/RepairRequestImageMapper.xml`
+- 完成内容
+  - 补齐学生侧“只看本人单条报修详情”的 service / mapper / XML 链路
+  - 学生报修记录页改成“左侧历史列表 + 右侧详情面板”，可直接查看宿舍位置、联系电话、故障描述和图片地址
+  - 详情查询严格按 `student_id + request_id` 过滤，避免学生看到别人的报修记录
+- 影响提醒 / 下一步
+  - 当前图片仍然是“图片地址列表”方案，正式文件上传还没有落地，但已经和 `repair_request_images` 表结构对接上
+  - 本机缺少 `mvn` 命令，暂时没法在当前环境执行 `mvn compile`，后续需要在装好 Maven 的机器上再补一次编译验证
+- Push 结果
+  - 待 commit / push
+  - 提交号：待补
+

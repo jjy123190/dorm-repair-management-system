@@ -3,6 +3,7 @@ package com.scau.dormrepair.mapper;
 import com.scau.dormrepair.domain.entity.RepairRequest;
 import com.scau.dormrepair.domain.enums.RepairRequestStatus;
 import com.scau.dormrepair.domain.view.RecentRepairRequestView;
+import com.scau.dormrepair.domain.view.StudentRepairDetailView;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
@@ -34,6 +35,11 @@ public interface RepairRequestMapper {
     List<RecentRepairRequestView> selectStudentSubmittedRequests(
             @Param("studentId") Long studentId,
             @Param("limit") int limit
+    );
+
+    StudentRepairDetailView selectStudentRequestDetail(
+            @Param("studentId") Long studentId,
+            @Param("requestId") Long requestId
     );
 
     List<RecentRepairRequestView> selectPendingAssignmentRequests(@Param("limit") int limit);

@@ -117,6 +117,27 @@
         LIMIT #{limit}
     </select>
 
+    <select id="selectStudentRequestDetail" resultType="com.scau.dormrepair.domain.view.StudentRepairDetailView">
+        SELECT
+            id,
+            student_id,
+            request_no,
+            student_name,
+            contact_phone,
+            dorm_area_snapshot,
+            building_no_snapshot,
+            room_no_snapshot,
+            fault_category,
+            description,
+            status,
+            urge_count,
+            submitted_at,
+            completed_at
+        FROM repair_requests
+        WHERE student_id = #{studentId}
+          AND id = #{requestId}
+    </select>
+
     <select id="selectPendingAssignmentRequests" resultType="com.scau.dormrepair.domain.view.RecentRepairRequestView">
         SELECT
             id,
