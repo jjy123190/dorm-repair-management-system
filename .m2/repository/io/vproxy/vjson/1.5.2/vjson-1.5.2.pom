@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.vproxy</groupId>
+  <artifactId>vjson</artifactId>
+  <version>1.5.2</version>
+  <name>vjson</name>
+  <description>json library</description>
+  <url>https://github.com/wkgcass/vjson</url>
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://github.com/wkgcass/vjson/blob/master/LICENSE</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>wkgcass</id>
+      <name>wkgcass</name>
+      <email>wkgcass@hotmail.com</email>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git://github.com/wkgcass/vjson</connection>
+    <developerConnection>scm:git:ssh://github.com/wkgcass/vjson.git</developerConnection>
+    <url>https://github.com/wkgcass/vjson/</url>
+  </scm>
+  <dependencies>
+    <dependency>
+      <groupId>io.vproxy</groupId>
+      <artifactId>kotlin-stdlib-lite</artifactId>
+      <version>1.0.1-jdk9</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
+</project>

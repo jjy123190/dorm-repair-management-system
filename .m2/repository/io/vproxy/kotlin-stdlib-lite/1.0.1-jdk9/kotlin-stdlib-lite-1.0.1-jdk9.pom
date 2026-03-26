@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.vproxy</groupId>
+  <artifactId>kotlin-stdlib-lite</artifactId>
+  <version>1.0.1-jdk9</version>
+  <name>kotlin-stdlib-lite</name>
+  <description>lite version of kotlin stdlib for certain projects</description>
+  <url>http://github.com/vproxy-tools/kotlin-stdlib-lite</url>
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://github.com/vproxy-tools/kotlin-stdlib-lite/blob/master/LICENSE</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>wkgcass</id>
+      <name>K.G. Wang</name>
+      <email>wkgcass@hotmail.com</email>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git://github.com/vproxy-tools/kotlin-stdlib-lite.git</connection>
+    <developerConnection>scm:git:git://github.com/vproxy-tools/kotlin-stdlib-lite.git</developerConnection>
+    <url>https://github.com/vproxy-tools/kotlin-stdlib-lite</url>
+  </scm>
+</project>
