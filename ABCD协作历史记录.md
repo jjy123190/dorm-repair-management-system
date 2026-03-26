@@ -497,7 +497,7 @@
   - 我这边仍然没有看到你提到的第二张图片，所以这轮是按仓库文档、现有结构和已落地代码继续高级化补强
   - 当前环境没有 `mvn` 和 `java` 命令，没法本机完成编译验证；建议你在装好 JDK/Maven 的机器上再跑一次 `mvn compile`
 - Push 结果
-  - 待 commit / push
-  - 提交号：待补
+  - 已 push 到 `origin/main`
+  - 提交号：`19936f9`
 >>>>>>> codex/b-student-mainchain
 
