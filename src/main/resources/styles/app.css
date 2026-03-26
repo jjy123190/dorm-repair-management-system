@@ -389,6 +389,95 @@
     -fx-cursor: hand;
 }
 
+.student-thumb-shell {
+    -fx-background-color: rgba(255,255,255,0.82);
+    -fx-background-radius: 14px;
+    -fx-border-color: rgba(46,46,46,0.08);
+    -fx-border-radius: 14px;
+    -fx-padding: 10 10 8 10;
+    -fx-cursor: hand;
+}
+
+.student-thumb-shell-active {
+    -fx-background-color: linear-gradient(to bottom right, rgba(232,243,236,0.96), rgba(244,247,239,0.96));
+    -fx-border-color: rgba(106,160,135,0.48);
+}
+
+.student-thumb-index {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: rgba(46,46,46,0.72);
+}
+
+.student-preview-box {
+    -fx-fill-width: true;
+}
+
+.student-preview-frame {
+    -fx-background-color: rgba(255,255,255,0.76);
+    -fx-background-radius: 18px;
+    -fx-border-color: rgba(46,46,46,0.08);
+    -fx-border-radius: 18px;
+    -fx-padding: 12;
+    -fx-alignment: center;
+}
+
+.student-detail-badge {
+    -fx-background-color: rgba(255,255,255,0.82);
+    -fx-background-radius: 14px;
+    -fx-border-color: rgba(46,46,46,0.08);
+    -fx-border-radius: 14px;
+    -fx-padding: 10 12 10 12;
+    -fx-font-size: 12px;
+    -fx-line-spacing: 2px;
+}
+
+.student-status-chip-submitted {
+    -fx-background-color: rgba(243,235,214,0.96);
+    -fx-border-color: rgba(184,168,68,0.28);
+}
+
+.student-status-chip-assigned {
+    -fx-background-color: rgba(236,242,230,0.96);
+    -fx-border-color: rgba(106,160,135,0.22);
+}
+
+.student-status-chip-progress {
+    -fx-background-color: rgba(231,241,238,0.96);
+    -fx-border-color: rgba(79,132,120,0.28);
+}
+
+.student-status-chip-completed {
+    -fx-background-color: rgba(232,243,236,0.98);
+    -fx-border-color: rgba(106,160,135,0.44);
+}
+
+.student-status-chip-closed {
+    -fx-background-color: rgba(245,239,231,0.94);
+    -fx-border-color: rgba(111,100,48,0.18);
+}
+
+.student-feedback-box {
+    -fx-background-color: rgba(255,255,255,0.40);
+    -fx-background-radius: 18px;
+    -fx-padding: 14 14 14 14;
+}
+
+.student-feedback-banner-idle {
+    -fx-background-color: rgba(255,255,255,0.82);
+    -fx-border-color: rgba(46,46,46,0.08);
+}
+
+.student-feedback-banner-ready {
+    -fx-background-color: linear-gradient(to right, rgba(255,248,231,0.98), rgba(250,244,226,0.94));
+    -fx-border-color: rgba(184,168,68,0.26);
+}
+
+.student-feedback-banner-done {
+    -fx-background-color: linear-gradient(to right, rgba(232,243,236,0.98), rgba(244,247,239,0.96));
+    -fx-border-color: rgba(106,160,135,0.36);
+}
+
 .workbench-page {
     -fx-fill-width: true;
 }
