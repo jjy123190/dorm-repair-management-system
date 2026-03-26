@@ -513,7 +513,7 @@
   - 图片预览仍然依赖项目 `pics/` 目录中的本地文件，后续如果改成真实上传，需要同步替换这层路径解析
   - 当前环境仍然没有 `mvn` / `java`，无法本机完成编译验证
 - Push 结果
-  - 待 commit / push
-  - 提交号：待补
+  - 已 push 到 `origin/main`
+  - 提交号：`77a8c2a`
 >>>>>>> codex/b-student-mainchain
 
