@@ -25,6 +25,9 @@ public class StudentRepairDetailView {
     private Integer urgeCount;
     private LocalDateTime submittedAt;
     private LocalDateTime completedAt;
+    private Integer feedbackRating;
+    private String feedbackComment;
+    private Boolean feedbackAnonymousFlag;
     private List<String> imageUrls = new ArrayList<>();
 
     public Long getId() {
@@ -139,6 +142,30 @@ public class StudentRepairDetailView {
         this.completedAt = completedAt;
     }
 
+    public Integer getFeedbackRating() {
+        return feedbackRating;
+    }
+
+    public void setFeedbackRating(Integer feedbackRating) {
+        this.feedbackRating = feedbackRating;
+    }
+
+    public String getFeedbackComment() {
+        return feedbackComment;
+    }
+
+    public void setFeedbackComment(String feedbackComment) {
+        this.feedbackComment = feedbackComment;
+    }
+
+    public Boolean getFeedbackAnonymousFlag() {
+        return feedbackAnonymousFlag;
+    }
+
+    public void setFeedbackAnonymousFlag(Boolean feedbackAnonymousFlag) {
+        this.feedbackAnonymousFlag = feedbackAnonymousFlag;
+    }
+
     public List<String> getImageUrls() {
         return imageUrls;
     }
@@ -155,5 +182,9 @@ public class StudentRepairDetailView {
             return building + "-" + room;
         }
         return area + " " + building + "-" + room;
+    }
+
+    public boolean hasFeedback() {
+        return feedbackRating != null;
     }
 }

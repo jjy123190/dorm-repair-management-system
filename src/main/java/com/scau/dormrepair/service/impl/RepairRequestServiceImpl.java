@@ -99,6 +99,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         return myBatisExecutor.executeRead(session -> {
             RepairRequestMapper repairRequestMapper = session.getMapper(RepairRequestMapper.class);
             RepairRequestImageMapper imageMapper = session.getMapper(RepairRequestImageMapper.class);
+            RepairFeedbackMapper repairFeedbackMapper = session.getMapper(RepairFeedbackMapper.class);
 
             StudentRepairDetailView detailView =
                     repairRequestMapper.selectStudentRequestDetail(studentId, requestId);
@@ -112,6 +113,12 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                             .filter(imageUrl -> !imageUrl.isBlank())
                             .toList()
             );
+            RepairFeedback repairFeedback = repairFeedbackMapper.selectByRepairRequestId(requestId);
+            if (repairFeedback != null) {
+                detailView.setFeedbackRating(repairFeedback.getRating());
+                detailView.setFeedbackComment(repairFeedback.getFeedbackComment());
+                detailView.setFeedbackAnonymousFlag(repairFeedback.getAnonymousFlag());
+            }
             return detailView;
         });
     }

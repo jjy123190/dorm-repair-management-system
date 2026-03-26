@@ -3,11 +3,15 @@ package com.scau.dormrepair.ui.module;
 import com.scau.dormrepair.common.AppContext;
 import com.scau.dormrepair.common.DemoAccountDirectory;
 import com.scau.dormrepair.common.DemoAccountDirectory.DemoAccount;
+import com.scau.dormrepair.domain.command.SubmitRepairFeedbackCommand;
+import com.scau.dormrepair.domain.enums.RepairRequestStatus;
 import com.scau.dormrepair.domain.enums.UserRole;
 import com.scau.dormrepair.domain.view.RecentRepairRequestView;
 import com.scau.dormrepair.domain.view.StudentRepairDetailView;
 import com.scau.dormrepair.ui.support.UiAlerts;
 import com.scau.dormrepair.ui.support.UiDisplayText;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.EnumSet;
@@ -15,13 +19,21 @@ import java.util.List;
 import java.util.Set;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -29,7 +41,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 /**
- * 学生报修记录页，负责查看本人历史记录和单条详情。
+ * 学生报修记录页，负责查看本人历史记录、图片预览和评价提交。
  */
 public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
 
@@ -84,8 +96,8 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         toolbar.setAlignment(Pos.CENTER_RIGHT);
 
         GridPane workspace = createRatioWorkspace(
-                52,
-                48,
+                50,
+                50,
                 wrapPanel("我的报修记录", new VBox(12, toolbar, historyTable)),
                 wrapPanel("当前记录详情", detailPanel)
         );
@@ -131,7 +143,66 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         Label completedAtValue = createDetailValueLabel("");
         Label imageCountValue = createDetailValueLabel("");
         Label descriptionValue = createDetailValueLabel("");
-        Label imageUrlsValue = createDetailValueLabel("当前还没有图片记录。");
+        Label feedbackStatusValue = createDetailValueLabel("当前还没有评价记录。");
+
+        FlowPane imageThumbPane = new FlowPane(10, 10);
+        imageThumbPane.setPrefWrapLength(260);
+        imageThumbPane.setPadding(new Insets(4, 0, 4, 0));
+
+        ImageView previewImage = new ImageView();
+        previewImage.setFitWidth(260);
+        previewImage.setFitHeight(180);
+        previewImage.setPreserveRatio(true);
+        previewImage.setSmooth(true);
+        previewImage.setVisible(false);
+        previewImage.setManaged(false);
+
+        Label previewHint = createDetailValueLabel("当前没有可预览图片。");
+
+        ComboBox<Integer> ratingBox = new ComboBox<>();
+        ratingBox.getItems().addAll(5, 4, 3, 2, 1);
+        ratingBox.setPromptText("选择评分");
+        ratingBox.setMaxWidth(Double.MAX_VALUE);
+
+        TextArea feedbackArea = new TextArea();
+        feedbackArea.setPromptText("填写处理结果评价，已完成后可提交。");
+        feedbackArea.setWrapText(true);
+        feedbackArea.setPrefRowCount(3);
+
+        CheckBox anonymousBox = new CheckBox("匿名评价");
+        Button feedbackButton = new Button("提交评价");
+        feedbackButton.getStyleClass().add("nav-button");
+        feedbackButton.setDisable(true);
+
+        VBox feedbackBox = new VBox(
+                10,
+                createDetailBlock("评价状态", feedbackStatusValue),
+                createFieldBlock("评分", ratingBox),
+                createFieldBlock("评价内容", feedbackArea),
+                anonymousBox,
+                feedbackButton
+        );
+
+        DetailState detailState = new DetailState(
+                null,
+                requestNoValue,
+                statusValue,
+                locationValue,
+                phoneValue,
+                categoryValue,
+                submittedAtValue,
+                completedAtValue,
+                imageCountValue,
+                descriptionValue,
+                feedbackStatusValue,
+                imageThumbPane,
+                previewImage,
+                previewHint,
+                ratingBox,
+                feedbackArea,
+                anonymousBox,
+                feedbackButton
+        );
 
         Runnable clearDetail = () -> {
             requestNoValue.setText("请先在左侧表格里选择一条记录。");
@@ -143,7 +214,16 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
             completedAtValue.setText("");
             imageCountValue.setText("");
             descriptionValue.setText("");
-            imageUrlsValue.setText("当前还没有图片记录。");
+            feedbackStatusValue.setText("当前还没有评价记录。");
+            imageThumbPane.getChildren().clear();
+            previewImage.setImage(null);
+            previewImage.setVisible(false);
+            previewImage.setManaged(false);
+            previewHint.setText("当前没有可预览图片。");
+            ratingBox.getSelectionModel().clearSelection();
+            feedbackArea.clear();
+            anonymousBox.setSelected(false);
+            feedbackButton.setDisable(true);
         };
 
         historyTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
@@ -155,25 +235,43 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
             try {
                 StudentRepairDetailView detailView =
                         appContext.repairRequestService().getStudentRequestDetail(currentStudent.id(), newValue.getId());
-                requestNoValue.setText(detailView.getRequestNo());
-                statusValue.setText(UiDisplayText.repairRequestStatus(detailView.getStatus()));
-                locationValue.setText(detailView.getLocationText());
-                phoneValue.setText(nullToEmpty(detailView.getContactPhone()));
-                categoryValue.setText(UiDisplayText.faultCategory(detailView.getFaultCategory()));
-                submittedAtValue.setText(formatTime(detailView.getSubmittedAt()));
-                completedAtValue.setText(formatTime(detailView.getCompletedAt()));
-                imageCountValue.setText(String.valueOf(detailView.getImageUrls().size()));
-                descriptionValue.setText(nullToEmpty(detailView.getDescription()));
-                imageUrlsValue.setText(
-                        detailView.getImageUrls().isEmpty()
-                                ? "当前还没有图片记录。"
-                                : String.join("\n", detailView.getImageUrls())
-                );
+                detailState.currentDetail = detailView;
+                renderDetail(detailState, detailView);
             } catch (RuntimeException exception) {
+                detailState.currentDetail = null;
                 clearDetail.run();
                 UiAlerts.error("加载详情失败", exception.getMessage());
             }
         });
+
+        feedbackButton.setOnAction(event -> {
+            if (detailState.currentDetail == null) {
+                UiAlerts.error("提交失败", "请先选择一条已完成的报修记录。");
+                return;
+            }
+
+            try {
+                SubmitRepairFeedbackCommand command = new SubmitRepairFeedbackCommand(
+                        detailState.currentDetail.getId(),
+                        ratingBox.getValue(),
+                        feedbackArea.getText(),
+                        anonymousBox.isSelected()
+                );
+                appContext.repairRequestService().submitFeedback(command);
+                StudentRepairDetailView refreshed =
+                        appContext.repairRequestService().getStudentRequestDetail(currentStudent.id(), detailState.currentDetail.getId());
+                detailState.currentDetail = refreshed;
+                renderDetail(detailState, refreshed);
+                UiAlerts.info("评价成功", "本条报修的评价已保存。");
+            } catch (RuntimeException exception) {
+                UiAlerts.error("评价失败", exception.getMessage());
+            }
+        });
+
+        ScrollPane imageScrollPane = new ScrollPane(imageThumbPane);
+        imageScrollPane.setFitToWidth(true);
+        imageScrollPane.setPrefHeight(120);
+        imageScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
         VBox detailPanel = new VBox(
                 14,
@@ -186,11 +284,108 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
                 createDetailBlock("完成时间", completedAtValue),
                 createDetailBlock("图片数量", imageCountValue),
                 createDetailBlock("故障描述", descriptionValue),
-                createDetailBlock("图片地址", imageUrlsValue)
+                createFieldBlock("图片缩略图", imageScrollPane),
+                createFieldBlock("当前预览", new VBox(8, previewHint, previewImage)),
+                feedbackBox
         );
         detailPanel.setFillWidth(true);
         clearDetail.run();
         return detailPanel;
+    }
+
+    private void renderDetail(DetailState detailState, StudentRepairDetailView detailView) {
+        detailState.requestNoValue.setText(detailView.getRequestNo());
+        detailState.statusValue.setText(UiDisplayText.repairRequestStatus(detailView.getStatus()));
+        detailState.locationValue.setText(detailView.getLocationText());
+        detailState.phoneValue.setText(nullToEmpty(detailView.getContactPhone()));
+        detailState.categoryValue.setText(UiDisplayText.faultCategory(detailView.getFaultCategory()));
+        detailState.submittedAtValue.setText(formatTime(detailView.getSubmittedAt()));
+        detailState.completedAtValue.setText(formatTime(detailView.getCompletedAt()));
+        detailState.imageCountValue.setText(String.valueOf(detailView.getImageUrls().size()));
+        detailState.descriptionValue.setText(nullToEmpty(detailView.getDescription()));
+
+        renderImagePreview(detailState, detailView.getImageUrls());
+
+        if (detailView.hasFeedback()) {
+            detailState.feedbackStatusValue.setText(
+                    "已评价："
+                            + detailView.getFeedbackRating()
+                            + " 星"
+                            + (Boolean.TRUE.equals(detailView.getFeedbackAnonymousFlag()) ? "（匿名）" : "")
+                            + (detailView.getFeedbackComment() == null || detailView.getFeedbackComment().isBlank()
+                            ? ""
+                            : " / " + detailView.getFeedbackComment().trim())
+            );
+            detailState.ratingBox.setValue(detailView.getFeedbackRating());
+            detailState.feedbackArea.setText(nullToEmpty(detailView.getFeedbackComment()));
+            detailState.anonymousBox.setSelected(Boolean.TRUE.equals(detailView.getFeedbackAnonymousFlag()));
+            detailState.feedbackButton.setDisable(true);
+        } else {
+            boolean canFeedback = detailView.getStatus() == RepairRequestStatus.COMPLETED;
+            detailState.feedbackStatusValue.setText(
+                    canFeedback ? "本条报修已完成，可以提交评价。" : "只有已完成的报修记录才可以评价。"
+            );
+            detailState.ratingBox.getSelectionModel().clearSelection();
+            detailState.feedbackArea.clear();
+            detailState.anonymousBox.setSelected(false);
+            detailState.feedbackButton.setDisable(!canFeedback);
+        }
+    }
+
+    private void renderImagePreview(DetailState detailState, List<String> imageUrls) {
+        detailState.imageThumbPane.getChildren().clear();
+        detailState.previewImage.setImage(null);
+        detailState.previewImage.setVisible(false);
+        detailState.previewImage.setManaged(false);
+
+        if (imageUrls == null || imageUrls.isEmpty()) {
+            detailState.previewHint.setText("当前没有可预览图片。");
+            return;
+        }
+
+        detailState.previewHint.setText("点击下方缩略图切换预览。");
+        boolean firstImageLoaded = false;
+        for (String imageUrl : imageUrls) {
+            Path imagePath = resolveProjectPath(imageUrl);
+            if (imagePath == null || !Files.exists(imagePath)) {
+                Label missingLabel = new Label("图片缺失：" + imageUrl);
+                missingLabel.getStyleClass().add("helper-text");
+                detailState.imageThumbPane.getChildren().add(missingLabel);
+                continue;
+            }
+
+            Image image = new Image(imagePath.toUri().toString(), 90, 70, true, true);
+            ImageView thumb = new ImageView(image);
+            thumb.setFitWidth(90);
+            thumb.setFitHeight(70);
+            thumb.setPreserveRatio(true);
+            thumb.getStyleClass().add("student-thumb");
+            thumb.setOnMouseClicked(event -> showPreview(detailState.previewImage, detailState.previewHint, image));
+            detailState.imageThumbPane.getChildren().add(thumb);
+
+            if (!firstImageLoaded) {
+                showPreview(detailState.previewImage, detailState.previewHint, image);
+                firstImageLoaded = true;
+            }
+        }
+    }
+
+    private void showPreview(ImageView previewImage, Label previewHint, Image image) {
+        previewImage.setImage(image);
+        previewImage.setVisible(true);
+        previewImage.setManaged(true);
+        previewHint.setText("正在预览已上传图片。");
+    }
+
+    private Path resolveProjectPath(String storedPath) {
+        if (storedPath == null || storedPath.isBlank()) {
+            return null;
+        }
+        Path path = Path.of(storedPath);
+        if (path.isAbsolute()) {
+            return path;
+        }
+        return Path.of("").toAbsolutePath().resolve(storedPath).normalize();
     }
 
     private VBox createDetailBlock(String labelText, Label valueLabel) {
@@ -241,5 +436,66 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
 
     private String nullToEmpty(String value) {
         return value == null ? "" : value;
+    }
+
+    private static final class DetailState {
+        private StudentRepairDetailView currentDetail;
+        private final Label requestNoValue;
+        private final Label statusValue;
+        private final Label locationValue;
+        private final Label phoneValue;
+        private final Label categoryValue;
+        private final Label submittedAtValue;
+        private final Label completedAtValue;
+        private final Label imageCountValue;
+        private final Label descriptionValue;
+        private final Label feedbackStatusValue;
+        private final FlowPane imageThumbPane;
+        private final ImageView previewImage;
+        private final Label previewHint;
+        private final ComboBox<Integer> ratingBox;
+        private final TextArea feedbackArea;
+        private final CheckBox anonymousBox;
+        private final Button feedbackButton;
+
+        private DetailState(
+                StudentRepairDetailView currentDetail,
+                Label requestNoValue,
+                Label statusValue,
+                Label locationValue,
+                Label phoneValue,
+                Label categoryValue,
+                Label submittedAtValue,
+                Label completedAtValue,
+                Label imageCountValue,
+                Label descriptionValue,
+                Label feedbackStatusValue,
+                FlowPane imageThumbPane,
+                ImageView previewImage,
+                Label previewHint,
+                ComboBox<Integer> ratingBox,
+                TextArea feedbackArea,
+                CheckBox anonymousBox,
+                Button feedbackButton
+        ) {
+            this.currentDetail = currentDetail;
+            this.requestNoValue = requestNoValue;
+            this.statusValue = statusValue;
+            this.locationValue = locationValue;
+            this.phoneValue = phoneValue;
+            this.categoryValue = categoryValue;
+            this.submittedAtValue = submittedAtValue;
+            this.completedAtValue = completedAtValue;
+            this.imageCountValue = imageCountValue;
+            this.descriptionValue = descriptionValue;
+            this.feedbackStatusValue = feedbackStatusValue;
+            this.imageThumbPane = imageThumbPane;
+            this.previewImage = previewImage;
+            this.previewHint = previewHint;
+            this.ratingBox = ratingBox;
+            this.feedbackArea = feedbackArea;
+            this.anonymousBox = anonymousBox;
+            this.feedbackButton = feedbackButton;
+        }
     }
 }

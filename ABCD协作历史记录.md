@@ -499,5 +499,21 @@
 - Push 结果
   - 已 push 到 `origin/main`
   - 提交号：`19936f9`
+
+### 2026-03-26 16:32 | B
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/ui/module/StudentRepairHistoryModule.java`
+  - `src/main/java/com/scau/dormrepair/service/impl/RepairRequestServiceImpl.java`
+  - `src/main/java/com/scau/dormrepair/domain/view/StudentRepairDetailView.java`
+- 完成内容
+  - 学生报修记录页补了图片缩略图和大图预览，不再只显示图片地址文本
+  - 已完成报修现在可以直接在学生详情页提交评分和评价，评价后会回显到当前记录详情
+  - 学生详情查询在原有基础上补齐了评价信息读取，学生主链从“提交 -> 查看 -> 评价”形成闭环
+- 影响提醒 / 下一步
+  - 图片预览仍然依赖项目 `pics/` 目录中的本地文件，后续如果改成真实上传，需要同步替换这层路径解析
+  - 当前环境仍然没有 `mvn` / `java`，无法本机完成编译验证
+- Push 结果
+  - 待 commit / push
+  - 提交号：待补
 >>>>>>> codex/b-student-mainchain
 
