@@ -479,7 +479,7 @@
   - 亮色表单页的次级按钮以后统一走 `surface-button`，不要再拿侧栏按钮样式直接复用
 - Push 结果
   - 已 push
-  - 提交号：待补
+  - 提交号：`49b113c`
 ### 2026-03-26 13:04 | B
 - 改动文件
   - `src/main/java/com/scau/dormrepair/service/RepairRequestService.java`
