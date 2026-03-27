@@ -27,6 +27,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     private static final Pattern PHONE_PATTERN = Pattern.compile("^[0-9+\\-\\s]{6,32}$");
     private static final Pattern ROOM_PATTERN = Pattern.compile("^[A-Za-z0-9\\-]{1,32}$");
     private static final int MAX_DESCRIPTION_LENGTH = 1000;
+    private static final int MAX_FEEDBACK_LENGTH = 300;
     private static final int MAX_IMAGE_COUNT = 5;
 
     private final MyBatisExecutor myBatisExecutor;
@@ -232,6 +233,15 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
     @Override
     public void submitFeedback(SubmitRepairFeedbackCommand command) {
+        if (command.studentId() == null) {
+            throw new BusinessException("学生 ID 不能为空。");
+        }
+        if (command.studentName() == null || command.studentName().isBlank()) {
+            throw new BusinessException("学生姓名不能为空。");
+        }
+        if (command.repairRequestId() == null) {
+            throw new BusinessException("报修记录 ID 不能为空。");
+        }
         if (command.rating() == null || command.rating() < 1 || command.rating() > 5) {
             throw new BusinessException("评分只能在 1 到 5 分之间。");
         }
@@ -240,7 +250,12 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             RepairRequestMapper repairRequestMapper = session.getMapper(RepairRequestMapper.class);
             RepairFeedbackMapper repairFeedbackMapper = session.getMapper(RepairFeedbackMapper.class);
 
-            RepairRequest repairRequest = repairRequestMapper.selectById(command.repairRequestId());
+            RepairRequest repairRequest = requireStudentOwnedRequest(
+                    repairRequestMapper,
+                    command.studentId(),
+                    command.studentName().trim(),
+                    command.repairRequestId()
+            );
             if (repairRequest == null) {
                 throw new ResourceNotFoundException("未找到对应报修记录，ID=" + command.repairRequestId());
             }
@@ -254,7 +269,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             RepairFeedback repairFeedback = new RepairFeedback();
             repairFeedback.setRepairRequestId(command.repairRequestId());
             repairFeedback.setRating(command.rating());
-            repairFeedback.setFeedbackComment(command.feedbackComment());
+            repairFeedback.setFeedbackComment(normalizeFeedbackComment(command.feedbackComment()));
             repairFeedback.setAnonymousFlag(command.anonymousFlag());
             repairFeedbackMapper.insert(repairFeedback);
             return null;
@@ -314,6 +329,20 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
     private String normalizePhone(String phone) {
         return phone == null ? "" : phone.trim().replace('\u3000', ' ');
+    }
+
+    private String normalizeFeedbackComment(String feedbackComment) {
+        if (feedbackComment == null) {
+            return null;
+        }
+        String normalized = feedbackComment.trim();
+        if (normalized.isEmpty()) {
+            return null;
+        }
+        if (normalized.length() > MAX_FEEDBACK_LENGTH) {
+            throw new BusinessException("评价内容不能超过 " + MAX_FEEDBACK_LENGTH + " 个字符。");
+        }
+        return normalized;
     }
 
     private RepairRequest requireStudentOwnedRequest(

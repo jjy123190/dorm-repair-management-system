@@ -553,6 +553,8 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
 
         try {
             SubmitRepairFeedbackCommand command = new SubmitRepairFeedbackCommand(
+                    currentStudent.id(),
+                    currentStudent.displayName(),
                     state.currentDetail.getId(),
                     state.ratingBox.getValue(),
                     state.feedbackArea.getText(),

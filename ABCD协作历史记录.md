@@ -693,3 +693,18 @@
 - Push 结果
   - 本轮待 commit + push
 
+### 2026-03-27 20:30 | B
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/domain/command/SubmitRepairFeedbackCommand.java`
+  - `src/main/java/com/scau/dormrepair/service/impl/RepairRequestServiceImpl.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/StudentRepairHistoryModule.java`
+- 完成内容
+  - 学生侧提交评价现在会把当前学生 `id + name` 一起带入 command，补齐“只能评价自己的已完成报修”这层 service 校验
+  - `submitFeedback(...)` 不再直接按 `requestId` 放行，而是复用现有“学生本人持有工单”校验链路，避免越权评价别人的工单
+  - 评价内容增加去空白与最大长度限制，空白评价会按 `null` 入库，超长内容会直接拦截
+- 影响提醒 / 下一步
+  - 这轮只收口 B 主链内部的评价权限和数据校验，没有改 A / C / D 的对外接口
+  - 已执行 `mvn -Dmaven.repo.local=.m2\repository compile`，结果为 `BUILD SUCCESS`；尝试 `clean compile` 时因为当前沙箱网络无法下载 `maven-clean-plugin` 失败，并在 `.m2/repository/org/apache/maven/plugins/maven-clean-plugin/` 留下未跟踪缓存目录
+- Push 结果
+  - 本轮待 commit + push
+
