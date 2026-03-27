@@ -628,5 +628,5 @@
   - 这轮改的是共享下拉公共件，学生报修、管理员派单、维修员处理、评分选择都会一起受影响
   - 已在本地执行 `mvn -DskipTests clean compile`，结果为 `BUILD SUCCESS`
 - Push 结果
-  - 本轮待 commit + push
+  - 功能提交：`4ad67ec`
 
