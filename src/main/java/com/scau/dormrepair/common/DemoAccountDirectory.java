@@ -4,13 +4,22 @@ import com.scau.dormrepair.domain.enums.UserRole;
 import java.util.List;
 
 /**
- * 现在项目还没有正式登录体系。
- * 这里先把几组稳定的演示账号收口，保证学生报修、管理员派单、维修员处理三条链路能贯通。
+ * 正式登录体系还没接数据库前，先把本地可用账号收口到这里。
+ * 页面统一从稳定账号列表里选身份，不再允许手填名字伪装成不同用户。
  */
 public final class DemoAccountDirectory {
 
-    private static final DemoAccount STUDENT = new DemoAccount(1001L, "张三", UserRole.STUDENT);
-    private static final DemoAccount ADMIN = new DemoAccount(2001L, "李老师", UserRole.ADMIN);
+    private static final List<DemoAccount> STUDENTS = List.of(
+            new DemoAccount(1001L, "张三", UserRole.STUDENT),
+            new DemoAccount(1002L, "李晓雨", UserRole.STUDENT),
+            new DemoAccount(1003L, "相逢的", UserRole.STUDENT)
+    );
+
+    private static final List<DemoAccount> ADMINS = List.of(
+            new DemoAccount(2001L, "李老师", UserRole.ADMIN),
+            new DemoAccount(2002L, "陈老师", UserRole.ADMIN)
+    );
+
     private static final List<DemoAccount> WORKERS = List.of(
             new DemoAccount(3001L, "王师傅", UserRole.WORKER),
             new DemoAccount(3002L, "周师傅", UserRole.WORKER),
@@ -25,11 +34,35 @@ public final class DemoAccountDirectory {
             return null;
         }
 
-        return switch (appSession.getCurrentRole()) {
-            case STUDENT -> STUDENT;
-            case ADMIN -> ADMIN;
-            case WORKER -> resolveWorkerByName(appSession.getDisplayName());
+        Long accountId = appSession.getCurrentAccountId();
+        if (accountId != null) {
+            return accountOptions(appSession.getCurrentRole()).stream()
+                    .filter(account -> account.id().equals(accountId))
+                    .findFirst()
+                    .orElse(defaultAccount(appSession.getCurrentRole()));
+        }
+
+        String displayName = appSession.getDisplayName();
+        return accountOptions(appSession.getCurrentRole()).stream()
+                .filter(account -> account.displayName().equals(displayName))
+                .findFirst()
+                .orElse(defaultAccount(appSession.getCurrentRole()));
+    }
+
+    public static List<DemoAccount> accountOptions(UserRole role) {
+        return switch (role) {
+            case STUDENT -> STUDENTS;
+            case ADMIN -> ADMINS;
+            case WORKER -> WORKERS;
         };
+    }
+
+    public static DemoAccount defaultAccount(UserRole role) {
+        List<DemoAccount> options = accountOptions(role);
+        if (options.isEmpty()) {
+            throw new IllegalStateException("当前角色没有可用账号: " + role);
+        }
+        return options.get(0);
     }
 
     public static List<DemoAccount> workerOptions() {
@@ -45,16 +78,6 @@ public final class DemoAccountDirectory {
                 .map(DemoAccount::displayName)
                 .findFirst()
                 .orElse("维修员#" + workerId);
-    }
-
-    private static DemoAccount resolveWorkerByName(String displayName) {
-        if (displayName == null || displayName.isBlank()) {
-            return WORKERS.get(0);
-        }
-        return WORKERS.stream()
-                .filter(worker -> worker.displayName().equals(displayName.trim()))
-                .findFirst()
-                .orElse(WORKERS.get(0));
     }
 
     public record DemoAccount(Long id, String displayName, UserRole role) {

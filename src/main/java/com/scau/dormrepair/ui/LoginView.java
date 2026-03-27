@@ -1,11 +1,15 @@
 package com.scau.dormrepair.ui;
 
 import com.scau.dormrepair.common.AppContext;
+import com.scau.dormrepair.common.DemoAccountDirectory;
+import com.scau.dormrepair.common.DemoAccountDirectory.DemoAccount;
 import com.scau.dormrepair.domain.enums.UserRole;
 import com.scau.dormrepair.ui.component.FusionUiFactory;
 import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Insets;
@@ -13,7 +17,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -24,28 +27,20 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
 
 /**
- * 登录页只负责选择当前登录角色并进入系统。
- * 这里的文案保持正式业务口径，不展示技术栈或原型阶段描述。
+ * 登录页现在直接展示可用身份入口。
+ * 先按角色选择，再从该角色的稳定账号列表里进入系统，避免继续保留“手填姓名”的样板入口。
  */
 public class LoginView {
 
     private static final Map<UserRole, String> ROLE_HINTS = Map.of(
-            UserRole.STUDENT, "提交报修、查看进度、完成评价",
-            UserRole.ADMIN, "审核分类、派单催办、查看统计",
-            UserRole.WORKER, "接单处理、更新状态、回填结果"
+            UserRole.STUDENT, "提交报修、查看处理进度、完成后补充评价。",
+            UserRole.ADMIN, "审核报修、派发工单、跟进维修闭环。",
+            UserRole.WORKER, "接收工单、更新处理状态、回填维修结果。"
     );
 
-    private static final Map<UserRole, String> ROLE_LABELS = Map.of(
-            UserRole.STUDENT, "学生入口",
-            UserRole.ADMIN, "宿管管理员入口",
-            UserRole.WORKER, "维修人员入口"
-    );
+    private final Consumer<DemoAccount> loginAction;
 
-    private final AppContext appContext;
-    private final BiConsumer<String, UserRole> loginAction;
-
-    public LoginView(AppContext appContext, BiConsumer<String, UserRole> loginAction) {
-        this.appContext = appContext;
+    public LoginView(AppContext appContext, Consumer<DemoAccount> loginAction) {
         this.loginAction = loginAction;
     }
 
@@ -61,9 +56,9 @@ public class LoginView {
 
         HBox.setHgrow(heroPane, Priority.ALWAYS);
         heroPane.setMinWidth(0);
-        entryPane.setMinWidth(460);
-        entryPane.setPrefWidth(460);
-        entryPane.setMaxWidth(460);
+        entryPane.setMinWidth(480);
+        entryPane.setPrefWidth(480);
+        entryPane.setMaxWidth(480);
 
         shell.getChildren().addAll(heroPane, entryPane);
         return shell;
@@ -78,24 +73,24 @@ public class LoginView {
         titleLabel.setWrapText(true);
         titleLabel.setMaxWidth(Double.MAX_VALUE);
 
-        Label copyLabel = new Label("围绕学生报修、管理员派单、维修处理和结果反馈，统一承接宿舍维修业务的完整闭环。");
+        Label copyLabel = new Label("围绕学生报修、工单派发、维修处理和结果反馈，统一承接宿舍维修业务的完整闭环。");
         copyLabel.getStyleClass().add("login-hero-copy");
         copyLabel.setWrapText(true);
         copyLabel.setMaxWidth(Double.MAX_VALUE);
 
         VBox flowBox = new VBox(
                 12,
-                createFlowItem("01", "提交报修", "学生填写宿舍区、楼栋、房间、故障类型和故障描述。"),
-                createFlowItem("02", "审核派单", "管理员审核报修内容，分类后分派给对应维修人员。"),
-                createFlowItem("03", "处理反馈", "维修人员更新状态并回填处理结果，形成完整记录。")
+                createFlowItem("01", "提交报修", "学生选择宿舍区、楼栋和房间，补充联系方式、故障类型与故障描述。"),
+                createFlowItem("02", "审核派单", "宿管管理员审核报修内容，并将工单分派给对应维修人员。"),
+                createFlowItem("03", "处理反馈", "维修人员更新处理状态和结果，学生在完成后查看记录并补充评价。")
         );
         flowBox.getStyleClass().add("login-flow-box");
 
         HBox stripRow = new HBox(
                 14,
-                createStripCard("3", "服务角色"),
-                createStripCard("报修闭环", "业务流程"),
-                createStripCard("及时处理", "协同目标")
+                createStripCard("3", "核心角色"),
+                createStripCard("工单闭环", "处理主线"),
+                createStripCard("维修协同", "当前场景")
         );
         stripRow.getStyleClass().add("login-strip-row");
         HBox.setHgrow(stripRow.getChildren().get(0), Priority.ALWAYS);
@@ -114,7 +109,10 @@ public class LoginView {
 
     private VBox buildEntryPane() {
         ObjectProperty<UserRole> selectedRole = new SimpleObjectProperty<>(UserRole.STUDENT);
+        ObjectProperty<DemoAccount> selectedAccount =
+                new SimpleObjectProperty<>(DemoAccountDirectory.defaultAccount(UserRole.STUDENT));
         Map<UserRole, StackPane> roleCards = new EnumMap<>(UserRole.class);
+        Map<DemoAccount, StackPane> accountCards = new HashMap<>();
 
         Label chipLabel = new Label("身份登录");
         chipLabel.getStyleClass().add("login-entry-chip");
@@ -122,13 +120,20 @@ public class LoginView {
         Label titleLabel = new Label("进入系统");
         titleLabel.getStyleClass().add("login-entry-title");
 
-        Label introLabel = new Label("请选择当前身份并填写姓名，进入对应功能页面。");
+        Label introLabel = new Label("先选择当前身份，再选择对应账号进入业务页面。");
         introLabel.getStyleClass().add("login-entry-intro");
         introLabel.setWrapText(true);
         introLabel.setMaxWidth(Double.MAX_VALUE);
 
-        TextField nameField = new TextField(defaultName(UserRole.STUDENT));
-        nameField.setPromptText("输入当前登录姓名");
+        GridPane roleGrid = new GridPane();
+        roleGrid.getStyleClass().add("login-role-grid");
+        roleGrid.setHgap(12);
+        roleGrid.setVgap(12);
+        roleGrid.getColumnConstraints().addAll(thirdColumn(), thirdColumn(), thirdColumn());
+
+        roleGrid.add(createRoleCard(UserRole.STUDENT, selectedRole, selectedAccount, roleCards), 0, 0);
+        roleGrid.add(createRoleCard(UserRole.ADMIN, selectedRole, selectedAccount, roleCards), 1, 0);
+        roleGrid.add(createRoleCard(UserRole.WORKER, selectedRole, selectedAccount, roleCards), 2, 0);
 
         Label rolePreviewLabel = new Label();
         rolePreviewLabel.getStyleClass().add("login-role-preview-title");
@@ -138,38 +143,38 @@ public class LoginView {
         roleHintLabel.setWrapText(true);
         roleHintLabel.setMaxWidth(Double.MAX_VALUE);
 
-        GridPane roleGrid = new GridPane();
-        roleGrid.getStyleClass().add("login-role-grid");
-        roleGrid.setHgap(12);
-        roleGrid.setVgap(12);
-        roleGrid.getColumnConstraints().addAll(thirdColumn(), thirdColumn(), thirdColumn());
-
-        roleGrid.add(createRoleCard(UserRole.STUDENT, selectedRole, nameField, roleCards), 0, 0);
-        roleGrid.add(createRoleCard(UserRole.ADMIN, selectedRole, nameField, roleCards), 1, 0);
-        roleGrid.add(createRoleCard(UserRole.WORKER, selectedRole, nameField, roleCards), 2, 0);
-
         VBox previewBox = new VBox(8, rolePreviewLabel, roleHintLabel);
         previewBox.getStyleClass().add("login-role-preview");
 
+        Label accountLabel = new Label("登录账号");
+        accountLabel.getStyleClass().add("form-label");
+
+        VBox accountListBox = new VBox(12);
+        accountListBox.getStyleClass().add("login-account-list");
+        accountListBox.setFillWidth(true);
+        accountListBox.setMaxWidth(Double.MAX_VALUE);
+
         selectedRole.addListener((observable, oldRole, newRole) -> {
             updateRoleSelection(roleCards, newRole);
-            rolePreviewLabel.setText(ROLE_LABELS.get(newRole));
-            roleHintLabel.setText(ROLE_HINTS.get(newRole));
+            selectedAccount.set(DemoAccountDirectory.defaultAccount(newRole));
+            syncRolePreview(rolePreviewLabel, roleHintLabel, newRole);
+            rebuildAccountCards(accountListBox, selectedAccount, accountCards, newRole);
         });
+        selectedAccount.addListener((observable, oldAccount, newAccount) ->
+                updateAccountSelection(accountCards, newAccount)
+        );
+
         updateRoleSelection(roleCards, selectedRole.get());
-        rolePreviewLabel.setText(ROLE_LABELS.get(selectedRole.get()));
-        roleHintLabel.setText(ROLE_HINTS.get(selectedRole.get()));
+        syncRolePreview(rolePreviewLabel, roleHintLabel, selectedRole.get());
+        rebuildAccountCards(accountListBox, selectedAccount, accountCards, selectedRole.get());
 
-        Label fieldLabel = new Label("显示名称");
-        fieldLabel.getStyleClass().add("form-label");
-
-        Label noteLabel = new Label("登录后会根据身份进入对应业务界面，可随时退出并切换为其他角色。");
+        Label noteLabel = new Label("登录后将进入对应业务模块，支持随时退出并切换身份。");
         noteLabel.getStyleClass().add("login-entry-note");
         noteLabel.setWrapText(true);
         noteLabel.setMaxWidth(Double.MAX_VALUE);
 
         var loginButton = FusionUiFactory.createPrimaryButton("进入系统", 0, 46, () ->
-                loginAction.accept(nameField.getText(), selectedRole.get())
+                loginAction.accept(selectedAccount.get())
         );
         loginButton.getNode().setMaxWidth(Double.MAX_VALUE);
 
@@ -180,8 +185,8 @@ public class LoginView {
                 introLabel,
                 roleGrid,
                 previewBox,
-                fieldLabel,
-                nameField,
+                accountLabel,
+                accountListBox,
                 noteLabel,
                 loginButton.getNode()
         );
@@ -228,7 +233,7 @@ public class LoginView {
     private Node createRoleCard(
             UserRole role,
             ObjectProperty<UserRole> selectedRole,
-            TextField nameField,
+            ObjectProperty<DemoAccount> selectedAccount,
             Map<UserRole, StackPane> roleCards
     ) {
         Label titleLabel = new Label(role.displayName());
@@ -256,7 +261,7 @@ public class LoginView {
                 120,
                 () -> {
                     selectedRole.set(role);
-                    nameField.setText(defaultName(role));
+                    selectedAccount.set(DemoAccountDirectory.defaultAccount(role));
                 },
                 "login-role-card"
         );
@@ -266,11 +271,78 @@ public class LoginView {
         return card.getNode();
     }
 
+    private void rebuildAccountCards(
+            VBox accountListBox,
+            ObjectProperty<DemoAccount> selectedAccount,
+            Map<DemoAccount, StackPane> accountCards,
+            UserRole role
+    ) {
+        accountListBox.getChildren().clear();
+        accountCards.clear();
+
+        List<DemoAccount> accounts = DemoAccountDirectory.accountOptions(role);
+        for (DemoAccount account : accounts) {
+            accountListBox.getChildren().add(createAccountCard(account, selectedAccount, accountCards));
+        }
+        updateAccountSelection(accountCards, selectedAccount.get());
+    }
+
+    private Node createAccountCard(
+            DemoAccount account,
+            ObjectProperty<DemoAccount> selectedAccount,
+            Map<DemoAccount, StackPane> accountCards
+    ) {
+        Label titleLabel = new Label(account.displayName());
+        titleLabel.getStyleClass().add("login-account-name");
+
+        Label subtitleLabel = new Label(accountSubtitle(account));
+        subtitleLabel.getStyleClass().add("login-account-copy");
+        subtitleLabel.setWrapText(true);
+        subtitleLabel.setMaxWidth(Double.MAX_VALUE);
+
+        VBox textBox = new VBox(4, titleLabel, subtitleLabel);
+        textBox.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(textBox, Priority.ALWAYS);
+
+        Label tagLabel = new Label(account.role().displayName());
+        tagLabel.getStyleClass().add("login-account-tag");
+
+        HBox body = new HBox(14, textBox, tagLabel);
+        body.getStyleClass().add("login-account-body");
+        body.setAlignment(Pos.CENTER_LEFT);
+        body.setPadding(new Insets(16, 18, 16, 18));
+
+        var card = FusionUiFactory.createActionCard(
+                body,
+                0,
+                84,
+                () -> selectedAccount.set(account),
+                "login-account-card"
+        );
+        card.getNode().setMaxWidth(Double.MAX_VALUE);
+        accountCards.put(account, card.getNode());
+        return card.getNode();
+    }
+
+    private void syncRolePreview(Label rolePreviewLabel, Label roleHintLabel, UserRole role) {
+        rolePreviewLabel.setText(role.displayName() + "业务入口");
+        roleHintLabel.setText(ROLE_HINTS.get(role));
+    }
+
     private void updateRoleSelection(Map<UserRole, StackPane> roleCards, UserRole selectedRole) {
         roleCards.forEach((role, card) -> {
             card.getStyleClass().remove("login-role-card-active");
             if (role == selectedRole) {
                 card.getStyleClass().add("login-role-card-active");
+            }
+        });
+    }
+
+    private void updateAccountSelection(Map<DemoAccount, StackPane> accountCards, DemoAccount selectedAccount) {
+        accountCards.forEach((account, card) -> {
+            card.getStyleClass().remove("login-account-card-active");
+            if (account.equals(selectedAccount)) {
+                card.getStyleClass().add("login-account-card-active");
             }
         });
     }
@@ -283,19 +355,19 @@ public class LoginView {
         return constraints;
     }
 
-    private String defaultName(UserRole role) {
-        return switch (role) {
-            case STUDENT -> "张三";
-            case ADMIN -> "李老师";
-            case WORKER -> "王师傅";
-        };
-    }
-
     private String shortRoleHint(UserRole role) {
         return switch (role) {
             case STUDENT -> "报修与进度";
             case ADMIN -> "审核与派单";
             case WORKER -> "处理与回填";
+        };
+    }
+
+    private String accountSubtitle(DemoAccount account) {
+        return switch (account.role()) {
+            case STUDENT -> "查看自己的报修申请、处理状态和评价结果。";
+            case ADMIN -> "负责审核、分类、派单和催办。";
+            case WORKER -> "负责接单、维修和结果回填。";
         };
     }
 }

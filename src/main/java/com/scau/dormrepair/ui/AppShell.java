@@ -1,6 +1,7 @@
 package com.scau.dormrepair.ui;
 
 import com.scau.dormrepair.common.AppContext;
+import com.scau.dormrepair.common.DemoAccountDirectory.DemoAccount;
 import com.scau.dormrepair.common.AppSession;
 import com.scau.dormrepair.domain.enums.UserRole;
 import com.scau.dormrepair.ui.module.AdminDispatchModule;
@@ -251,11 +252,11 @@ public class AppShell {
                 .collect(Collectors.toList());
     }
 
-    private void login(String displayName, UserRole role) {
-        if (role == null) {
-            throw new IllegalArgumentException("请选择登录角色");
-        }
-        appSession.login(displayName, role);
+    /**
+     * 壳层只接收已经确认过的账号对象，避免继续传“角色 + 文本姓名”这种不稳定登录参数。
+     */
+    private void login(DemoAccount account) {
+        appSession.login(account);
     }
 
     private void resetWorkbenchState() {

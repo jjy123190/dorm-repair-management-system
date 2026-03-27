@@ -141,7 +141,7 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
                 DormBuilding selectedBuilding = buildingBox.getValue();
                 CreateRepairRequestCommand command = new CreateRepairRequestCommand(
                         currentStudent.id(),
-                        appContext.appSession().getDisplayName(),
+                        currentStudent.displayName(),
                         phoneField.getText(),
                         null,
                         dormAreaBox.getValue(),

@@ -185,6 +185,47 @@
     -fx-text-fill: rgba(46,46,46,0.54);
 }
 
+.login-account-list {
+    -fx-padding: 2 0 2 0;
+}
+
+.login-account-card {
+    -fx-background-color: rgba(255,255,255,0.86);
+    -fx-background-radius: 18px;
+    -fx-border-color: rgba(46,46,46,0.08);
+    -fx-border-radius: 18px;
+}
+
+.login-account-card-active {
+    -fx-background-color: linear-gradient(to bottom right, rgba(167,205,184,0.24), rgba(232,223,152,0.24));
+    -fx-border-color: rgba(167,205,184,0.42);
+}
+
+.login-account-body {
+    -fx-alignment: center-left;
+}
+
+.login-account-name {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2e2e2e;
+}
+
+.login-account-copy {
+    -fx-font-size: 12px;
+    -fx-line-spacing: 2px;
+    -fx-text-fill: rgba(46,46,46,0.66);
+}
+
+.login-account-tag {
+    -fx-background-color: rgba(46,46,46,0.06);
+    -fx-background-radius: 999px;
+    -fx-padding: 6 10 6 10;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: rgba(46,46,46,0.72);
+}
+
 .header-shell {
     -fx-background-color: linear-gradient(to right, rgba(255,252,246,0.98), rgba(251,247,239,0.96));
     -fx-border-color: rgba(46,46,46,0.08);

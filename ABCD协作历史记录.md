@@ -630,3 +630,22 @@
 - Push 结果
   - 功能提交：`4ad67ec`
 
+### 2026-03-27 13:18 | A
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/common/AppSession.java`
+  - `src/main/java/com/scau/dormrepair/common/DemoAccountDirectory.java`
+  - `src/main/java/com/scau/dormrepair/ui/AppShell.java`
+  - `src/main/java/com/scau/dormrepair/ui/LoginView.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/StudentRepairModule.java`
+  - `src/main/resources/styles/app.css`
+- 完成内容
+  - 把登录入口从“角色 + 手填姓名”改成了“角色 + 稳定账号选择”，登录页开始按真实系统身份入口组织，不再保留样板式姓名输入框
+  - `AppSession` 新增当前账号 ID，`DemoAccountDirectory` 改成按稳定账号列表解析当前身份，避免继续靠自由文本匹配用户
+  - 学生提交报修时，提交人姓名直接取当前学生账号，和壳层当前身份保持一致
+  - 登录页新增账号卡片样式，角色切换后会自动切到该角色的默认账号
+- 影响提醒 / 下一步
+  - 这轮同时改了 `AppShell.java`、`LoginView.java`、`app.css` 和 `DemoAccountDirectory.java`，都属于共享文件，B / C / D 继续开发前先 pull
+  - 已在本地执行 `mvn -DskipTests clean compile`，日志显示 `BUILD SUCCESS`；命令退出码仍会被这台机器的环境尾噪带偏，不是项目编译失败
+- Push 结果
+  - 本轮待 commit + push
+
