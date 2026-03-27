@@ -606,3 +606,15 @@
 - Push 结果
   - 本轮待 commit + push
 
+### 2026-03-27 12:20 | A
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/ui/LoginView.java`
+- 完成内容
+  - 清掉登录页所有用户可见的技术栈和原型阶段文案，不再出现 `MyBatis`、`本地登录占位`、`进入工作台` 这类样板口径
+  - 登录页品牌条、入口标题、说明文字和主按钮统一改成正式宿舍维修系统场景，保持业务语言一致
+- 影响提醒 / 下一步
+  - A 区域后续继续改登录页和首页时，禁止把技术栈词、原型提示或“桌面工作台”一类样板文案重新带回 UI
+  - 已在本地执行 `mvn -DskipTests clean compile`，结果为 `BUILD SUCCESS`
+- Push 结果
+  - 本轮待 commit + push
+

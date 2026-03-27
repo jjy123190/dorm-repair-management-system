@@ -24,8 +24,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
 
 /**
- * 登录页只负责选择当前登录角色并进入工作台。
- * 当前阶段先走本地登录占位，界面口径按正式系统展示，不再出现演示措辞。
+ * 登录页只负责选择当前登录角色并进入系统。
+ * 这里的文案保持正式业务口径，不展示技术栈或原型阶段描述。
  */
 public class LoginView {
 
@@ -70,7 +70,7 @@ public class LoginView {
     }
 
     private VBox buildHeroPane() {
-        Label chipLabel = new Label("SCAU DORM REPAIR");
+        Label chipLabel = new Label("SCAU 宿舍维修服务");
         chipLabel.getStyleClass().add("login-hero-chip");
 
         Label titleLabel = new Label("宿舍报修与工单管理系统");
@@ -93,9 +93,9 @@ public class LoginView {
 
         HBox stripRow = new HBox(
                 14,
-                createStripCard("3", "核心角色"),
-                createStripCard("工单闭环", "核心流程"),
-                createStripCard("MyBatis", "数据访问")
+                createStripCard("3", "服务角色"),
+                createStripCard("报修闭环", "业务流程"),
+                createStripCard("及时处理", "协同目标")
         );
         stripRow.getStyleClass().add("login-strip-row");
         HBox.setHgrow(stripRow.getChildren().get(0), Priority.ALWAYS);
@@ -119,10 +119,10 @@ public class LoginView {
         Label chipLabel = new Label("身份登录");
         chipLabel.getStyleClass().add("login-entry-chip");
 
-        Label titleLabel = new Label("进入工作台");
+        Label titleLabel = new Label("进入系统");
         titleLabel.getStyleClass().add("login-entry-title");
 
-        Label introLabel = new Label("请选择当前登录身份并填写显示名称，进入对应业务工作台。");
+        Label introLabel = new Label("请选择当前身份并填写姓名，进入对应功能页面。");
         introLabel.getStyleClass().add("login-entry-intro");
         introLabel.setWrapText(true);
         introLabel.setMaxWidth(Double.MAX_VALUE);
@@ -163,12 +163,12 @@ public class LoginView {
         Label fieldLabel = new Label("显示名称");
         fieldLabel.getStyleClass().add("form-label");
 
-        Label noteLabel = new Label("当前先使用本地登录占位，后续接入真实用户表后可直接替换登录校验逻辑。");
+        Label noteLabel = new Label("登录后会根据身份进入对应业务界面，可随时退出并切换为其他角色。");
         noteLabel.getStyleClass().add("login-entry-note");
         noteLabel.setWrapText(true);
         noteLabel.setMaxWidth(Double.MAX_VALUE);
 
-        var loginButton = FusionUiFactory.createPrimaryButton("进入桌面工作台", 0, 46, () ->
+        var loginButton = FusionUiFactory.createPrimaryButton("进入系统", 0, 46, () ->
                 loginAction.accept(nameField.getText(), selectedRole.get())
         );
         loginButton.getNode().setMaxWidth(Double.MAX_VALUE);
