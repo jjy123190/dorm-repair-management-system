@@ -618,3 +618,15 @@
 - Push 结果
   - 功能提交：`8638216`
 
+### 2026-03-27 12:59 | A
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/ui/component/AppDropdown.java`
+- 完成内容
+  - 修正自定义下拉的滚轮缓动起点，连续滚动时不再拿“上一次目标值”做动画起点，而是改为读取当前真实滚动位置
+  - 下拉滚动步长改成更平滑的像素区间，避免滚轮一格一格地发黏、停顿
+- 影响提醒 / 下一步
+  - 这轮改的是共享下拉公共件，学生报修、管理员派单、维修员处理、评分选择都会一起受影响
+  - 已在本地执行 `mvn -DskipTests clean compile`，结果为 `BUILD SUCCESS`
+- Push 结果
+  - 本轮待 commit + push
+

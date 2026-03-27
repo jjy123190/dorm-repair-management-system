@@ -40,7 +40,10 @@ public class AppDropdown<T> extends VBox {
     private static final double CONTROL_HEIGHT = 44.0;
     private static final double OPTION_HEIGHT = 42.0;
     private static final double POPUP_PADDING = 12.0;
-    private static final double SCROLL_SENSITIVITY = 0.22;
+    private static final double MIN_WHEEL_STEP = 6.0;
+    private static final double MAX_WHEEL_STEP = 28.0;
+    private static final double WHEEL_STEP_FACTOR = 0.48;
+    private static final Duration SCROLL_DURATION = Duration.millis(220);
 
     private final ObservableList<T> items;
     private final ObjectProperty<T> value;
@@ -269,12 +272,13 @@ public class AppDropdown<T> extends VBox {
             return;
         }
 
+        double currentOffset = currentScrollableOffset();
         double nextOffset = clamp(
-                scrollTargetOffset - normalizeWheelDelta(event.getDeltaY()) * SCROLL_SENSITIVITY,
+                currentOffset - wheelOffsetDelta(event.getDeltaY()),
                 0,
                 maxOffset
         );
-        playSmoothScroll(nextOffset);
+        playSmoothScroll(currentOffset, nextOffset);
         event.consume();
     }
 
@@ -298,10 +302,9 @@ public class AppDropdown<T> extends VBox {
         scrollPane.setVvalue(offsetToVvalue(targetOffset));
     }
 
-    private void playSmoothScroll(double targetOffset) {
+    private void playSmoothScroll(double currentOffset, double targetOffset) {
         stopScrollTimeline();
 
-        double currentOffset = scrollTargetOffset;
         scrollTargetOffset = targetOffset;
         scrollTimeline = new Timeline(
                 new KeyFrame(
@@ -309,7 +312,7 @@ public class AppDropdown<T> extends VBox {
                         new KeyValue(scrollPane.vvalueProperty(), offsetToVvalue(currentOffset), Interpolator.EASE_OUT)
                 ),
                 new KeyFrame(
-                        Duration.millis(180),
+                        SCROLL_DURATION,
                         new KeyValue(
                                 scrollPane.vvalueProperty(),
                                 offsetToVvalue(targetOffset),
@@ -333,6 +336,10 @@ public class AppDropdown<T> extends VBox {
         return Math.max(contentHeight - viewportHeight, 0);
     }
 
+    private double currentScrollableOffset() {
+        return maxScrollableOffset() * clamp(scrollPane.getVvalue(), 0, 1);
+    }
+
     private double offsetToVvalue(double offset) {
         double maxOffset = maxScrollableOffset();
         if (maxOffset <= 0) {
@@ -341,9 +348,10 @@ public class AppDropdown<T> extends VBox {
         return clamp(offset / maxOffset, 0, 1);
     }
 
-    private double normalizeWheelDelta(double deltaY) {
-        double capped = Math.min(Math.abs(deltaY), 72);
-        return Math.signum(deltaY) * capped;
+    private double wheelOffsetDelta(double deltaY) {
+        double scaledDelta = Math.abs(deltaY) * WHEEL_STEP_FACTOR;
+        double offsetDelta = clamp(scaledDelta, MIN_WHEEL_STEP, MAX_WHEEL_STEP);
+        return Math.signum(deltaY) * offsetDelta;
     }
 
     private double clamp(double value, double min, double max) {
