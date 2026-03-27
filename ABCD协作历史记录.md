@@ -647,5 +647,6 @@
   - 这轮同时改了 `AppShell.java`、`LoginView.java`、`app.css` 和 `DemoAccountDirectory.java`，都属于共享文件，B / C / D 继续开发前先 pull
   - 已在本地执行 `mvn -DskipTests clean compile`，日志显示 `BUILD SUCCESS`；命令退出码仍会被这台机器的环境尾噪带偏，不是项目编译失败
 - Push 结果
-  - 本轮待 commit + push
+  - 已 push
+  - 功能提交：`a824d65`
 
