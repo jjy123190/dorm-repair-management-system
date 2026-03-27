@@ -490,8 +490,9 @@
 .student-detail-badge {
     -fx-background-color: rgba(255,255,255,0.82);
     -fx-background-radius: 14px;
-    -fx-border-color: rgba(46,46,46,0.08);
+    -fx-border-color: rgba(106,160,135,0.24);
     -fx-border-radius: 14px;
+    -fx-border-width: 1.1px;
     -fx-padding: 10 12 10 12;
     -fx-font-size: 12px;
     -fx-line-spacing: 2px;
@@ -531,31 +532,37 @@
 .student-feedback-banner-idle {
     -fx-background-color: rgba(255,255,255,0.82);
     -fx-border-color: rgba(46,46,46,0.08);
+    -fx-border-width: 1.1px;
 }
 
 .student-feedback-banner-ready {
     -fx-background-color: linear-gradient(to right, rgba(255,248,231,0.98), rgba(250,244,226,0.94));
     -fx-border-color: rgba(184,168,68,0.26);
+    -fx-border-width: 1.1px;
 }
 
 .student-feedback-banner-done {
     -fx-background-color: linear-gradient(to right, rgba(232,243,236,0.98), rgba(244,247,239,0.96));
     -fx-border-color: rgba(106,160,135,0.36);
+    -fx-border-width: 1.1px;
 }
 
 .student-action-banner-idle {
     -fx-background-color: rgba(255,255,255,0.82);
     -fx-border-color: rgba(46,46,46,0.08);
+    -fx-border-width: 1.1px;
 }
 
 .student-action-banner-open {
     -fx-background-color: linear-gradient(to right, rgba(236,242,230,0.98), rgba(244,247,239,0.96));
     -fx-border-color: rgba(106,160,135,0.32);
+    -fx-border-width: 1.1px;
 }
 
 .student-action-banner-closed {
     -fx-background-color: rgba(245,239,231,0.94);
     -fx-border-color: rgba(111,100,48,0.18);
+    -fx-border-width: 1.1px;
 }
 
 .student-timeline-card {
@@ -1147,17 +1154,20 @@
 .dialog-shell {
     -fx-background-color: rgba(255,252,247,0.98);
     -fx-background-radius: 24px;
-    -fx-border-color: transparent;
+    -fx-border-color: rgba(46,46,46,0.12);
     -fx-border-radius: 24px;
+    -fx-border-width: 1.2px;
     -fx-effect: none;
 }
 
 .dialog-shell-info {
     -fx-background-color: rgba(252,249,242,0.98);
+    -fx-border-color: rgba(106,160,135,0.34);
 }
 
 .dialog-shell-error {
     -fx-background-color: rgba(252,249,242,0.98);
+    -fx-border-color: rgba(184,168,68,0.34);
 }
 
 .dialog-chip {

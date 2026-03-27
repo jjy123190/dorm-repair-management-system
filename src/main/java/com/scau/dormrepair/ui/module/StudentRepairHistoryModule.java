@@ -95,8 +95,8 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         toolbar.setAlignment(Pos.CENTER_RIGHT);
 
         GridPane workspace = createRatioWorkspace(
-                47,
-                53,
+                52,
+                48,
                 wrapPanel("本人报修记录", new VBox(12, toolbar, historyTable)),
                 wrapPanel("记录详情", detailPanel)
         );
@@ -113,11 +113,11 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         historyTable.getColumns().addAll(
                 createTextColumn("报修单号", "requestNo"),
                 createTextColumn("位置", "locationText"),
-                createFaultColumn(),
                 createStatusColumn(),
                 createDateTimeColumn()
         );
-        configureFixedTable(historyTable, 460, 1.58, 1.42, 1.16, 0.86, 1.18);
+        // 左侧列表只负责“选中哪一条记录”，完整信息放到右侧详情面板展示，避免在窄栏里硬塞过多列。
+        configureFixedTable(historyTable, 460, 1.72, 1.54, 0.96, 1.18);
         return historyTable;
     }
 

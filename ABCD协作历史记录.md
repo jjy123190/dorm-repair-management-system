@@ -675,3 +675,20 @@
   - 已 push
   - 提交号：`e703d02`
 
+### 2026-03-27 15:04 | A
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/ui/module/StudentRepairHistoryModule.java`
+  - `src/main/java/com/scau/dormrepair/ui/support/UiAlerts.java`
+  - `src/main/resources/styles/app.css`
+- 完成内容
+  - 学生报修记录页左侧列表改成“只保留选中记录所需字段”的窄表结构，去掉重复的故障类别列，并把左右布局比例调成 `52 / 48`，避免左侧记录号和位置被挤没
+  - 统一提示弹窗补了正式描边，不再和页面浅色底板糊成一片
+  - 统一提示弹窗补上键盘确认：`Enter` 直接确认，`Esc` 直接关闭，避免每次都必须鼠标点按钮
+  - 学生详情页状态条、操作条、评价条的边框也同步加深，右侧信息块层次更清楚
+- 影响提醒 / 下一步
+  - 这轮继续改了共享样式文件 `app.css` 和公共提示层 `UiAlerts.java`，B / C / D 开发前需要先 pull
+  - 如果学生记录页后面还嫌左侧拥挤，下一步优先继续精简左侧列表字段，不要再把完整详情塞回左栏
+  - 已在本地执行 `mvn -DskipTests clean compile`，日志显示 `BUILD SUCCESS`；命令退出码仍会被这台机器的环境尾噪影响
+- Push 结果
+  - 本轮待 commit + push
+

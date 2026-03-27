@@ -4,6 +4,7 @@ import com.scau.dormrepair.ui.component.FusionUiFactory;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -83,6 +84,21 @@ public final class UiAlerts {
         if (UiAlerts.class.getResource("/styles/app.css") != null) {
             scene.getStylesheets().add(UiAlerts.class.getResource("/styles/app.css").toExternalForm());
         }
+        scene.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                confirmed[0] = true;
+                if (stageRef[0] != null) {
+                    stageRef[0].close();
+                }
+                event.consume();
+            } else if (event.getCode() == KeyCode.ESCAPE) {
+                confirmed[0] = false;
+                if (stageRef[0] != null) {
+                    stageRef[0].close();
+                }
+                event.consume();
+            }
+        });
 
         Stage dialog = new Stage(StageStyle.TRANSPARENT);
         stageRef[0] = dialog;
@@ -146,6 +162,14 @@ public final class UiAlerts {
         if (UiAlerts.class.getResource("/styles/app.css") != null) {
             scene.getStylesheets().add(UiAlerts.class.getResource("/styles/app.css").toExternalForm());
         }
+        scene.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.ESCAPE) {
+                if (stageRef[0] != null) {
+                    stageRef[0].close();
+                }
+                event.consume();
+            }
+        });
 
         Stage dialog = new Stage(StageStyle.TRANSPARENT);
         stageRef[0] = dialog;
