@@ -83,7 +83,7 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         }
 
         TableView<RecentRepairRequestView> recentTable = buildRecentTable();
-        refreshRecentRequests(recentTable, currentStudent.id());
+        refreshRecentRequests(recentTable, currentStudent.id(), currentStudent.displayName());
 
         GridPane workspace = buildRepairWorkspace(currentStudent, recentTable);
         VBox content = new VBox(18, workspace);
@@ -167,7 +167,7 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
                 draftImageCountValue.setText("0 张");
                 draftRecentHintValue.setText("本次报修已提交，右侧最近记录已自动刷新。");
                 refreshDraftLocation(dormAreaBox, buildingBox, roomField, draftLocationValue);
-                refreshRecentRequests(recentTable, currentStudent.id());
+                refreshRecentRequests(recentTable, currentStudent.id(), currentStudent.displayName());
                 UiAlerts.info(
                         "提交成功",
                         "报修申请已保存，记录 ID=" + repairRequestId + "。最近记录已同步刷新。"
@@ -289,9 +289,9 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         return recentTable;
     }
 
-    private void refreshRecentRequests(TableView<RecentRepairRequestView> recentTable, Long studentId) {
+    private void refreshRecentRequests(TableView<RecentRepairRequestView> recentTable, Long studentId, String studentName) {
         recentTable.setItems(FXCollections.observableArrayList(
-                appContext.repairRequestService().listStudentSubmittedRequests(studentId, 6)
+                appContext.repairRequestService().listStudentSubmittedRequests(studentId, studentName, 6)
         ));
     }
 

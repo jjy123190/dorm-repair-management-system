@@ -650,3 +650,27 @@
   - 已 push
   - 功能提交：`a824d65`
 
+### 2026-03-27 14:37 | A
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/service/DashboardService.java`
+  - `src/main/java/com/scau/dormrepair/service/impl/DashboardServiceImpl.java`
+  - `src/main/java/com/scau/dormrepair/mapper/DashboardMapper.java`
+  - `src/main/resources/mapper/DashboardMapper.xml`
+  - `src/main/java/com/scau/dormrepair/service/RepairRequestService.java`
+  - `src/main/java/com/scau/dormrepair/service/impl/RepairRequestServiceImpl.java`
+  - `src/main/java/com/scau/dormrepair/mapper/RepairRequestMapper.java`
+  - `src/main/resources/mapper/RepairRequestMapper.xml`
+  - `src/main/java/com/scau/dormrepair/ui/module/DashboardModule.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/StudentRepairModule.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/StudentRepairHistoryModule.java`
+- 完成内容
+  - 修复学生首页看板误读全局数据的权限漏洞，首页统计和最近报修现在按“当前账号 ID + 当前姓名”双重过滤
+  - 学生报修记录页、详情页、催办、取消也统一收严到同一套过滤口径，避免旧脏数据从其他页面漏出来
+  - 已用真实 MySQL 数据验证：`1003/相逢的` 查到 `0` 条，`1001/张三` 只看 `张三` 自己的 3 条，旧的 `czb` 记录被隔离
+- 影响提醒 / 下一步
+  - 当前数据库里仍有早期自由文本阶段留下的错绑记录，后续如果要彻底清理，需要单独做 demo 数据整治；但 UI 可见层已经被双重过滤挡住
+  - 这轮改动同时触达 dashboard、repair request 和两个学生模块，队友继续改学生链前先 pull
+  - 已在本地执行 `mvn -DskipTests clean compile`，日志显示 `BUILD SUCCESS`
+- Push 结果
+  - 本轮待 commit + push
+

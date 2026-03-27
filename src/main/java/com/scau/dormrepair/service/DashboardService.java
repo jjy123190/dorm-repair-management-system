@@ -1,5 +1,6 @@
 package com.scau.dormrepair.service;
 
+import com.scau.dormrepair.domain.enums.UserRole;
 import com.scau.dormrepair.domain.view.DashboardOverview;
 import com.scau.dormrepair.domain.view.RecentRepairRequestView;
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.List;
  */
 public interface DashboardService {
 
-    DashboardOverview loadOverview();
+    DashboardOverview loadOverview(UserRole role, Long accountId, String displayName);
 
-    List<RecentRepairRequestView> listRecentRepairRequests(int limit);
+    List<RecentRepairRequestView> listRecentRepairRequests(UserRole role, Long accountId, String displayName, int limit);
 }

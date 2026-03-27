@@ -76,21 +76,28 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     }
 
     @Override
-    public List<RecentRepairRequestView> listStudentSubmittedRequests(Long studentId, int limit) {
+    public List<RecentRepairRequestView> listStudentSubmittedRequests(Long studentId, String studentName, int limit) {
         if (studentId == null) {
             throw new BusinessException("学生 ID 不能为空。");
+        }
+        if (studentName == null || studentName.isBlank()) {
+            throw new BusinessException("学生姓名不能为空。");
         }
 
         int safeLimit = Math.min(Math.max(limit, 1), 20);
         return myBatisExecutor.executeRead(
-                session -> session.getMapper(RepairRequestMapper.class).selectStudentSubmittedRequests(studentId, safeLimit)
+                session -> session.getMapper(RepairRequestMapper.class)
+                        .selectStudentSubmittedRequests(studentId, studentName.trim(), safeLimit)
         );
     }
 
     @Override
-    public StudentRepairDetailView getStudentRequestDetail(Long studentId, Long requestId) {
+    public StudentRepairDetailView getStudentRequestDetail(Long studentId, String studentName, Long requestId) {
         if (studentId == null) {
             throw new BusinessException("学生 ID 不能为空。");
+        }
+        if (studentName == null || studentName.isBlank()) {
+            throw new BusinessException("学生姓名不能为空。");
         }
         if (requestId == null) {
             throw new BusinessException("报修记录 ID 不能为空。");
@@ -103,7 +110,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             WorkOrderMapper workOrderMapper = session.getMapper(WorkOrderMapper.class);
 
             StudentRepairDetailView detailView =
-                    repairRequestMapper.selectStudentRequestDetail(studentId, requestId);
+                    repairRequestMapper.selectStudentRequestDetail(studentId, studentName.trim(), requestId);
             if (detailView == null) {
                 throw new ResourceNotFoundException("未找到当前学生对应的报修记录，ID=" + requestId);
             }
@@ -140,9 +147,12 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     }
 
     @Override
-    public int urgeStudentRequest(Long studentId, Long requestId) {
+    public int urgeStudentRequest(Long studentId, String studentName, Long requestId) {
         if (studentId == null) {
             throw new BusinessException("学生 ID 不能为空。");
+        }
+        if (studentName == null || studentName.isBlank()) {
+            throw new BusinessException("学生姓名不能为空。");
         }
         if (requestId == null) {
             throw new BusinessException("报修记录 ID 不能为空。");
@@ -150,7 +160,9 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
         return myBatisExecutor.executeWrite(session -> {
             RepairRequestMapper repairRequestMapper = session.getMapper(RepairRequestMapper.class);
-            RepairRequest repairRequest = requireStudentOwnedRequest(repairRequestMapper, studentId, requestId);
+            String normalizedStudentName = studentName.trim();
+            RepairRequest repairRequest =
+                    requireStudentOwnedRequest(repairRequestMapper, studentId, normalizedStudentName, requestId);
 
             if (repairRequest.getStatus() == RepairRequestStatus.COMPLETED
                     || repairRequest.getStatus() == RepairRequestStatus.REJECTED
@@ -158,7 +170,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                 throw new BusinessException("当前状态不支持催办。");
             }
 
-            int affectedRows = repairRequestMapper.increaseUrgeCount(studentId, requestId);
+            int affectedRows = repairRequestMapper.increaseUrgeCount(studentId, normalizedStudentName, requestId);
             if (affectedRows == 0) {
                 throw new BusinessException("当前报修暂时无法催办，请刷新后重试。");
             }
@@ -169,9 +181,12 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     }
 
     @Override
-    public void cancelStudentRequest(Long studentId, Long requestId) {
+    public void cancelStudentRequest(Long studentId, String studentName, Long requestId) {
         if (studentId == null) {
             throw new BusinessException("学生 ID 不能为空。");
+        }
+        if (studentName == null || studentName.isBlank()) {
+            throw new BusinessException("学生姓名不能为空。");
         }
         if (requestId == null) {
             throw new BusinessException("报修记录 ID 不能为空。");
@@ -179,7 +194,9 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
         myBatisExecutor.executeWrite(session -> {
             RepairRequestMapper repairRequestMapper = session.getMapper(RepairRequestMapper.class);
-            RepairRequest repairRequest = requireStudentOwnedRequest(repairRequestMapper, studentId, requestId);
+            String normalizedStudentName = studentName.trim();
+            RepairRequest repairRequest =
+                    requireStudentOwnedRequest(repairRequestMapper, studentId, normalizedStudentName, requestId);
 
             if (repairRequest.getStatus() == RepairRequestStatus.COMPLETED) {
                 throw new BusinessException("已完成报修不能取消。");
@@ -194,6 +211,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
             int affectedRows = repairRequestMapper.cancelStudentRequest(
                     studentId,
+                    normalizedStudentName,
                     requestId,
                     RepairRequestStatus.CANCELLED
             );
@@ -301,10 +319,14 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     private RepairRequest requireStudentOwnedRequest(
             RepairRequestMapper repairRequestMapper,
             Long studentId,
+            String studentName,
             Long requestId
     ) {
         RepairRequest repairRequest = repairRequestMapper.selectById(requestId);
-        if (repairRequest == null || repairRequest.getStudentId() == null || !studentId.equals(repairRequest.getStudentId())) {
+        if (repairRequest == null
+                || repairRequest.getStudentId() == null
+                || !studentId.equals(repairRequest.getStudentId())
+                || !studentName.equals(repairRequest.getStudentName())) {
             throw new ResourceNotFoundException("未找到当前学生对应的报修记录，ID=" + requestId);
         }
         return repairRequest;

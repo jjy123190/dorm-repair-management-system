@@ -12,5 +12,16 @@ public interface DashboardMapper {
 
     DashboardOverview selectOverview();
 
+    DashboardOverview selectStudentOverview(
+            @Param("studentId") Long studentId,
+            @Param("studentName") String studentName
+    );
+
     List<RecentRepairRequestView> selectRecentRepairRequests(@Param("limit") int limit);
+
+    List<RecentRepairRequestView> selectStudentRecentRepairRequests(
+            @Param("studentId") Long studentId,
+            @Param("studentName") String studentName,
+            @Param("limit") int limit
+    );
 }

@@ -113,6 +113,7 @@
             submitted_at
         FROM repair_requests
         WHERE student_id = #{studentId}
+          AND student_name = #{studentName}
         ORDER BY submitted_at DESC, id DESC
         LIMIT #{limit}
     </select>
@@ -136,6 +137,7 @@
             completed_at
         FROM repair_requests
         WHERE student_id = #{studentId}
+          AND student_name = #{studentName}
           AND id = #{requestId}
     </select>
 
@@ -143,6 +145,7 @@
         UPDATE repair_requests
         SET urge_count = urge_count + 1
         WHERE student_id = #{studentId}
+          AND student_name = #{studentName}
           AND id = #{requestId}
           AND status IN ('SUBMITTED', 'ASSIGNED', 'IN_PROGRESS')
     </update>
@@ -151,6 +154,7 @@
         UPDATE repair_requests
         SET status = #{status}
         WHERE student_id = #{studentId}
+          AND student_name = #{studentName}
           AND id = #{requestId}
           AND status IN ('SUBMITTED', 'ASSIGNED')
     </update>

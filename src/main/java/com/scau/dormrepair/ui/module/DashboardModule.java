@@ -50,8 +50,17 @@ public class DashboardModule extends AbstractWorkbenchModule {
 
     @Override
     public Parent createView() {
-        DashboardOverview overview = appContext.dashboardService().loadOverview();
-        List<RecentRepairRequestView> recentRequests = appContext.dashboardService().listRecentRepairRequests(5);
+        UserRole currentRole = appContext.appSession().getCurrentRole();
+        Long currentAccountId = appContext.appSession().getCurrentAccountId();
+        String currentDisplayName = appContext.appSession().getDisplayName();
+
+        DashboardOverview overview = appContext.dashboardService().loadOverview(
+                currentRole,
+                currentAccountId,
+                currentDisplayName
+        );
+        List<RecentRepairRequestView> recentRequests = appContext.dashboardService()
+                .listRecentRepairRequests(currentRole, currentAccountId, currentDisplayName, 5);
 
         GridPane metricGrid = new GridPane();
         metricGrid.setHgap(16);

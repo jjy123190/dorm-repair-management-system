@@ -34,21 +34,25 @@ public interface RepairRequestMapper {
 
     List<RecentRepairRequestView> selectStudentSubmittedRequests(
             @Param("studentId") Long studentId,
+            @Param("studentName") String studentName,
             @Param("limit") int limit
     );
 
     StudentRepairDetailView selectStudentRequestDetail(
             @Param("studentId") Long studentId,
+            @Param("studentName") String studentName,
             @Param("requestId") Long requestId
     );
 
     int increaseUrgeCount(
             @Param("studentId") Long studentId,
+            @Param("studentName") String studentName,
             @Param("requestId") Long requestId
     );
 
     int cancelStudentRequest(
             @Param("studentId") Long studentId,
+            @Param("studentName") String studentName,
             @Param("requestId") Long requestId,
             @Param("status") RepairRequestStatus status
     );

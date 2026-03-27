@@ -15,13 +15,13 @@ public interface RepairRequestService {
 
     List<RecentRepairRequestView> listLatestSubmittedRequests(int limit);
 
-    List<RecentRepairRequestView> listStudentSubmittedRequests(Long studentId, int limit);
+    List<RecentRepairRequestView> listStudentSubmittedRequests(Long studentId, String studentName, int limit);
 
-    StudentRepairDetailView getStudentRequestDetail(Long studentId, Long requestId);
+    StudentRepairDetailView getStudentRequestDetail(Long studentId, String studentName, Long requestId);
 
-    int urgeStudentRequest(Long studentId, Long requestId);
+    int urgeStudentRequest(Long studentId, String studentName, Long requestId);
 
-    void cancelStudentRequest(Long studentId, Long requestId);
+    void cancelStudentRequest(Long studentId, String studentName, Long requestId);
 
     List<RecentRepairRequestView> listPendingAssignmentRequests(int limit);
 

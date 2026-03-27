@@ -87,7 +87,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
 
         Button refreshButton = new Button("刷新记录");
         refreshButton.getStyleClass().add("surface-button");
-        refreshButton.setOnAction(event -> refreshHistory(historyTable, currentStudent.id()));
+        refreshButton.setOnAction(event -> refreshHistory(historyTable, currentStudent.id(), currentStudent.displayName()));
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -101,7 +101,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
                 wrapPanel("记录详情", detailPanel)
         );
 
-        refreshHistory(historyTable, currentStudent.id());
+        refreshHistory(historyTable, currentStudent.id(), currentStudent.displayName());
 
         VBox content = new VBox(18, workspace);
         content.setFillWidth(true);
@@ -121,9 +121,9 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         return historyTable;
     }
 
-    private void refreshHistory(TableView<RecentRepairRequestView> historyTable, Long studentId) {
+    private void refreshHistory(TableView<RecentRepairRequestView> historyTable, Long studentId, String studentName) {
         List<RecentRepairRequestView> historyRows =
-                appContext.repairRequestService().listStudentSubmittedRequests(studentId, 20);
+                appContext.repairRequestService().listStudentSubmittedRequests(studentId, studentName, 20);
         historyTable.setItems(FXCollections.observableArrayList(historyRows));
         fitTableHeightToRows(historyTable, historyRows.size(), 6, 11);
         if (!historyRows.isEmpty()) {
@@ -145,7 +145,11 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
 
             try {
                 StudentRepairDetailView detailView =
-                        appContext.repairRequestService().getStudentRequestDetail(currentStudent.id(), newValue.getId());
+                        appContext.repairRequestService().getStudentRequestDetail(
+                                currentStudent.id(),
+                                currentStudent.displayName(),
+                                newValue.getId()
+                        );
                 state.currentDetail = detailView;
                 renderDetail(state, detailView);
             } catch (RuntimeException exception) {
@@ -570,7 +574,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
 
         try {
             int urgeCount = appContext.repairRequestService()
-                    .urgeStudentRequest(currentStudent.id(), state.currentDetail.getId());
+                    .urgeStudentRequest(currentStudent.id(), currentStudent.displayName(), state.currentDetail.getId());
             reloadCurrentDetail(currentStudent, state, historyTable);
             UiAlerts.info("催办已提交", "本次催办已经记录，当前累计催办 " + urgeCount + " 次。");
         } catch (RuntimeException exception) {
@@ -594,7 +598,11 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         }
 
         try {
-            appContext.repairRequestService().cancelStudentRequest(currentStudent.id(), state.currentDetail.getId());
+            appContext.repairRequestService().cancelStudentRequest(
+                    currentStudent.id(),
+                    currentStudent.displayName(),
+                    state.currentDetail.getId()
+            );
             reloadCurrentDetail(currentStudent, state, historyTable);
             UiAlerts.info("报修已取消", "当前工单已从学生侧取消，状态已同步刷新。");
         } catch (RuntimeException exception) {
@@ -604,7 +612,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
 
     private void reloadCurrentDetail(DemoAccount currentStudent, DetailState state, TableView<RecentRepairRequestView> historyTable) {
         Long currentRequestId = state.currentDetail == null ? null : state.currentDetail.getId();
-        refreshHistory(historyTable, currentStudent.id());
+        refreshHistory(historyTable, currentStudent.id(), currentStudent.displayName());
         if (currentRequestId == null) {
             clearDetail(state);
             return;

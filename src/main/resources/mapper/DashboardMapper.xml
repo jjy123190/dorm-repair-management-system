@@ -14,6 +14,40 @@
                 FROM repair_requests
                 WHERE status = 'COMPLETED'
                   AND DATE_FORMAT(completed_at, '%Y-%m') = DATE_FORMAT(CURRENT_DATE(), '%Y-%m')
+        ), 0) AS completed_this_month
+        FROM dual
+    </select>
+
+    <select id="selectStudentOverview" resultType="com.scau.dormrepair.domain.view.DashboardOverview">
+        SELECT
+            COALESCE((
+                SELECT COUNT(*)
+                FROM repair_requests
+                WHERE student_id = #{studentId}
+                  AND student_name = #{studentName}
+            ), 0) AS total_requests,
+            COALESCE((
+                SELECT COUNT(*)
+                FROM repair_requests
+                WHERE student_id = #{studentId}
+                  AND student_name = #{studentName}
+                  AND status = 'SUBMITTED'
+            ), 0) AS pending_review_requests,
+            COALESCE((
+                SELECT COUNT(*)
+                FROM work_orders wo
+                INNER JOIN repair_requests rr ON rr.id = wo.repair_request_id
+                WHERE rr.student_id = #{studentId}
+                  AND rr.student_name = #{studentName}
+                  AND wo.status IN ('ASSIGNED', 'ACCEPTED', 'IN_PROGRESS', 'WAITING_PARTS')
+            ), 0) AS active_work_orders,
+            COALESCE((
+                SELECT COUNT(*)
+                FROM repair_requests
+                WHERE student_id = #{studentId}
+                  AND student_name = #{studentName}
+                  AND status = 'COMPLETED'
+                  AND DATE_FORMAT(completed_at, '%Y-%m') = DATE_FORMAT(CURRENT_DATE(), '%Y-%m')
             ), 0) AS completed_this_month
         FROM dual
     </select>
@@ -28,6 +62,25 @@
             rr.status,
             rr.submitted_at
         FROM repair_requests rr
+        ORDER BY rr.submitted_at DESC, rr.id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectStudentRecentRepairRequests" resultType="com.scau.dormrepair.domain.view.RecentRepairRequestView">
+        SELECT
+            rr.id,
+            rr.request_no,
+            rr.student_name,
+            CASE
+                WHEN rr.dorm_area_snapshot IS NULL OR rr.dorm_area_snapshot = '' THEN CONCAT(rr.building_no_snapshot, '-', rr.room_no_snapshot)
+                ELSE CONCAT(rr.dorm_area_snapshot, ' ', rr.building_no_snapshot, '-', rr.room_no_snapshot)
+            END AS location_text,
+            rr.fault_category,
+            rr.status,
+            rr.submitted_at
+        FROM repair_requests rr
+        WHERE rr.student_id = #{studentId}
+          AND rr.student_name = #{studentName}
         ORDER BY rr.submitted_at DESC, rr.id DESC
         LIMIT #{limit}
     </select>
