@@ -296,6 +296,29 @@
     -fx-font-weight: bold;
 }
 
+.surface-button {
+    -fx-background-color: rgba(255,255,255,0.92);
+    -fx-text-fill: #2e2e2e;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 14 10 14;
+    -fx-background-radius: 12px;
+    -fx-border-radius: 12px;
+    -fx-border-color: rgba(46,46,46,0.12);
+}
+
+.surface-button:hover {
+    -fx-background-color: rgba(247,243,232,0.98);
+    -fx-border-color: rgba(167,205,184,0.48);
+}
+
+.surface-button:disabled {
+    -fx-background-color: rgba(255,255,255,0.62);
+    -fx-border-color: rgba(46,46,46,0.08);
+    -fx-text-fill: rgba(46,46,46,0.42);
+    -fx-opacity: 1;
+}
+
 .section-title {
     -fx-font-size: 22px;
     -fx-font-weight: bold;
@@ -322,7 +345,8 @@
 
 .helper-text {
     -fx-font-size: 12px;
-    -fx-text-fill: #666666;
+    -fx-text-fill: #525252;
+    -fx-line-spacing: 2px;
 }
 
 .upload-preview-box {
@@ -628,6 +652,90 @@
 
 .fusion-button-ghost {
     -fx-effect: none;
+}
+
+.app-dropdown {
+    -fx-min-height: 44px;
+    -fx-pref-height: 44px;
+    -fx-max-height: 44px;
+}
+
+.app-dropdown-trigger {
+    -fx-background-color: rgba(255,255,255,0.80);
+    -fx-background-radius: 12px;
+    -fx-border-radius: 12px;
+    -fx-border-color: rgba(46,46,46,0.12);
+    -fx-cursor: hand;
+}
+
+.app-dropdown:hover .app-dropdown-trigger {
+    -fx-border-color: rgba(167,205,184,0.48);
+}
+
+.app-dropdown-value {
+    -fx-font-size: 13px;
+    -fx-text-fill: #2e2e2e;
+}
+
+.app-dropdown-value-placeholder {
+    -fx-text-fill: #8a8a8a;
+}
+
+.app-dropdown-arrow {
+    -fx-font-size: 12px;
+    -fx-text-fill: rgba(46,46,46,0.72);
+}
+
+.app-dropdown-popup {
+    -fx-background-color: #fffdf8;
+    -fx-background-radius: 12px;
+    -fx-border-color: rgba(46,46,46,0.12);
+    -fx-border-radius: 12px;
+    -fx-padding: 4;
+}
+
+.app-dropdown-scroll {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+}
+
+.app-dropdown-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.app-dropdown-option-list {
+    -fx-background-color: transparent;
+}
+
+.app-dropdown-option {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8px;
+    -fx-border-color: transparent transparent rgba(46,46,46,0.06) transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-text-fill: #2e2e2e;
+    -fx-cursor: hand;
+}
+
+.app-dropdown-option:hover,
+.app-dropdown-option-selected {
+    -fx-background-color: rgba(167,205,184,0.28);
+}
+
+.app-dropdown-scroll .scroll-bar:vertical {
+    -fx-pref-width: 8px;
+    -fx-max-width: 8px;
+}
+
+.app-dropdown-scroll .scroll-bar .track {
+    -fx-background-color: rgba(46,46,46,0.04);
+    -fx-background-radius: 999px;
+    -fx-background-insets: 1;
+}
+
+.app-dropdown-scroll .scroll-bar .thumb {
+    -fx-background-color: rgba(46,46,46,0.18);
+    -fx-background-radius: 999px;
+    -fx-background-insets: 1;
 }
 
 .combo-box,

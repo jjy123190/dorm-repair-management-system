@@ -8,11 +8,11 @@ import com.scau.dormrepair.domain.entity.DormBuilding;
 import com.scau.dormrepair.domain.enums.FaultCategory;
 import com.scau.dormrepair.domain.enums.UserRole;
 import com.scau.dormrepair.domain.view.RecentRepairRequestView;
+import com.scau.dormrepair.ui.component.AppDropdown;
 import com.scau.dormrepair.ui.component.FusionUiFactory;
 import com.scau.dormrepair.ui.support.ProjectImageStore;
 import com.scau.dormrepair.ui.support.UiAlerts;
 import com.scau.dormrepair.ui.support.UiDisplayText;
-import com.scau.dormrepair.ui.support.UiMotion;
 import java.io.File;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -25,9 +25,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
@@ -40,7 +38,6 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
-import javafx.util.StringConverter;
 
 /**
  * 学生报修页，负责提交新报修并查看最近提交概况。
@@ -97,8 +94,8 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
     }
 
     private GridPane buildRepairWorkspace(DemoAccount currentStudent, TableView<RecentRepairRequestView> recentTable) {
-        ComboBox<String> dormAreaBox = createDormAreaBox();
-        ComboBox<DormBuilding> buildingBox = createDormBuildingBox();
+        AppDropdown<String> dormAreaBox = createDormAreaBox();
+        AppDropdown<DormBuilding> buildingBox = createDormBuildingBox();
 
         TextField roomField = new TextField();
         roomField.setPromptText("例如 402");
@@ -106,7 +103,7 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         TextField phoneField = new TextField();
         phoneField.setPromptText("联系电话");
 
-        ComboBox<FaultCategory> faultCategoryBox = createFaultCategoryBox();
+        AppDropdown<FaultCategory> faultCategoryBox = createFaultCategoryBox();
 
         TextArea descriptionArea = new TextArea();
         descriptionArea.setPromptText("请具体说明故障现象、是否紧急、是否影响正常生活。");
@@ -135,7 +132,7 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         );
 
         Button resetButton = new Button("清空表单");
-        resetButton.getStyleClass().add("nav-button");
+        resetButton.getStyleClass().add("surface-button");
 
         Node submitButton = FusionUiFactory.createPrimaryButton("提交报修申请", 180, 40, () -> {
             try {
@@ -254,68 +251,29 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         );
     }
 
-    private ComboBox<String> createDormAreaBox() {
-        ComboBox<String> dormAreaBox = new ComboBox<>();
-        dormAreaBox.getItems().setAll(appContext.dormCatalogService().listDormAreas());
+    private AppDropdown<String> createDormAreaBox() {
+        AppDropdown<String> dormAreaBox = new AppDropdown<>();
+        dormAreaBox.setItems(appContext.dormCatalogService().listDormAreas());
         dormAreaBox.setPromptText("选择宿舍区");
         dormAreaBox.setVisibleRowCount(5);
-        dormAreaBox.setMinHeight(44);
-        dormAreaBox.setPrefHeight(44);
-        dormAreaBox.setMaxHeight(44);
-        dormAreaBox.setMaxWidth(Double.MAX_VALUE);
-        UiMotion.installSmoothDropdown(dormAreaBox);
         return dormAreaBox;
     }
 
-    private ComboBox<DormBuilding> createDormBuildingBox() {
-        ComboBox<DormBuilding> buildingBox = new ComboBox<>();
+    private AppDropdown<DormBuilding> createDormBuildingBox() {
+        AppDropdown<DormBuilding> buildingBox = new AppDropdown<>();
         buildingBox.setPromptText("先选宿舍区再选宿舍楼");
         buildingBox.setDisable(true);
         buildingBox.setVisibleRowCount(5);
-        buildingBox.setMinHeight(44);
-        buildingBox.setPrefHeight(44);
-        buildingBox.setMaxHeight(44);
-        buildingBox.setMaxWidth(Double.MAX_VALUE);
-        buildingBox.setConverter(new StringConverter<>() {
-            @Override
-            public String toString(DormBuilding building) {
-                return building == null ? "" : building.getDisplayName();
-            }
-
-            @Override
-            public DormBuilding fromString(String string) {
-                return null;
-            }
-        });
-        buildingBox.setButtonCell(createDormBuildingCell());
-        buildingBox.setCellFactory(ignored -> createDormBuildingCell());
-        UiMotion.installSmoothDropdown(buildingBox);
+        buildingBox.setTextMapper(building -> building == null ? "" : building.getDisplayName());
         return buildingBox;
     }
 
-    private ComboBox<FaultCategory> createFaultCategoryBox() {
-        ComboBox<FaultCategory> faultCategoryBox = new ComboBox<>();
-        faultCategoryBox.setConverter(new StringConverter<>() {
-            @Override
-            public String toString(FaultCategory value) {
-                return UiDisplayText.faultCategory(value);
-            }
-
-            @Override
-            public FaultCategory fromString(String string) {
-                return null;
-            }
-        });
-        faultCategoryBox.getItems().addAll(FaultCategory.values());
+    private AppDropdown<FaultCategory> createFaultCategoryBox() {
+        AppDropdown<FaultCategory> faultCategoryBox = new AppDropdown<>();
+        faultCategoryBox.setItems(List.of(FaultCategory.values()));
+        faultCategoryBox.setTextMapper(UiDisplayText::faultCategory);
         faultCategoryBox.setPromptText("选择故障类型");
         faultCategoryBox.setVisibleRowCount(7);
-        faultCategoryBox.setMinHeight(44);
-        faultCategoryBox.setPrefHeight(44);
-        faultCategoryBox.setMaxHeight(44);
-        faultCategoryBox.setMaxWidth(Double.MAX_VALUE);
-        faultCategoryBox.setButtonCell(createFaultCategoryCell());
-        faultCategoryBox.setCellFactory(ignored -> createFaultCategoryCell());
-        UiMotion.installSmoothDropdown(faultCategoryBox);
         return faultCategoryBox;
     }
 
@@ -337,9 +295,9 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         ));
     }
 
-    private void reloadBuildingsByArea(String dormArea, ComboBox<DormBuilding> buildingBox) {
+    private void reloadBuildingsByArea(String dormArea, AppDropdown<DormBuilding> buildingBox) {
         buildingBox.getItems().clear();
-        buildingBox.getSelectionModel().clearSelection();
+        buildingBox.clearSelection();
 
         if (dormArea == null || dormArea.isBlank()) {
             buildingBox.setDisable(true);
@@ -347,24 +305,24 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
             return;
         }
 
-        buildingBox.getItems().setAll(appContext.dormCatalogService().listBuildingsByArea(dormArea));
+        buildingBox.setItems(appContext.dormCatalogService().listBuildingsByArea(dormArea));
         buildingBox.setDisable(false);
         buildingBox.setPromptText("选择 " + dormArea + " 的楼栋");
     }
 
     private void clearAfterSubmit(
-            ComboBox<String> dormAreaBox,
-            ComboBox<DormBuilding> buildingBox,
+            AppDropdown<String> dormAreaBox,
+            AppDropdown<DormBuilding> buildingBox,
             TextField roomField,
             TextField phoneField,
             TextArea descriptionArea,
             List<File> selectedImageFiles,
             VBox imageUploadBox,
-            ComboBox<FaultCategory> faultCategoryBox
+            AppDropdown<FaultCategory> faultCategoryBox
     ) {
-        dormAreaBox.getSelectionModel().clearSelection();
+        dormAreaBox.clearSelection();
         buildingBox.getItems().clear();
-        buildingBox.getSelectionModel().clearSelection();
+        buildingBox.clearSelection();
         buildingBox.setDisable(true);
         buildingBox.setPromptText("先选宿舍区再选宿舍楼");
         roomField.clear();
@@ -375,17 +333,17 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         if (uploadState != null) {
             refreshImagePreview(uploadState.previewBox(), selectedImageFiles, uploadState.uploadCountLabel(), uploadState.draftCountLabel());
         }
-        faultCategoryBox.getSelectionModel().clearSelection();
+        faultCategoryBox.clearSelection();
     }
 
     private VBox createImageUploadBox(List<File> selectedImageFiles, Label draftImageCountLabel) {
         Label imageCountLabel = createDraftValueLabel("已选 0 / " + ProjectImageStore.MAX_IMAGE_COUNT + " 张");
 
         Button chooseButton = new Button("选择图片");
-        chooseButton.getStyleClass().add("nav-button");
+        chooseButton.getStyleClass().add("surface-button");
 
         Button clearButton = new Button("清空图片");
-        clearButton.getStyleClass().add("nav-button");
+        clearButton.getStyleClass().add("surface-button");
 
         Label helperLabel = new Label(
                 "支持 png、jpg、jpeg、webp、bmp、gif，最多 "
@@ -490,8 +448,8 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
     }
 
     private void refreshDraftLocation(
-            ComboBox<String> dormAreaBox,
-            ComboBox<DormBuilding> buildingBox,
+            AppDropdown<String> dormAreaBox,
+            AppDropdown<DormBuilding> buildingBox,
             TextField roomField,
             Label targetLabel
     ) {
@@ -543,26 +501,6 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
                 })
         );
         return column;
-    }
-
-    private ListCell<DormBuilding> createDormBuildingCell() {
-        return new ListCell<>() {
-            @Override
-            protected void updateItem(DormBuilding item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? "" : item.getDisplayName());
-            }
-        };
-    }
-
-    private ListCell<FaultCategory> createFaultCategoryCell() {
-        return new ListCell<>() {
-            @Override
-            protected void updateItem(FaultCategory item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? "" : UiDisplayText.faultCategory(item));
-            }
-        };
     }
 
     private record ImageUploadState(

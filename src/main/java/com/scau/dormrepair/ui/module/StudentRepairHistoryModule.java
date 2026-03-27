@@ -8,6 +8,7 @@ import com.scau.dormrepair.domain.enums.RepairRequestStatus;
 import com.scau.dormrepair.domain.enums.UserRole;
 import com.scau.dormrepair.domain.view.RecentRepairRequestView;
 import com.scau.dormrepair.domain.view.StudentRepairDetailView;
+import com.scau.dormrepair.ui.component.AppDropdown;
 import com.scau.dormrepair.ui.support.UiAlerts;
 import com.scau.dormrepair.ui.support.UiDisplayText;
 import java.nio.file.Files;
@@ -25,7 +26,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
@@ -86,7 +86,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         VBox detailPanel = buildDetailPanel(currentStudent, historyTable);
 
         Button refreshButton = new Button("刷新记录");
-        refreshButton.getStyleClass().add("nav-button");
+        refreshButton.getStyleClass().add("surface-button");
         refreshButton.setOnAction(event -> refreshHistory(historyTable, currentStudent.id()));
 
         Region spacer = new Region();
@@ -260,10 +260,10 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         Label actionBanner = createBadgeLabel("催办和取消会根据工单状态自动开放。");
         Label feedbackBanner = createBadgeLabel("评价入口会在工单完成后开放。");
 
-        ComboBox<Integer> ratingBox = new ComboBox<>();
-        ratingBox.getItems().addAll(5, 4, 3, 2, 1);
+        AppDropdown<Integer> ratingBox = new AppDropdown<>();
+        ratingBox.setItems(List.of(5, 4, 3, 2, 1));
         ratingBox.setPromptText("请选择 1-5 分");
-        ratingBox.setMaxWidth(Double.MAX_VALUE);
+        ratingBox.setVisibleRowCount(5);
 
         TextArea feedbackArea = new TextArea();
         feedbackArea.setPromptText("可以补充维修体验、响应速度、处理质量等反馈。");
@@ -272,11 +272,11 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
 
         CheckBox anonymousBox = new CheckBox("匿名评价");
         Button urgeButton = new Button("催办一次");
-        urgeButton.getStyleClass().add("nav-button");
+        urgeButton.getStyleClass().add("surface-button");
         Button cancelButton = new Button("取消报修");
-        cancelButton.getStyleClass().add("nav-button");
+        cancelButton.getStyleClass().add("surface-button");
         Button feedbackButton = new Button("提交评价");
-        feedbackButton.getStyleClass().add("nav-button");
+        feedbackButton.getStyleClass().add("surface-button");
 
         return new DetailState(
                 null,
@@ -353,7 +353,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         applyActionBannerStyle(state.actionBanner, ActionBannerState.IDLE);
         state.feedbackBanner.setText("评价入口会在工单完成后开放。");
         applyFeedbackBannerStyle(state.feedbackBanner, FeedbackBannerState.IDLE);
-        state.ratingBox.getSelectionModel().clearSelection();
+                state.ratingBox.clearSelection();
         state.ratingBox.setDisable(true);
         state.feedbackArea.clear();
         state.feedbackArea.setDisable(true);
@@ -482,7 +482,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         }
 
         boolean canFeedback = detailView.getStatus() == RepairRequestStatus.COMPLETED;
-        state.ratingBox.getSelectionModel().clearSelection();
+                state.ratingBox.clearSelection();
         state.ratingBox.setDisable(!canFeedback);
         state.feedbackArea.clear();
         state.feedbackArea.setDisable(!canFeedback);
@@ -941,7 +941,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         private final Label previewHint;
         private final Label actionBanner;
         private final Label feedbackBanner;
-        private final ComboBox<Integer> ratingBox;
+        private final AppDropdown<Integer> ratingBox;
         private final TextArea feedbackArea;
         private final CheckBox anonymousBox;
         private final Button urgeButton;
@@ -976,7 +976,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
                 Label previewHint,
                 Label actionBanner,
                 Label feedbackBanner,
-                ComboBox<Integer> ratingBox,
+                AppDropdown<Integer> ratingBox,
                 TextArea feedbackArea,
                 CheckBox anonymousBox,
                 Button urgeButton,

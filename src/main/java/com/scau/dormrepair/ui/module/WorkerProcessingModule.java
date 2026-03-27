@@ -7,10 +7,10 @@ import com.scau.dormrepair.domain.command.UpdateWorkOrderStatusCommand;
 import com.scau.dormrepair.domain.enums.UserRole;
 import com.scau.dormrepair.domain.enums.WorkOrderStatus;
 import com.scau.dormrepair.domain.view.ActiveWorkOrderView;
+import com.scau.dormrepair.ui.component.AppDropdown;
 import com.scau.dormrepair.ui.component.FusionUiFactory;
 import com.scau.dormrepair.ui.support.UiAlerts;
 import com.scau.dormrepair.ui.support.UiDisplayText;
-import com.scau.dormrepair.ui.support.UiMotion;
 import java.time.format.DateTimeFormatter;
 import java.util.EnumSet;
 import java.util.List;
@@ -21,7 +21,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -31,7 +30,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.util.StringConverter;
 
 /**
  * 维修员处理模块。
@@ -109,21 +107,11 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
         selectedOrderInfoLabel.getStyleClass().add("dashboard-mini-description");
         selectedOrderInfoLabel.setWrapText(true);
 
-        ComboBox<WorkOrderStatus> statusBox = new ComboBox<>();
-        statusBox.getItems().addAll(EDITABLE_STATUSES);
-        statusBox.setConverter(new StringConverter<>() {
-            @Override
-            public String toString(WorkOrderStatus workOrderStatus) {
-                return UiDisplayText.workOrderStatus(workOrderStatus);
-            }
-
-            @Override
-            public WorkOrderStatus fromString(String string) {
-                return null;
-            }
-        });
-        statusBox.setMaxWidth(Double.MAX_VALUE);
-        UiMotion.installSmoothDropdown(statusBox);
+        AppDropdown<WorkOrderStatus> statusBox = new AppDropdown<>();
+        statusBox.setItems(EDITABLE_STATUSES);
+        statusBox.setTextMapper(UiDisplayText::workOrderStatus);
+        statusBox.setPromptText("选择处理状态");
+        statusBox.setVisibleRowCount(6);
 
         TextArea recordNoteArea = new TextArea();
         recordNoteArea.setPromptText("例如：已上门检测、等待配件、已更换零件并恢复使用。");
@@ -134,7 +122,7 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
             if (newValue == null) {
                 selectedWorkOrderLabel.setText("未选择工单");
                 selectedOrderInfoLabel.setText("请先从右侧工单表中选择一条记录。");
-                statusBox.getSelectionModel().clearSelection();
+                statusBox.clearSelection();
                 return;
             }
 
@@ -150,7 +138,7 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
         });
 
         Button refreshButton = new Button("刷新工单");
-        refreshButton.getStyleClass().add("nav-button");
+        refreshButton.getStyleClass().add("surface-button");
         refreshButton.setOnAction(event -> refreshWorkOrders(workOrderTable, currentWorker.id()));
 
         Node updateButton = FusionUiFactory.createPrimaryButton("回填处理状态", 170, 40, () -> {

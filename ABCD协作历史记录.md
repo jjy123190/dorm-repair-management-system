@@ -458,6 +458,28 @@
 - Push 结果
   - 已 push
   - 提交号：`0b6a8c8`
+
+### 2026-03-27 12:03 | A
+- 改动文件
+  - `src/main/java/com/scau/dormrepair/ui/component/AppDropdown.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/StudentRepairModule.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/AdminDispatchModule.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/WorkerProcessingModule.java`
+  - `src/main/java/com/scau/dormrepair/ui/module/StudentRepairHistoryModule.java`
+  - `src/main/resources/styles/app.css`
+- 完成内容
+  - 把学生、管理员、维修员和学生评价里几个关键下拉统一切到共享 `AppDropdown`，不再依赖默认 `ComboBox`
+  - 新下拉现在是固定本体、轻弹层、按实际选项数量收高度，打开时会自动把当前选中项滚到可视区
+  - 弹层滚轮改成像素级缓动滚动，减少“一格一格跳”的机械感，同时保留组件本体完全静止
+  - 亮色业务页里的次级操作按钮改成 `surface-button`，不再复用侧栏的 `nav-button`，图片上传和刷新按钮的文字对比度恢复正常
+  - 已执行 `mvn -DskipTests clean compile`，结果为 `BUILD SUCCESS`；并用 `mvn javafx:run` 拉起本地窗口确认运行链路可用
+- 影响提醒 / 下一步
+  - `AppDropdown.java` 和 `app.css` 现在是所有关键下拉的共享入口，后续要调手感优先改这两处，不要再各个业务页单独覆写
+  - `UiMotion.java` 还在仓库里，但主链业务页已经优先走 `AppDropdown`
+  - 亮色表单页的次级按钮以后统一走 `surface-button`，不要再拿侧栏按钮样式直接复用
+- Push 结果
+  - 已 push
+  - 提交号：待补
 ### 2026-03-26 13:04 | B
 - 改动文件
   - `src/main/java/com/scau/dormrepair/service/RepairRequestService.java`

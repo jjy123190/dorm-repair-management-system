@@ -7,12 +7,13 @@ import com.scau.dormrepair.domain.command.AssignWorkOrderCommand;
 import com.scau.dormrepair.domain.enums.UserRole;
 import com.scau.dormrepair.domain.enums.WorkOrderPriority;
 import com.scau.dormrepair.domain.view.RecentRepairRequestView;
+import com.scau.dormrepair.ui.component.AppDropdown;
 import com.scau.dormrepair.ui.component.FusionUiFactory;
 import com.scau.dormrepair.ui.support.UiAlerts;
 import com.scau.dormrepair.ui.support.UiDisplayText;
-import com.scau.dormrepair.ui.support.UiMotion;
 import java.time.format.DateTimeFormatter;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
@@ -20,7 +21,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -31,7 +31,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.util.StringConverter;
 
 /**
  * 管理员派单模块。
@@ -101,27 +100,18 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
         selectedRequestInfoLabel.getStyleClass().add("dashboard-mini-description");
         selectedRequestInfoLabel.setWrapText(true);
 
-        ComboBox<DemoAccount> workerBox = new ComboBox<>();
-        workerBox.getItems().addAll(DemoAccountDirectory.workerOptions());
-        workerBox.setMaxWidth(Double.MAX_VALUE);
-        UiMotion.installSmoothDropdown(workerBox);
+        AppDropdown<DemoAccount> workerBox = new AppDropdown<>();
+        workerBox.setItems(DemoAccountDirectory.workerOptions());
+        workerBox.setTextMapper(DemoAccount::displayName);
+        workerBox.setPromptText("选择维修员");
+        workerBox.setVisibleRowCount(6);
 
-        ComboBox<WorkOrderPriority> priorityBox = new ComboBox<>();
-        priorityBox.getItems().addAll(WorkOrderPriority.values());
-        priorityBox.setConverter(new StringConverter<>() {
-            @Override
-            public String toString(WorkOrderPriority workOrderPriority) {
-                return UiDisplayText.workOrderPriority(workOrderPriority);
-            }
-
-            @Override
-            public WorkOrderPriority fromString(String string) {
-                return null;
-            }
-        });
-        priorityBox.setMaxWidth(Double.MAX_VALUE);
+        AppDropdown<WorkOrderPriority> priorityBox = new AppDropdown<>();
+        priorityBox.setItems(List.of(WorkOrderPriority.values()));
+        priorityBox.setTextMapper(UiDisplayText::workOrderPriority);
+        priorityBox.setPromptText("选择优先级");
+        priorityBox.setVisibleRowCount(5);
         priorityBox.setValue(WorkOrderPriority.NORMAL);
-        UiMotion.installSmoothDropdown(priorityBox);
 
         TextArea assignmentNoteArea = new TextArea();
         assignmentNoteArea.setPromptText("写清楚派单说明、注意事项和是否需要优先处理。");
@@ -146,7 +136,7 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
         });
 
         Button refreshButton = new Button("刷新待派单");
-        refreshButton.getStyleClass().add("nav-button");
+        refreshButton.getStyleClass().add("surface-button");
         refreshButton.setOnAction(event -> refreshPendingRequests(pendingTable));
 
         Node assignButton = FusionUiFactory.createPrimaryButton("生成工单并派单", 190, 40, () -> {
