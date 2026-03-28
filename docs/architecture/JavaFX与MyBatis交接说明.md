@@ -11,22 +11,26 @@
 
 ## 2. 先看哪些文件
 
-- 启动入口：[DormRepairApplication.java](/D:/1ForCode/SCAU/DB/src/main/java/com/scau/dormrepair/DormRepairApplication.java)
-- 主工作台：[AppShell.java](/D:/1ForCode/SCAU/DB/src/main/java/com/scau/dormrepair/ui/AppShell.java)
-- 配置读取：[AppProperties.java](/D:/1ForCode/SCAU/DB/src/main/java/com/scau/dormrepair/config/AppProperties.java)
-- 数据源与 MyBatis 装配：[DatabaseConfig.java](/D:/1ForCode/SCAU/DB/src/main/java/com/scau/dormrepair/config/DatabaseConfig.java)
-- 应用上下文：[AppContext.java](/D:/1ForCode/SCAU/DB/src/main/java/com/scau/dormrepair/common/AppContext.java)
-- 事务模板：[MyBatisExecutor.java](/D:/1ForCode/SCAU/DB/src/main/java/com/scau/dormrepair/common/MyBatisExecutor.java)
+- 启动入口：[DormRepairApplication.java](../../src/main/java/com/scau/dormrepair/DormRepairApplication.java)
+- 主工作台：[AppShell.java](../../src/main/java/com/scau/dormrepair/ui/AppShell.java)
+- 登录入口：[LoginView.java](../../src/main/java/com/scau/dormrepair/ui/LoginView.java)
+- 配置读取：[AppProperties.java](../../src/main/java/com/scau/dormrepair/config/AppProperties.java)
+- 数据源与 MyBatis 装配：[DatabaseConfig.java](../../src/main/java/com/scau/dormrepair/config/DatabaseConfig.java)
+- 启动兼容修复：[SchemaCompatibilitySupport.java](../../src/main/java/com/scau/dormrepair/config/SchemaCompatibilitySupport.java)
+- 应用上下文：[AppContext.java](../../src/main/java/com/scau/dormrepair/common/AppContext.java)
+- 事务模板：[MyBatisExecutor.java](../../src/main/java/com/scau/dormrepair/common/MyBatisExecutor.java)
 - SQL 映射目录：`src/main/resources/mapper/`
 
 ## 3. 启动顺序
 
 1. 启动 `DormRepairApplication`
 2. 读取 `application.yml`
-3. `DatabaseConfig` 创建 `HikariDataSource` 和 `SqlSessionFactory`
-4. `AppContext` 装配 service
-5. `AppShell` 创建主窗口和左侧模块导航
-6. 各模块再调用 service 拉取数据
+3. `DatabaseConfig` 创建 `HikariDataSource`
+4. `SchemaCompatibilitySupport` 修补旧库兼容字段并补宿舍区/楼栋基础数据
+5. `DatabaseConfig` 创建 `SqlSessionFactory`
+6. `AppContext` 装配 service
+7. `AppShell` 创建登录页、主窗口和左侧模块导航
+8. 各模块再调用 service 拉取数据
 
 ## 4. 分层怎么接
 
@@ -77,6 +81,7 @@
 | --- | --- | --- |
 | 首页概览 | `DashboardModule` | `DashboardService` |
 | 学生报修 | `StudentRepairModule` | `RepairRequestService` |
+| 学生报修记录 / 评价 | `StudentRepairHistoryModule` | `RepairRequestService` |
 | 管理员派单 | `AdminDispatchModule` | `RepairRequestService`、`WorkOrderService` |
 | 维修处理 | `WorkerProcessingModule` | `WorkOrderService` |
 | 月度统计 | `StatisticsModule` | `StatisticsService` |
@@ -84,6 +89,8 @@
 ## 7. 现在已经接好的主链路
 
 - 报修申请创建：`RepairRequestService`
+- 稳定账号登录入口：`LoginView` + `DemoAccountDirectory`
+- 学生报修记录、催办、取消、评价：`RepairRequestService`
 - 评价提交：`RepairRequestService`
 - 工单派单：`WorkOrderService`
 - 工单状态流转：`WorkOrderService`
@@ -97,7 +104,7 @@
 - 数据库地址：`jdbc:mysql://127.0.0.1:3306/dorm_repair_db`
 - 用户名：`root`
 - 密码：`123456`
-- 配置文件：[application.yml](/D:/1ForCode/SCAU/DB/src/main/resources/application.yml)
+- 配置文件：[application.yml](../../src/main/resources/application.yml)
 
 ## 9. 常见禁区
 
@@ -132,6 +139,6 @@
 ## 11. 建议下一步
 
 1. 先补初始化测试数据 SQL
-2. 再做登录页和角色入口
-3. 接着补学生报修表单和管理员派单表单
-4. 最后补文件上传、图表统计和导出
+2. 再把稳定账号入口替换成真实用户表鉴权
+3. 接着补宿舍基础资料维护界面和用户管理界面
+4. 最后补报表导出、图表化展示和正式云存储

@@ -723,5 +723,25 @@
   - 这轮只补 D 区测试，没有改 A / B / C 主链业务代码
   - 下一步继续收 D 区文档，把交接说明、课程文档和运行口径里残留的旧 REST / 绝对路径描述改成当前桌面端事实
 - Push 结果
+  - 本地已 commit
+  - 提交号：`7185381`
+  - 远端 `push` 因 GitHub 连接重置待重试
+
+### 2026-03-28 21:20 | D
+- 改动文件
+  - `README.md`
+  - `docs/architecture/JavaFX与MyBatis交接说明.md`
+  - `docs/course/需求分析说明书.md`
+  - `docs/course/课程设计报告.md`
+  - `ABCD协作历史记录.md`
+- 完成内容
+  - 把 `README.md` 里的模块清单改成当前真实的六个桌面模块，并补上“本机没有 `mvn` 时先准备 Maven”的运行提示
+  - 修正 `JavaFX与MyBatis交接说明.md` 中失效的绝对路径链接，补齐 `LoginView`、`SchemaCompatibilitySupport`、学生记录模块和当前建议下一步
+  - 把 `需求分析说明书.md` 中残留的 REST 控制器口径改成当前 `JavaFX -> Service -> Mapper` 桌面端调用链
+  - 把 `课程设计报告.md` 中“接口骨架 / Postman / Apifox”这套旧描述改成当前桌面端模块、稳定账号入口和实际验证方式
+- 影响提醒 / 下一步
+  - 这轮只收 D 区文档，没有改数据库结构和业务代码
+  - 后续如果 D 再改表结构或配置，记得继续同步 `README`、课程文档和交接说明，避免口径再次分叉
+- Push 结果
   - 本轮待 commit + push
 

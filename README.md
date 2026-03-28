@@ -25,7 +25,8 @@
 
 ## 当前已经落地
 
-- JavaFX 主工作台，包含 `首页概览 / 学生报修 / 管理员派单 / 维修处理 / 月度统计` 五个模块页
+- JavaFX 主工作台，包含 `首页概览 / 学生报修 / 学生报修记录 / 管理员派单 / 维修处理 / 月度统计` 六个模块页
+- 登录页已改成“角色 + 稳定账号”入口，不再依赖手填姓名演示身份
 - `MyBatis + HikariCP` 基础装配
 - `command / entity / mapper / service / ui` 分层骨架
 - 报修创建、评价提交、派单、工单状态更新的 service 事务骨架
@@ -48,6 +49,8 @@ source sql/mysql/01_init_schema_v1.sql;
 ```bash
 mvn compile
 ```
+
+如果当前机器命令行没有 `mvn`，先安装 `Maven 3.9+`，或在 IDE 里指定可用的 Maven 再执行下面几条命令。
 
 ### 3. 运行桌面端
 
