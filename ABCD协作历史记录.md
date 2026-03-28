@@ -708,3 +708,20 @@
 - Push 结果
   - 本轮待 commit + push
 
+### 2026-03-28 21:12 | D
+- 改动文件
+  - `src/test/java/com/scau/dormrepair/config/AppPropertiesTest.java`
+  - `src/test/java/com/scau/dormrepair/common/AppSessionTest.java`
+  - `src/test/java/com/scau/dormrepair/common/DemoAccountDirectoryTest.java`
+  - `ABCD协作历史记录.md`
+- 完成内容
+  - 补齐 D 区公共底座测试，覆盖 `application.yml` 关键配置、稳定账号目录和登录态收口逻辑
+  - `AppPropertiesTest` 现在会校验应用标题、数据库连接口径和窗口尺寸，不再只测一个用户名
+  - 新增 `AppSessionTest`、`DemoAccountDirectoryTest`，把稳定账号登录、退出清理、账号回退和维修员名称映射锁进单元测试
+  - 已在本地用临时 Maven 离线执行 `mvn -o -Dmaven.repo.local=.m2/repository test`，结果 `BUILD SUCCESS`
+- 影响提醒 / 下一步
+  - 这轮只补 D 区测试，没有改 A / B / C 主链业务代码
+  - 下一步继续收 D 区文档，把交接说明、课程文档和运行口径里残留的旧 REST / 绝对路径描述改成当前桌面端事实
+- Push 结果
+  - 本轮待 commit + push
+
