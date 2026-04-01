@@ -1,5 +1,6 @@
 package com.scau.dormrepair.common;
 
+import com.scau.dormrepair.domain.entity.UserAccount;
 import com.scau.dormrepair.domain.enums.UserRole;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -8,39 +9,28 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-/**
- * 桌面端登录态与角色上下文。
- */
 public class AppSession {
 
     private final BooleanProperty authenticated = new SimpleBooleanProperty(false);
-    private final StringProperty displayName = new SimpleStringProperty("未登录");
+    private final StringProperty displayName = new SimpleStringProperty("\u672a\u767b\u5f55");
+    private final StringProperty username = new SimpleStringProperty("");
     private final ObjectProperty<UserRole> currentRole = new SimpleObjectProperty<>();
     private final ObjectProperty<Long> currentAccountId = new SimpleObjectProperty<>();
 
-    public void login(String name, UserRole role) {
-        displayName.set(name == null || name.isBlank() ? "未命名用户" : name.trim());
-        currentRole.set(role);
-        currentAccountId.set(null);
-        authenticated.set(true);
-    }
-
-    /**
-     * 正式项目阶段改为使用稳定账号登录。
-     * 这样页面不再依赖“手填名字”，后续接真实用户表时也只需要把账号来源替换掉。
-     */
-    public void login(DemoAccountDirectory.DemoAccount account) {
+    public void login(UserAccount account) {
         if (account == null) {
-            throw new IllegalArgumentException("登录账号不能为空");
+            throw new IllegalArgumentException("\u767b\u5f55\u8d26\u53f7\u4e0d\u80fd\u4e3a\u7a7a");
         }
-        displayName.set(account.displayName());
-        currentRole.set(account.role());
-        currentAccountId.set(account.id());
+        displayName.set(account.getDisplayName());
+        username.set(account.getUsername() == null ? "" : account.getUsername());
+        currentRole.set(account.getRoleCode());
+        currentAccountId.set(account.getId());
         authenticated.set(true);
     }
 
     public void logout() {
-        displayName.set("未登录");
+        displayName.set("\u672a\u767b\u5f55");
+        username.set("");
         authenticated.set(false);
         currentRole.set(null);
         currentAccountId.set(null);
@@ -60,6 +50,14 @@ public class AppSession {
 
     public StringProperty displayNameProperty() {
         return displayName;
+    }
+
+    public String getUsername() {
+        return username.get();
+    }
+
+    public StringProperty usernameProperty() {
+        return username;
     }
 
     public UserRole getCurrentRole() {

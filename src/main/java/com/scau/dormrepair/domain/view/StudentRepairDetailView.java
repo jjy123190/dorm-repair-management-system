@@ -2,12 +2,13 @@ package com.scau.dormrepair.domain.view;
 
 import com.scau.dormrepair.domain.enums.FaultCategory;
 import com.scau.dormrepair.domain.enums.RepairRequestStatus;
+import com.scau.dormrepair.domain.enums.TimeoutLevel;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 学生侧查看报修明细时使用的视图对象。
+ * Student-side repair detail view.
  */
 public class StudentRepairDetailView {
 
@@ -31,10 +32,15 @@ public class StudentRepairDetailView {
     private LocalDateTime assignedAt;
     private LocalDateTime acceptedAt;
     private LocalDateTime completedAt;
+    private String completionNote;
     private Integer feedbackRating;
     private String feedbackComment;
     private Boolean feedbackAnonymousFlag;
     private List<String> imageUrls = new ArrayList<>();
+    private List<String> completionImageUrls = new ArrayList<>();
+    private List<WorkOrderRecordView> records = new ArrayList<>();
+    private TimeoutLevel timeoutLevel;
+    private String timeoutLabel;
 
     public Long getId() {
         return id;
@@ -196,6 +202,14 @@ public class StudentRepairDetailView {
         this.completedAt = completedAt;
     }
 
+    public String getCompletionNote() {
+        return completionNote;
+    }
+
+    public void setCompletionNote(String completionNote) {
+        this.completionNote = completionNote;
+    }
+
     public Integer getFeedbackRating() {
         return feedbackRating;
     }
@@ -226,6 +240,38 @@ public class StudentRepairDetailView {
 
     public void setImageUrls(List<String> imageUrls) {
         this.imageUrls = imageUrls == null ? new ArrayList<>() : new ArrayList<>(imageUrls);
+    }
+
+    public List<String> getCompletionImageUrls() {
+        return completionImageUrls;
+    }
+
+    public void setCompletionImageUrls(List<String> completionImageUrls) {
+        this.completionImageUrls = completionImageUrls == null ? new ArrayList<>() : new ArrayList<>(completionImageUrls);
+    }
+
+    public List<WorkOrderRecordView> getRecords() {
+        return records;
+    }
+
+    public void setRecords(List<WorkOrderRecordView> records) {
+        this.records = records == null ? new ArrayList<>() : new ArrayList<>(records);
+    }
+
+    public TimeoutLevel getTimeoutLevel() {
+        return timeoutLevel;
+    }
+
+    public void setTimeoutLevel(TimeoutLevel timeoutLevel) {
+        this.timeoutLevel = timeoutLevel;
+    }
+
+    public String getTimeoutLabel() {
+        return timeoutLabel;
+    }
+
+    public void setTimeoutLabel(String timeoutLabel) {
+        this.timeoutLabel = timeoutLabel;
     }
 
     public String getLocationText() {

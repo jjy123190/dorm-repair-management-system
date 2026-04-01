@@ -4,52 +4,44 @@ import com.scau.dormrepair.domain.enums.UserRole;
 import java.util.List;
 
 /**
- * 正式登录体系还没接数据库前，先把本地可用账号收口到这里。
- * 页面统一从稳定账号列表里选身份，不再允许手填名字伪装成不同用户。
+ * Legacy local reference accounts only.
+ * Do not use this class as a live authentication source.
  */
+@Deprecated
 public final class DemoAccountDirectory {
 
-    private static final List<DemoAccount> STUDENTS = List.of(
-            new DemoAccount(1001L, "张三", UserRole.STUDENT),
-            new DemoAccount(1002L, "李晓雨", UserRole.STUDENT),
-            new DemoAccount(1003L, "相逢的", UserRole.STUDENT)
+    private static final List<ReferenceAccount> STUDENTS = List.of(
+            new ReferenceAccount("student01", "\u5f20\u4e09", UserRole.STUDENT),
+            new ReferenceAccount("student02", "\u674e\u6653\u96e8", UserRole.STUDENT),
+            new ReferenceAccount("student03", "\u76f8\u9022\u7684", UserRole.STUDENT)
     );
 
-    private static final List<DemoAccount> ADMINS = List.of(
-            new DemoAccount(2001L, "李老师", UserRole.ADMIN),
-            new DemoAccount(2002L, "陈老师", UserRole.ADMIN)
+    private static final List<ReferenceAccount> ADMINS = List.of(
+            new ReferenceAccount("admin01", "\u674e\u8001\u5e08", UserRole.ADMIN),
+            new ReferenceAccount("admin02", "\u9648\u8001\u5e08", UserRole.ADMIN)
     );
 
-    private static final List<DemoAccount> WORKERS = List.of(
-            new DemoAccount(3001L, "王师傅", UserRole.WORKER),
-            new DemoAccount(3002L, "周师傅", UserRole.WORKER),
-            new DemoAccount(3003L, "陈师傅", UserRole.WORKER)
+    private static final List<ReferenceAccount> WORKERS = List.of(
+            new ReferenceAccount("worker01", "\u738b\u5e08\u5085", UserRole.WORKER),
+            new ReferenceAccount("worker02", "\u5468\u5e08\u5085", UserRole.WORKER),
+            new ReferenceAccount("worker03", "\u9648\u5e08\u5085", UserRole.WORKER)
     );
 
     private DemoAccountDirectory() {
     }
 
-    public static DemoAccount resolveCurrent(AppSession appSession) {
-        if (appSession == null || appSession.getCurrentRole() == null) {
-            return null;
-        }
-
-        Long accountId = appSession.getCurrentAccountId();
-        if (accountId != null) {
-            return accountOptions(appSession.getCurrentRole()).stream()
-                    .filter(account -> account.id().equals(accountId))
-                    .findFirst()
-                    .orElse(defaultAccount(appSession.getCurrentRole()));
-        }
-
-        String displayName = appSession.getDisplayName();
-        return accountOptions(appSession.getCurrentRole()).stream()
-                .filter(account -> account.displayName().equals(displayName))
-                .findFirst()
-                .orElse(defaultAccount(appSession.getCurrentRole()));
+    public static List<ReferenceAccount> referenceAccounts() {
+        return List.of(
+                STUDENTS.get(0), STUDENTS.get(1), STUDENTS.get(2),
+                ADMINS.get(0), ADMINS.get(1),
+                WORKERS.get(0), WORKERS.get(1), WORKERS.get(2)
+        );
     }
 
-    public static List<DemoAccount> accountOptions(UserRole role) {
+    public static List<ReferenceAccount> referenceAccounts(UserRole role) {
+        if (role == null) {
+            return List.of();
+        }
         return switch (role) {
             case STUDENT -> STUDENTS;
             case ADMIN -> ADMINS;
@@ -57,34 +49,6 @@ public final class DemoAccountDirectory {
         };
     }
 
-    public static DemoAccount defaultAccount(UserRole role) {
-        List<DemoAccount> options = accountOptions(role);
-        if (options.isEmpty()) {
-            throw new IllegalStateException("当前角色没有可用账号: " + role);
-        }
-        return options.get(0);
-    }
-
-    public static List<DemoAccount> workerOptions() {
-        return WORKERS;
-    }
-
-    public static String workerName(Long workerId) {
-        if (workerId == null) {
-            return "";
-        }
-        return WORKERS.stream()
-                .filter(worker -> worker.id().equals(workerId))
-                .map(DemoAccount::displayName)
-                .findFirst()
-                .orElse("维修员#" + workerId);
-    }
-
-    public record DemoAccount(Long id, String displayName, UserRole role) {
-
-        @Override
-        public String toString() {
-            return displayName;
-        }
+    public record ReferenceAccount(String username, String displayName, UserRole role) {
     }
 }

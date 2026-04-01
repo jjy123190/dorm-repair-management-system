@@ -21,6 +21,77 @@
             updated_at
         FROM dorm_buildings
         WHERE campus_name = #{campusName}
-        ORDER BY id ASC
+        ORDER BY campus_name ASC, building_no ASC, id ASC
     </select>
+
+    <select id="selectAll" resultType="com.scau.dormrepair.domain.entity.DormBuilding">
+        SELECT
+            id,
+            campus_name,
+            building_no,
+            building_name,
+            created_at,
+            updated_at
+        FROM dorm_buildings
+        ORDER BY campus_name ASC, building_no ASC, id ASC
+    </select>
+
+    <select id="selectById" parameterType="long" resultType="com.scau.dormrepair.domain.entity.DormBuilding">
+        SELECT
+            id,
+            campus_name,
+            building_no,
+            building_name,
+            created_at,
+            updated_at
+        FROM dorm_buildings
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectByCampusAndBuildingNo" resultType="com.scau.dormrepair.domain.entity.DormBuilding">
+        SELECT
+            id,
+            campus_name,
+            building_no,
+            building_name,
+            created_at,
+            updated_at
+        FROM dorm_buildings
+        WHERE campus_name = #{campusName}
+          AND building_no = #{buildingNo}
+        LIMIT 1
+    </select>
+
+    <insert id="insert" parameterType="com.scau.dormrepair.domain.entity.DormBuilding" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO dorm_buildings (
+            campus_name,
+            building_no,
+            building_name
+        )
+        VALUES (
+            #{campusName},
+            #{buildingNo},
+            #{buildingName}
+        )
+    </insert>
+
+    <update id="update" parameterType="com.scau.dormrepair.domain.entity.DormBuilding">
+        UPDATE dorm_buildings
+        SET
+            campus_name = #{campusName},
+            building_no = #{buildingNo},
+            building_name = #{buildingName}
+        WHERE id = #{id}
+    </update>
+
+    <select id="countRooms" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM dorm_rooms
+        WHERE building_id = #{buildingId}
+    </select>
+
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM dorm_buildings
+        WHERE id = #{id}
+    </delete>
 </mapper>

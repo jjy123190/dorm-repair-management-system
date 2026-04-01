@@ -14,6 +14,7 @@
             status,
             priority,
             assignment_note,
+            completion_note,
             assigned_at,
             accepted_at,
             completed_at,
@@ -33,6 +34,7 @@
             status,
             priority,
             assignment_note,
+            completion_note,
             assigned_at,
             accepted_at,
             completed_at,
@@ -51,6 +53,7 @@
             status,
             priority,
             assignment_note,
+            completion_note,
             assigned_at,
             accepted_at,
             completed_at
@@ -62,6 +65,7 @@
             #{status},
             #{priority},
             #{assignmentNote},
+            #{completionNote},
             #{assignedAt},
             #{acceptedAt},
             #{completedAt}
@@ -72,19 +76,58 @@
         UPDATE work_orders
         SET status = #{status},
             accepted_at = #{acceptedAt},
-            completed_at = #{completedAt}
+            completed_at = #{completedAt},
+            completion_note = #{completionNote}
         WHERE id = #{id}
     </update>
 
+    <sql id="activeWorkOrderColumns">
+        wo.id,
+        wo.work_order_no AS workOrderNo,
+        rr.request_no AS requestNo,
+        wo.worker_id AS workerId,
+        wo.priority,
+        wo.status,
+        wo.assigned_at AS assignedAt,
+        wo.accepted_at AS acceptedAt,
+        rr.student_name AS studentName,
+        CASE
+            WHEN rr.dorm_area_snapshot IS NULL OR rr.dorm_area_snapshot = '' THEN CONCAT(rr.building_no_snapshot, '-', rr.room_no_snapshot)
+            ELSE CONCAT(rr.dorm_area_snapshot, ' ', rr.building_no_snapshot, '-', rr.room_no_snapshot)
+        END AS locationText,
+        rr.fault_category AS faultCategory,
+        wo.assignment_note AS assignmentNote
+    </sql>
+
+    <sql id="trackedWorkOrderColumns">
+        wo.id,
+        wo.repair_request_id AS repairRequestId,
+        wo.work_order_no AS workOrderNo,
+        rr.request_no AS requestNo,
+        wo.worker_id AS workerId,
+        worker.display_name AS workerName,
+        wo.priority,
+        wo.status,
+        rr.submitted_at AS submittedAt,
+        wo.assigned_at AS assignedAt,
+        wo.accepted_at AS acceptedAt,
+        wo.completed_at AS completedAt,
+        rr.student_name AS studentName,
+        CASE
+            WHEN rr.dorm_area_snapshot IS NULL OR rr.dorm_area_snapshot = '' THEN CONCAT(rr.building_no_snapshot, '-', rr.room_no_snapshot)
+            ELSE CONCAT(rr.dorm_area_snapshot, ' ', rr.building_no_snapshot, '-', rr.room_no_snapshot)
+        END AS locationText,
+        rr.fault_category AS faultCategory,
+        wo.assignment_note AS assignmentNote,
+        wo.completion_note AS completionNote,
+        rf.rating AS feedbackRating,
+        rf.feedback_comment AS feedbackComment,
+        rf.anonymous_flag AS feedbackAnonymousFlag
+    </sql>
+
     <select id="selectActiveWorkOrders" resultType="com.scau.dormrepair.domain.view.ActiveWorkOrderView">
         SELECT
-            wo.id,
-            wo.work_order_no,
-            rr.request_no,
-            wo.worker_id,
-            wo.priority,
-            wo.status,
-            wo.assigned_at
+            <include refid="activeWorkOrderColumns"/>
         FROM work_orders wo
         LEFT JOIN repair_requests rr ON rr.id = wo.repair_request_id
         WHERE wo.status IN ('ASSIGNED', 'ACCEPTED', 'IN_PROGRESS', 'WAITING_PARTS')
@@ -94,18 +137,56 @@
 
     <select id="selectWorkerActiveWorkOrders" resultType="com.scau.dormrepair.domain.view.ActiveWorkOrderView">
         SELECT
-            wo.id,
-            wo.work_order_no,
-            rr.request_no,
-            wo.worker_id,
-            wo.priority,
-            wo.status,
-            wo.assigned_at
+            <include refid="activeWorkOrderColumns"/>
         FROM work_orders wo
         LEFT JOIN repair_requests rr ON rr.id = wo.repair_request_id
         WHERE wo.worker_id = #{workerId}
           AND wo.status IN ('ASSIGNED', 'ACCEPTED', 'IN_PROGRESS', 'WAITING_PARTS')
         ORDER BY wo.assigned_at DESC, wo.id DESC
         LIMIT #{limit}
+    </select>
+
+    <select id="selectTrackedWorkOrders" resultType="com.scau.dormrepair.domain.view.WorkOrderDetailView">
+        SELECT
+            <include refid="trackedWorkOrderColumns"/>
+        FROM work_orders wo
+        LEFT JOIN repair_requests rr ON rr.id = wo.repair_request_id
+        LEFT JOIN user_accounts worker ON worker.id = wo.worker_id
+        LEFT JOIN repair_feedbacks rf ON rf.repair_request_id = rr.id
+        ORDER BY wo.assigned_at DESC, wo.id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectWorkerTrackedWorkOrders" resultType="com.scau.dormrepair.domain.view.WorkOrderDetailView">
+        SELECT
+            <include refid="trackedWorkOrderColumns"/>
+        FROM work_orders wo
+        LEFT JOIN repair_requests rr ON rr.id = wo.repair_request_id
+        LEFT JOIN user_accounts worker ON worker.id = wo.worker_id
+        LEFT JOIN repair_feedbacks rf ON rf.repair_request_id = rr.id
+        WHERE wo.worker_id = #{workerId}
+        ORDER BY wo.assigned_at DESC, wo.id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectTrackedWorkOrderDetail" resultType="com.scau.dormrepair.domain.view.WorkOrderDetailView">
+        SELECT
+            <include refid="trackedWorkOrderColumns"/>
+        FROM work_orders wo
+        LEFT JOIN repair_requests rr ON rr.id = wo.repair_request_id
+        LEFT JOIN user_accounts worker ON worker.id = wo.worker_id
+        LEFT JOIN repair_feedbacks rf ON rf.repair_request_id = rr.id
+        WHERE wo.id = #{workOrderId}
+    </select>
+
+    <select id="selectWorkerTrackedWorkOrderDetail" resultType="com.scau.dormrepair.domain.view.WorkOrderDetailView">
+        SELECT
+            <include refid="trackedWorkOrderColumns"/>
+        FROM work_orders wo
+        LEFT JOIN repair_requests rr ON rr.id = wo.repair_request_id
+        LEFT JOIN user_accounts worker ON worker.id = wo.worker_id
+        LEFT JOIN repair_feedbacks rf ON rf.repair_request_id = rr.id
+        WHERE wo.worker_id = #{workerId}
+          AND wo.id = #{workOrderId}
     </select>
 </mapper>

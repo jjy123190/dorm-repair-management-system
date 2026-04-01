@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scau.dormrepair.mapper.DormRoomMapper">
+
+    <select id="selectByBuildingId" parameterType="long" resultType="com.scau.dormrepair.domain.entity.DormRoom">
+        SELECT
+            id,
+            building_id,
+            room_no,
+            floor_no,
+            bed_count,
+            room_status,
+            created_at,
+            updated_at
+        FROM dorm_rooms
+        WHERE building_id = #{buildingId}
+        ORDER BY floor_no ASC, room_no ASC, id ASC
+    </select>
+
+    <select id="selectActiveByBuildingId" parameterType="long" resultType="com.scau.dormrepair.domain.entity.DormRoom">
+        SELECT
+            id,
+            building_id,
+            room_no,
+            floor_no,
+            bed_count,
+            room_status,
+            created_at,
+            updated_at
+        FROM dorm_rooms
+        WHERE building_id = #{buildingId}
+          AND UPPER(COALESCE(room_status, 'ACTIVE')) = 'ACTIVE'
+        ORDER BY floor_no ASC, room_no ASC, id ASC
+    </select>
+
+    <select id="selectById" parameterType="long" resultType="com.scau.dormrepair.domain.entity.DormRoom">
+        SELECT
+            id,
+            building_id,
+            room_no,
+            floor_no,
+            bed_count,
+            room_status,
+            created_at,
+            updated_at
+        FROM dorm_rooms
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectByBuildingAndRoomNo" resultType="com.scau.dormrepair.domain.entity.DormRoom">
+        SELECT
+            id,
+            building_id,
+            room_no,
+            floor_no,
+            bed_count,
+            room_status,
+            created_at,
+            updated_at
+        FROM dorm_rooms
+        WHERE building_id = #{buildingId}
+          AND room_no = #{roomNo}
+        LIMIT 1
+    </select>
+
+    <insert id="insert" parameterType="com.scau.dormrepair.domain.entity.DormRoom" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO dorm_rooms (
+            building_id,
+            room_no,
+            floor_no,
+            bed_count,
+            room_status,
+            building_no,
+            campus_name
+        )
+        VALUES (
+            #{buildingId},
+            #{roomNo},
+            #{floorNo},
+            #{bedCount},
+            #{roomStatus},
+            (SELECT building_no FROM dorm_buildings WHERE id = #{buildingId}),
+            (SELECT campus_name FROM dorm_buildings WHERE id = #{buildingId})
+        )
+    </insert>
+
+    <update id="update" parameterType="com.scau.dormrepair.domain.entity.DormRoom">
+        UPDATE dorm_rooms
+        SET
+            building_id = #{buildingId},
+            room_no = #{roomNo},
+            floor_no = #{floorNo},
+            bed_count = #{bedCount},
+            room_status = #{roomStatus},
+            building_no = (SELECT building_no FROM dorm_buildings WHERE id = #{buildingId}),
+            campus_name = (SELECT campus_name FROM dorm_buildings WHERE id = #{buildingId})
+        WHERE id = #{id}
+    </update>
+
+    <select id="countBoundRepairRequests" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM repair_requests
+        WHERE dorm_room_id = #{roomId}
+    </select>
+
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM dorm_rooms
+        WHERE id = #{id}
+    </delete>
+</mapper>

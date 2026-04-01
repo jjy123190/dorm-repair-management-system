@@ -4,6 +4,21 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.scau.dormrepair.mapper.RepairRequestMapper">
 
+    <sql id="requestListColumns">
+        rr.id,
+        rr.request_no,
+        rr.student_name,
+        CASE
+            WHEN rr.dorm_area_snapshot IS NULL OR rr.dorm_area_snapshot = '' THEN CONCAT(rr.building_no_snapshot, '-', rr.room_no_snapshot)
+            ELSE CONCAT(rr.dorm_area_snapshot, ' ', rr.building_no_snapshot, '-', rr.room_no_snapshot)
+        END AS location_text,
+        rr.fault_category,
+        rr.status,
+        rr.submitted_at,
+        wo.assigned_at AS assignedAt,
+        wo.accepted_at AS acceptedAt
+    </sql>
+
     <select id="selectById" parameterType="long" resultType="com.scau.dormrepair.domain.entity.RepairRequest">
         SELECT
             id,
@@ -84,37 +99,20 @@
 
     <select id="selectLatestSubmittedRequests" resultType="com.scau.dormrepair.domain.view.RecentRepairRequestView">
         SELECT
-            id,
-            request_no,
-            student_name,
-            CASE
-                WHEN dorm_area_snapshot IS NULL OR dorm_area_snapshot = '' THEN CONCAT(building_no_snapshot, '-', room_no_snapshot)
-                ELSE CONCAT(dorm_area_snapshot, ' ', building_no_snapshot, '-', room_no_snapshot)
-            END AS location_text,
-            fault_category,
-            status,
-            submitted_at
-        FROM repair_requests
-        ORDER BY submitted_at DESC, id DESC
+            <include refid="requestListColumns"/>
+        FROM repair_requests rr
+        LEFT JOIN work_orders wo ON wo.repair_request_id = rr.id
+        ORDER BY rr.submitted_at DESC, rr.id DESC
         LIMIT #{limit}
     </select>
 
     <select id="selectStudentSubmittedRequests" resultType="com.scau.dormrepair.domain.view.RecentRepairRequestView">
         SELECT
-            id,
-            request_no,
-            student_name,
-            CASE
-                WHEN dorm_area_snapshot IS NULL OR dorm_area_snapshot = '' THEN CONCAT(building_no_snapshot, '-', room_no_snapshot)
-                ELSE CONCAT(dorm_area_snapshot, ' ', building_no_snapshot, '-', room_no_snapshot)
-            END AS location_text,
-            fault_category,
-            status,
-            submitted_at
-        FROM repair_requests
-        WHERE student_id = #{studentId}
-          AND student_name = #{studentName}
-        ORDER BY submitted_at DESC, id DESC
+            <include refid="requestListColumns"/>
+        FROM repair_requests rr
+        LEFT JOIN work_orders wo ON wo.repair_request_id = rr.id
+        WHERE rr.student_id = #{studentId}
+        ORDER BY rr.submitted_at DESC, rr.id DESC
         LIMIT #{limit}
     </select>
 
@@ -137,7 +135,6 @@
             completed_at
         FROM repair_requests
         WHERE student_id = #{studentId}
-          AND student_name = #{studentName}
           AND id = #{requestId}
     </select>
 
@@ -145,35 +142,25 @@
         UPDATE repair_requests
         SET urge_count = urge_count + 1
         WHERE student_id = #{studentId}
-          AND student_name = #{studentName}
           AND id = #{requestId}
-          AND status IN ('SUBMITTED', 'ASSIGNED', 'IN_PROGRESS')
+          AND status IN ('SUBMITTED', 'ASSIGNED', 'IN_PROGRESS', 'REWORK_IN_PROGRESS')
     </update>
 
     <update id="cancelStudentRequest">
         UPDATE repair_requests
         SET status = #{status}
         WHERE student_id = #{studentId}
-          AND student_name = #{studentName}
           AND id = #{requestId}
           AND status IN ('SUBMITTED', 'ASSIGNED')
     </update>
 
     <select id="selectPendingAssignmentRequests" resultType="com.scau.dormrepair.domain.view.RecentRepairRequestView">
         SELECT
-            id,
-            request_no,
-            student_name,
-            CASE
-                WHEN dorm_area_snapshot IS NULL OR dorm_area_snapshot = '' THEN CONCAT(building_no_snapshot, '-', room_no_snapshot)
-                ELSE CONCAT(dorm_area_snapshot, ' ', building_no_snapshot, '-', room_no_snapshot)
-            END AS location_text,
-            fault_category,
-            status,
-            submitted_at
-        FROM repair_requests
-        WHERE status = 'SUBMITTED'
-        ORDER BY submitted_at DESC, id DESC
+            <include refid="requestListColumns"/>
+        FROM repair_requests rr
+        LEFT JOIN work_orders wo ON wo.repair_request_id = rr.id
+        WHERE rr.status = 'SUBMITTED'
+        ORDER BY rr.submitted_at DESC, rr.id DESC
         LIMIT #{limit}
     </select>
 </mapper>

@@ -5,7 +5,6 @@ package com.scau.dormrepair.domain.command;
  */
 public record SubmitRepairFeedbackCommand(
         Long studentId,
-        String studentName,
         Long repairRequestId,
         Integer rating,
         String feedbackComment,

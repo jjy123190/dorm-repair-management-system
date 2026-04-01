@@ -1,11 +1,15 @@
 package com.scau.dormrepair.config;
 
+import com.scau.dormrepair.mapper.AuditLogMapper;
 import com.scau.dormrepair.mapper.DashboardMapper;
 import com.scau.dormrepair.mapper.DormBuildingMapper;
+import com.scau.dormrepair.mapper.DormRoomMapper;
 import com.scau.dormrepair.mapper.RepairFeedbackMapper;
 import com.scau.dormrepair.mapper.RepairRequestImageMapper;
 import com.scau.dormrepair.mapper.RepairRequestMapper;
 import com.scau.dormrepair.mapper.StatisticsMapper;
+import com.scau.dormrepair.mapper.UserAccountMapper;
+import com.scau.dormrepair.mapper.WorkOrderCompletionImageMapper;
 import com.scau.dormrepair.mapper.WorkOrderMapper;
 import com.scau.dormrepair.mapper.WorkOrderRecordMapper;
 import com.zaxxer.hikari.HikariConfig;
@@ -26,14 +30,18 @@ import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
 public final class DatabaseConfig {
 
     private static final String[] MAPPER_XMLS = {
+            "mapper/AuditLogMapper.xml",
             "mapper/DashboardMapper.xml",
             "mapper/DormBuildingMapper.xml",
+            "mapper/DormRoomMapper.xml",
             "mapper/RepairRequestMapper.xml",
             "mapper/RepairRequestImageMapper.xml",
             "mapper/RepairFeedbackMapper.xml",
             "mapper/WorkOrderMapper.xml",
+            "mapper/WorkOrderCompletionImageMapper.xml",
             "mapper/WorkOrderRecordMapper.xml",
-            "mapper/StatisticsMapper.xml"
+            "mapper/StatisticsMapper.xml",
+            "mapper/UserAccountMapper.xml"
     };
 
     private DatabaseConfig() {
@@ -62,14 +70,18 @@ public final class DatabaseConfig {
 
         configuration.setMapUnderscoreToCamelCase(true);
         configuration.setJdbcTypeForNull(org.apache.ibatis.type.JdbcType.NULL);
+        configuration.addMapper(AuditLogMapper.class);
         configuration.addMapper(DashboardMapper.class);
         configuration.addMapper(DormBuildingMapper.class);
+        configuration.addMapper(DormRoomMapper.class);
         configuration.addMapper(RepairRequestMapper.class);
         configuration.addMapper(RepairRequestImageMapper.class);
         configuration.addMapper(RepairFeedbackMapper.class);
         configuration.addMapper(WorkOrderMapper.class);
+        configuration.addMapper(WorkOrderCompletionImageMapper.class);
         configuration.addMapper(WorkOrderRecordMapper.class);
         configuration.addMapper(StatisticsMapper.class);
+        configuration.addMapper(UserAccountMapper.class);
 
         for (String mapperXml : MAPPER_XMLS) {
             loadMapperXml(configuration, mapperXml);

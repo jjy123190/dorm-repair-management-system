@@ -8,21 +8,28 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * 启动时顺手修掉旧库和当前桌面端口径最容易撞上的表结构差异。
- */
 public final class SchemaCompatibilitySupport {
 
     private static final String BUILDING_SUFFIX = "\u680b";
+    private static final String DEFAULT_PASSWORD_HASH =
+            "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92";
+    private static final SeedAccount[] SEED_ACCOUNTS = {
+            new SeedAccount("student01", "\u5f20\u4e09", "13800138001", "STUDENT"),
+            new SeedAccount("student02", "\u674e\u6653\u96e8", "13800138002", "STUDENT"),
+            new SeedAccount("student03", "\u76f8\u9022\u7684", "13800138003", "STUDENT"),
+            new SeedAccount("admin01", "\u674e\u8001\u5e08", "13800138101", "ADMIN"),
+            new SeedAccount("admin02", "\u9648\u8001\u5e08", "13800138102", "ADMIN"),
+            new SeedAccount("worker01", "\u738b\u5e08\u5085", "13800138201", "WORKER"),
+            new SeedAccount("worker02", "\u5468\u5e08\u5085", "13800138202", "WORKER"),
+            new SeedAccount("worker03", "\u9648\u5e08\u5085", "13800138203", "WORKER")
+    };
     private static final String[] DORM_AREAS = {
             "\u6cf0\u5c71\u533a",
             "\u534e\u5c71\u533a",
             "\u542f\u6797\u533a",
-            "\u9ed1\u5c71\u533a",
+            "\u96c1\u5c71\u533a",
             "\u71d5\u5c71\u533a"
     };
 
@@ -38,19 +45,22 @@ public final class SchemaCompatibilitySupport {
 
             repairRequestTable(connection, catalog);
             repairDormBuildingTable(connection, catalog);
+            repairDormRoomTable(connection, catalog);
+            repairWorkOrderTable(connection, catalog);
+            ensureWorkOrderCompletionImagesTable(connection, catalog);
+            ensureAuditLogsTable(connection, catalog);
             seedDormBuildings(connection);
+            seedUserAccounts(connection);
         } catch (SQLException exception) {
-            throw new IllegalStateException("数据库表结构兼容处理失败: " + exception.getMessage(), exception);
+            throw new IllegalStateException("\u6570\u636e\u5e93\u8868\u7ed3\u6784\u517c\u5bb9\u5904\u7406\u5931\u8d25: " + exception.getMessage(), exception);
         }
     }
 
     private static void repairRequestTable(Connection connection, String catalog) throws SQLException {
-        // 新版学生报修先选宿舍区，再选楼栋，所以 repair_requests 需要额外保留宿舍区快照。
         ensureColumnExists(connection, catalog, "repair_requests", "dorm_area_snapshot", "VARCHAR(64) NULL");
         ensureColumnExists(connection, catalog, "repair_requests", "building_no_snapshot", "VARCHAR(32) NULL");
         ensureColumnExists(connection, catalog, "repair_requests", "room_no_snapshot", "VARCHAR(32) NULL");
 
-        // 旧字段保留兼容即可，但必须放宽为可空，避免新插入被历史结构卡死。
         relaxNullableColumnIfPresent(connection, catalog, "repair_requests", "building_no", "VARCHAR(32) NULL");
         relaxNullableColumnIfPresent(connection, catalog, "repair_requests", "room_no", "VARCHAR(32) NULL");
         relaxNullableColumnIfPresent(connection, catalog, "repair_requests", "image_urls", "TINYTEXT NULL");
@@ -61,7 +71,6 @@ public final class SchemaCompatibilitySupport {
         ensureColumnExists(connection, catalog, "dorm_buildings", "building_no", "VARCHAR(32) NOT NULL");
         ensureColumnExists(connection, catalog, "dorm_buildings", "building_name", "VARCHAR(64) NULL");
 
-        // 以前试错留下来的脏宿舍区值会直接污染下拉列表，这里先清掉。
         String placeholders = Arrays.stream(DORM_AREAS)
                 .map(area -> "?")
                 .collect(Collectors.joining(", "));
@@ -69,6 +78,58 @@ public final class SchemaCompatibilitySupport {
         try (PreparedStatement statement = connection.prepareStatement(deleteSql)) {
             bindDormAreas(statement);
             statement.executeUpdate();
+        }
+    }
+
+    private static void repairDormRoomTable(Connection connection, String catalog) throws SQLException {
+        relaxNullableColumnIfPresent(connection, catalog, "dorm_rooms", "building_no", "VARCHAR(32) NULL");
+        relaxNullableColumnIfPresent(connection, catalog, "dorm_rooms", "campus_name", "VARCHAR(64) NULL");
+    }
+
+    private static void repairWorkOrderTable(Connection connection, String catalog) throws SQLException {
+        ensureColumnExists(connection, catalog, "work_orders", "completion_note", "VARCHAR(1000) NULL");
+    }
+
+    private static void ensureWorkOrderCompletionImagesTable(Connection connection, String catalog) throws SQLException {
+        if (tableExists(connection.getMetaData(), catalog, "work_order_completion_images")) {
+            return;
+        }
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("""
+                    CREATE TABLE work_order_completion_images (
+                        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                        work_order_id BIGINT NOT NULL,
+                        image_url VARCHAR(255) NOT NULL,
+                        sort_no INT NOT NULL DEFAULT 1,
+                        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        KEY idx_work_order_completion_images_work_order_id (work_order_id),
+                        CONSTRAINT fk_work_order_completion_images_work_order FOREIGN KEY (work_order_id) REFERENCES work_orders(id)
+                    )
+                    """);
+        }
+    }
+
+    private static void ensureAuditLogsTable(Connection connection, String catalog) throws SQLException {
+        if (tableExists(connection.getMetaData(), catalog, "audit_logs")) {
+            return;
+        }
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("""
+                    CREATE TABLE audit_logs (
+                        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                        operator_id BIGINT NULL,
+                        action_type VARCHAR(64) NOT NULL,
+                        target_type VARCHAR(64) NOT NULL,
+                        target_id VARCHAR(64) NULL,
+                        target_label VARCHAR(255) NULL,
+                        old_value TEXT NULL,
+                        new_value TEXT NULL,
+                        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        KEY idx_audit_logs_operator_id (operator_id),
+                        KEY idx_audit_logs_created_at (created_at),
+                        CONSTRAINT fk_audit_logs_operator FOREIGN KEY (operator_id) REFERENCES user_accounts(id)
+                    )
+                    """);
         }
     }
 
@@ -88,6 +149,31 @@ public final class SchemaCompatibilitySupport {
                     statement.setString(3, dormArea + " " + buildingNo);
                     statement.addBatch();
                 }
+            }
+            statement.executeBatch();
+        }
+    }
+
+    private static void seedUserAccounts(Connection connection) throws SQLException {
+        String insertSql = """
+                INSERT INTO user_accounts (username, password_hash, display_name, phone, role_code, enabled)
+                VALUES (?, ?, ?, ?, ?, 1)
+                ON DUPLICATE KEY UPDATE
+                    password_hash = VALUES(password_hash),
+                    display_name = VALUES(display_name),
+                    phone = VALUES(phone),
+                    role_code = VALUES(role_code),
+                    enabled = VALUES(enabled)
+                """;
+
+        try (PreparedStatement statement = connection.prepareStatement(insertSql)) {
+            for (SeedAccount seedAccount : SEED_ACCOUNTS) {
+                statement.setString(1, seedAccount.username());
+                statement.setString(2, DEFAULT_PASSWORD_HASH);
+                statement.setString(3, seedAccount.displayName());
+                statement.setString(4, seedAccount.phone());
+                statement.setString(5, seedAccount.roleCode());
+                statement.addBatch();
             }
             statement.executeBatch();
         }
@@ -146,6 +232,15 @@ public final class SchemaCompatibilitySupport {
         }
     }
 
+    private static boolean tableExists(DatabaseMetaData metadata, String catalog, String tableName) throws SQLException {
+        try (ResultSet resultSet = metadata.getTables(catalog, null, tableName, null)) {
+            return resultSet.next();
+        }
+    }
+
     private record ColumnState(boolean present, boolean nullable) {
+    }
+
+    private record SeedAccount(String username, String displayName, String phone, String roleCode) {
     }
 }

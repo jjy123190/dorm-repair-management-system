@@ -1,7 +1,10 @@
 package com.scau.dormrepair;
 
 import com.scau.dormrepair.common.AppContext;
+import com.scau.dormrepair.config.AppProperties;
 import com.scau.dormrepair.ui.AppShell;
+import com.scau.dormrepair.ui.support.BrandIconFactory;
+import com.scau.dormrepair.ui.support.ProportionalViewport;
 import com.scau.dormrepair.ui.support.UiAlerts;
 import com.scau.dormrepair.ui.theme.DormVfxTheme;
 import io.vproxy.vfx.theme.Theme;
@@ -12,11 +15,16 @@ import io.vproxy.vfx.ui.stage.VStageInitParams;
 import io.vproxy.vfx.util.FXUtils;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
-import javafx.scene.layout.Region;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 public class DormRepairApplication extends Application {
+    private static final double LOGIN_WIDTH_RATIO = 0.84;
+    private static final double LOGIN_HEIGHT_RATIO = 0.90;
+
+    private static final double WINDOW_MARGIN = 80;
 
     private AppContext appContext;
 
@@ -26,19 +34,20 @@ public class DormRepairApplication extends Application {
             appContext = AppContext.bootstrap();
             AppShell appShell = new AppShell(appContext);
             Parent appRoot = appShell.createContent();
+            AppProperties.UiProperties ui = appContext.properties().ui();
 
-            // 顶层窗口壳必须回到 vfx，用户不接受系统默认标题栏。
+            ProportionalViewport viewport = new ProportionalViewport(appRoot, ui.designWidth(), ui.designHeight());
+
             VScene mainScene = new VScene(VSceneRole.MAIN);
             mainScene.enableAutoContentWidthHeight();
 
             VStage stage = new VStage(primaryStage, new VStageInitParams().setInitialScene(mainScene));
-            stage.setTitle(appContext.properties().title());
+            stage.setTitle(appContext.appSession().isAuthenticated() ? appContext.properties().title() : "");
             stage.useLightBorder();
+            BrandIconFactory.attachStageIcon(stage.getStage());
 
-            if (appRoot instanceof Region region) {
-                FXUtils.observeWidthHeight(mainScene.getContentPane(), region);
-            }
-            mainScene.getContentPane().getChildren().add(appRoot);
+            FXUtils.observeWidthHeight(mainScene.getContentPane(), viewport);
+            mainScene.getContentPane().getChildren().add(viewport);
 
             if (getClass().getResource("/styles/app.css") != null) {
                 stage.getStage().getScene().getStylesheets().add(
@@ -46,10 +55,28 @@ public class DormRepairApplication extends Application {
                 );
             }
 
-            stage.getStage().setMinWidth(appContext.properties().ui().minWidth());
-            stage.getStage().setMinHeight(appContext.properties().ui().minHeight());
-            stage.getStage().setWidth(appContext.properties().ui().width());
-            stage.getStage().setHeight(appContext.properties().ui().height());
+            Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
+            double maxWindowWidth = Math.max(960, visualBounds.getWidth() - WINDOW_MARGIN);
+            double maxWindowHeight = Math.max(720, visualBounds.getHeight() - WINDOW_MARGIN);
+            boolean authenticated = appContext.appSession().isAuthenticated();
+            double loginLaunchWidth = Math.min(ui.designWidth(), maxWindowWidth * LOGIN_WIDTH_RATIO);
+            double loginLaunchHeight = Math.min(ui.designHeight(), maxWindowHeight * LOGIN_HEIGHT_RATIO);
+            double launchBaseWidth = authenticated ? ui.designWidth() : loginLaunchWidth;
+            double launchBaseHeight = authenticated ? ui.designHeight() : loginLaunchHeight;
+            double designScale = Math.min(1.0, Math.min(
+                    maxWindowWidth / launchBaseWidth,
+                    maxWindowHeight / launchBaseHeight
+            ));
+            double initialWidth = launchBaseWidth * designScale;
+            double initialHeight = launchBaseHeight * designScale;
+
+            stage.getStage().setFullScreen(false);
+            stage.getStage().setMaximized(false);
+            stage.getStage().setResizable(true);
+            stage.getStage().setMinWidth(Math.min(ui.minWidth(), initialWidth));
+            stage.getStage().setMinHeight(Math.min(ui.minHeight(), initialHeight));
+            stage.getStage().setWidth(initialWidth);
+            stage.getStage().setHeight(initialHeight);
             stage.getStage().centerOnScreen();
             stage.show();
         } catch (Exception exception) {
@@ -73,13 +100,12 @@ public class DormRepairApplication extends Application {
         try {
             Theme.setTheme(new DormVfxTheme());
         } catch (IllegalStateException ignored) {
-            // 主题只能初始化一次，重复运行时沿用现有主题即可。
+            // Theme can only be initialized once per JVM.
         }
     }
 
     private void showStartupError(Exception exception) {
-        // 启动失败也统一走项目自己的弹窗风格，避免回退到系统默认 Alert。
-        UiAlerts.error("启动失败", exception);
+        UiAlerts.error("\u542f\u52a8\u5931\u8d25", exception);
         Platform.exit();
     }
 }

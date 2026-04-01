@@ -3,6 +3,7 @@ package com.scau.dormrepair.ui.component;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
+import javafx.animation.Animation;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -23,6 +24,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.text.Text;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -31,19 +33,23 @@ import javafx.stage.Popup;
 import javafx.util.Duration;
 
 /**
- * 项目统一下拉组件。
- * 这里不用 JavaFX 默认 ComboBox，而是自己控制本体高度、弹层样式和滚轮缓动，
- * 这样可以避免默认皮肤带来的尺寸跳动和下拉弹层观感不稳定。
+ * Project-wide dropdown with fixed control sizing and controllable popup scroll behavior.
  */
 public class AppDropdown<T> extends VBox {
 
     private static final double CONTROL_HEIGHT = 44.0;
+    private static final double MIN_POPUP_WIDTH = 180.0;
+    private static final double OPTION_HORIZONTAL_PADDING = 28.0;
+    private static final double POPUP_EDGE_ALLOWANCE = 24.0;
+    private static final double POPUP_SCROLLBAR_ALLOWANCE = 14.0;
     private static final double OPTION_HEIGHT = 42.0;
     private static final double POPUP_PADDING = 12.0;
-    private static final double MIN_WHEEL_STEP = 6.0;
-    private static final double MAX_WHEEL_STEP = 28.0;
-    private static final double WHEEL_STEP_FACTOR = 0.48;
-    private static final Duration SCROLL_DURATION = Duration.millis(220);
+    private static final double MIN_WHEEL_STEP = 18.0;
+    private static final double MAX_WHEEL_STEP = 96.0;
+    private static final double WHEEL_STEP_FACTOR = 1.65;
+    private static final double MAX_WHEEL_MODIFIER = 4.4;
+    private static final Duration SCROLL_DURATION = Duration.millis(160);
+    private static final long TOGGLE_REOPEN_GUARD_NANOS = 220_000_000L;
 
     private final ObservableList<T> items;
     private final ObjectProperty<T> value;
@@ -56,6 +62,9 @@ public class AppDropdown<T> extends VBox {
 
     private Timeline scrollTimeline;
     private double scrollTargetOffset;
+    private double lastWheelDirection;
+    private double wheelStepModifier;
+    private long lastPopupHideAtNanos;
     private Function<T, String> textMapper;
     private int visibleRowCount;
 
@@ -64,12 +73,14 @@ public class AppDropdown<T> extends VBox {
         this.value = new SimpleObjectProperty<>();
         this.promptText = new SimpleStringProperty("");
         this.valueLabel = new Label();
-        this.arrowLabel = new Label("▼");
+        this.arrowLabel = new Label("\u25BE");
         this.optionList = new VBox(2);
         this.scrollPane = new ScrollPane(optionList);
         this.popup = new Popup();
         this.textMapper = item -> item == null ? "" : String.valueOf(item);
         this.visibleRowCount = 5;
+        this.lastWheelDirection = 0.0;
+        this.wheelStepModifier = 1.0;
 
         getStyleClass().add("app-dropdown");
         setAlignment(Pos.CENTER_LEFT);
@@ -122,7 +133,10 @@ public class AppDropdown<T> extends VBox {
         popup.setAutoHide(true);
         popup.setAutoFix(true);
         popup.setHideOnEscape(true);
-        popup.setOnHidden(event -> stopScrollTimeline());
+        popup.setOnHidden(event -> {
+            stopScrollTimeline();
+            lastPopupHideAtNanos = System.nanoTime();
+        });
 
         value.addListener((observable, oldValue, newValue) -> {
             refreshValueLabel();
@@ -190,9 +204,34 @@ public class AppDropdown<T> extends VBox {
             popup.hide();
             return;
         }
+        long elapsedSinceHide = System.nanoTime() - lastPopupHideAtNanos;
+        if (elapsedSinceHide >= 0 && elapsedSinceHide < TOGGLE_REOPEN_GUARD_NANOS) {
+            return;
+        }
         showPopup();
     }
 
+    private double computePopupWidth() {
+        double controlWidth = Math.max(getWidth(), MIN_POPUP_WIDTH);
+        double longestOptionWidth = items.stream()
+                .map(this::displayText)
+                .mapToDouble(this::measureTextWidth)
+                .max()
+                .orElse(0.0);
+        double scrollbarWidth = items.size() > visibleRowCount ? POPUP_SCROLLBAR_ALLOWANCE : 0.0;
+        double contentWidth = longestOptionWidth + OPTION_HORIZONTAL_PADDING + POPUP_EDGE_ALLOWANCE + scrollbarWidth;
+        return Math.max(controlWidth, Math.ceil(contentWidth));
+    }
+
+    private double measureTextWidth(String text) {
+        if (text == null || text.isBlank()) {
+            return 0.0;
+        }
+        Text probe = new Text(text);
+        probe.getStyleClass().add("app-dropdown-option-text");
+        probe.setStyle("-fx-font-size: 13px;");
+        return probe.getLayoutBounds().getWidth();
+    }
     private void showPopup() {
         if (getScene() == null || getScene().getWindow() == null) {
             return;
@@ -205,11 +244,12 @@ public class AppDropdown<T> extends VBox {
             return;
         }
 
+        double popupWidth = computePopupWidth();
         Node popupRoot = popup.getContent().get(0);
         if (popupRoot instanceof Region region) {
-            region.setPrefWidth(getWidth());
-            region.setMinWidth(getWidth());
-            region.setMaxWidth(getWidth());
+            region.setPrefWidth(popupWidth);
+            region.setMinWidth(popupWidth);
+            region.setMaxWidth(popupWidth);
         }
 
         Point2D popupPoint = new Point2D(bounds.getMinX(), bounds.getMaxY() + 4);
@@ -272,9 +312,23 @@ public class AppDropdown<T> extends VBox {
             return;
         }
 
+        double direction = Math.signum(event.getDeltaY());
+        if (direction == 0) {
+            return;
+        }
+
+        if (scrollTimeline != null
+                && scrollTimeline.getStatus() == Animation.Status.RUNNING
+                && direction == lastWheelDirection) {
+            wheelStepModifier = Math.min(MAX_WHEEL_MODIFIER, wheelStepModifier + 0.55);
+        } else {
+            wheelStepModifier = 1.0;
+        }
+        lastWheelDirection = direction;
+
         double currentOffset = currentScrollableOffset();
         double nextOffset = clamp(
-                currentOffset - wheelOffsetDelta(event.getDeltaY()),
+                currentOffset - wheelOffsetDelta(event.getDeltaY(), wheelStepModifier),
                 0,
                 maxOffset
         );
@@ -292,18 +346,20 @@ public class AppDropdown<T> extends VBox {
     }
 
     private void scrollToCurrentSelection() {
-        double targetOffset = 0;
+        double targetOffset = 0.0;
         int selectedIndex = items.indexOf(value.get());
         if (selectedIndex >= 0) {
             double preferredOffset = selectedIndex * OPTION_HEIGHT - OPTION_HEIGHT * 0.5;
             targetOffset = clamp(preferredOffset, 0, maxScrollableOffset());
         }
         scrollTargetOffset = targetOffset;
+        wheelStepModifier = 1.0;
+        lastWheelDirection = 0.0;
         scrollPane.setVvalue(offsetToVvalue(targetOffset));
     }
 
     private void playSmoothScroll(double currentOffset, double targetOffset) {
-        stopScrollTimeline();
+        stopScrollTimeline(false);
 
         scrollTargetOffset = targetOffset;
         scrollTimeline = new Timeline(
@@ -320,13 +376,22 @@ public class AppDropdown<T> extends VBox {
                         )
                 )
         );
+        scrollTimeline.setOnFinished(event -> scrollTimeline = null);
         scrollTimeline.play();
     }
 
     private void stopScrollTimeline() {
+        stopScrollTimeline(true);
+    }
+
+    private void stopScrollTimeline(boolean resetWheelState) {
         if (scrollTimeline != null) {
             scrollTimeline.stop();
             scrollTimeline = null;
+        }
+        if (resetWheelState) {
+            wheelStepModifier = 1.0;
+            lastWheelDirection = 0.0;
         }
     }
 
@@ -348,9 +413,9 @@ public class AppDropdown<T> extends VBox {
         return clamp(offset / maxOffset, 0, 1);
     }
 
-    private double wheelOffsetDelta(double deltaY) {
+    private double wheelOffsetDelta(double deltaY, double modifier) {
         double scaledDelta = Math.abs(deltaY) * WHEEL_STEP_FACTOR;
-        double offsetDelta = clamp(scaledDelta, MIN_WHEEL_STEP, MAX_WHEEL_STEP);
+        double offsetDelta = clamp(scaledDelta, MIN_WHEEL_STEP, MAX_WHEEL_STEP) * modifier;
         return Math.signum(deltaY) * offsetDelta;
     }
 

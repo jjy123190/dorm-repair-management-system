@@ -9,7 +9,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 /**
- * 报修单 Mapper。
+ * 鎶ヤ慨鍗?Mapper銆?
  */
 public interface RepairRequestMapper {
 
@@ -34,25 +34,21 @@ public interface RepairRequestMapper {
 
     List<RecentRepairRequestView> selectStudentSubmittedRequests(
             @Param("studentId") Long studentId,
-            @Param("studentName") String studentName,
             @Param("limit") int limit
     );
 
     StudentRepairDetailView selectStudentRequestDetail(
             @Param("studentId") Long studentId,
-            @Param("studentName") String studentName,
             @Param("requestId") Long requestId
     );
 
     int increaseUrgeCount(
             @Param("studentId") Long studentId,
-            @Param("studentName") String studentName,
             @Param("requestId") Long requestId
     );
 
     int cancelStudentRequest(
             @Param("studentId") Long studentId,
-            @Param("studentName") String studentName,
             @Param("requestId") Long requestId,
             @Param("status") RepairRequestStatus status
     );

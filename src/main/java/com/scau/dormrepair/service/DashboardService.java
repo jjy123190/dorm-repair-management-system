@@ -10,7 +10,7 @@ import java.util.List;
  */
 public interface DashboardService {
 
-    DashboardOverview loadOverview(UserRole role, Long accountId, String displayName);
+    DashboardOverview loadOverview(UserRole role, Long accountId);
 
-    List<RecentRepairRequestView> listRecentRepairRequests(UserRole role, Long accountId, String displayName, int limit);
+    List<RecentRepairRequestView> listRecentRepairRequests(UserRole role, Long accountId, int limit);
 }

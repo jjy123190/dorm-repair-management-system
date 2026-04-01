@@ -1,0 +1,32 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="bg">
+      <rect width="1024" height="1024" rx="235"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="235" fill="#EEEDE9"/>
+
+  <g clip-path="url(#bg)">
+    <!-- Right-lower green half -->
+    <polygon points="1024,0 1024,1024 0,1024" fill="#D8EEE4"/>
+
+    <!-- Diagonal line -->
+    <line x1="0" y1="0" x2="1024" y2="1024"
+          stroke="#1D9E75" stroke-width="7" opacity="0.5"/>
+
+    <!-- Upper-left: empty circle (center sits on diagonal) -->
+    <circle cx="348" cy="348" r="88"
+            fill="none" stroke="#C0C0BC" stroke-width="18"/>
+
+    <!-- Lower-right: bold green checkmark -->
+    <polyline
+      points="604,748 727,870 922,584"
+      fill="none"
+      stroke="#1D9E75"
+      stroke-width="104"
+      stroke-linecap="round"
+      stroke-linejoin="round"/>
+  </g>
+</svg>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scau.dormrepair.mapper.WorkOrderCompletionImageMapper">
+
+    <insert id="batchInsert">
+        INSERT INTO work_order_completion_images (
+            work_order_id,
+            image_url,
+            sort_no
+        ) VALUES
+        <foreach collection="imageUrls" item="imageUrl" index="index" separator=",">
+            (
+                #{workOrderId},
+                #{imageUrl},
+                #{index}
+            )
+        </foreach>
+    </insert>
+
+    <delete id="deleteByWorkOrderId">
+        DELETE FROM work_order_completion_images
+        WHERE work_order_id = #{workOrderId}
+    </delete>
+
+    <select id="selectByWorkOrderId" resultType="com.scau.dormrepair.domain.entity.WorkOrderCompletionImage">
+        SELECT
+            id,
+            work_order_id,
+            image_url,
+            sort_no,
+            created_at
+        FROM work_order_completion_images
+        WHERE work_order_id = #{workOrderId}
+        ORDER BY sort_no ASC, id ASC
+    </select>
+</mapper>

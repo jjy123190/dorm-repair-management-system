@@ -6,22 +6,25 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 /**
- * 首页概览查询 Mapper。
+ * 棣栭〉姒傝鏌ヨ Mapper銆?
  */
 public interface DashboardMapper {
 
     DashboardOverview selectOverview();
 
-    DashboardOverview selectStudentOverview(
-            @Param("studentId") Long studentId,
-            @Param("studentName") String studentName
-    );
+    DashboardOverview selectStudentOverview(@Param("studentId") Long studentId);
+
+    DashboardOverview selectWorkerOverview(@Param("workerId") Long workerId);
 
     List<RecentRepairRequestView> selectRecentRepairRequests(@Param("limit") int limit);
 
+    List<RecentRepairRequestView> selectWorkerRecentRepairRequests(
+            @Param("workerId") Long workerId,
+            @Param("limit") int limit
+    );
+
     List<RecentRepairRequestView> selectStudentRecentRepairRequests(
             @Param("studentId") Long studentId,
-            @Param("studentName") String studentName,
             @Param("limit") int limit
     );
 }

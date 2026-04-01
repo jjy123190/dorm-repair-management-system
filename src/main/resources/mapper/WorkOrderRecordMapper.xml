@@ -1,8 +1,23 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.scau.dormrepair.mapper.WorkOrderRecordMapper">
+
+    <select id="selectTimelineByWorkOrderId" parameterType="long" resultType="com.scau.dormrepair.domain.view.WorkOrderRecordView">
+        SELECT
+            wr.id,
+            wr.status,
+            wr.operator_id AS operatorId,
+            ua.display_name AS operatorName,
+            ua.role_code AS operatorRole,
+            wr.record_note AS recordNote,
+            wr.created_at AS recordedAt
+        FROM work_order_records wr
+        LEFT JOIN user_accounts ua ON ua.id = wr.operator_id
+        WHERE wr.work_order_id = #{workOrderId}
+        ORDER BY wr.created_at ASC, wr.id ASC
+    </select>
 
     <insert id="insert" parameterType="com.scau.dormrepair.domain.entity.WorkOrderRecord" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO work_order_records (

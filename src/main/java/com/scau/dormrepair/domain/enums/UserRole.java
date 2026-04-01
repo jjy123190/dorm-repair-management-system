@@ -1,12 +1,9 @@
 package com.scau.dormrepair.domain.enums;
 
-/**
- * 用户角色枚举。
- */
 public enum UserRole {
-    STUDENT("学生"),
-    ADMIN("宿管管理员"),
-    WORKER("维修员");
+    STUDENT("\u5b66\u751f"),
+    ADMIN("\u5bbf\u7ba1\u7ba1\u7406\u5458"),
+    WORKER("\u7ef4\u4fee\u5458");
 
     private final String displayName;
 

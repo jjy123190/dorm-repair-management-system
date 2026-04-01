@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scau.dormrepair.mapper.UserAccountMapper">
+
+    <sql id="UserAccountColumns">
+        id,
+        username,
+        password_hash,
+        display_name,
+        phone,
+        role_code,
+        enabled,
+        created_at,
+        updated_at
+    </sql>
+
+    <select id="selectById" parameterType="long" resultType="com.scau.dormrepair.domain.entity.UserAccount">
+        SELECT
+        <include refid="UserAccountColumns"/>
+        FROM user_accounts
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectByUsername" parameterType="string" resultType="com.scau.dormrepair.domain.entity.UserAccount">
+        SELECT
+        <include refid="UserAccountColumns"/>
+        FROM user_accounts
+        WHERE username = #{username}
+    </select>
+
+    <select id="existsByUsername" parameterType="string" resultType="boolean">
+        SELECT EXISTS(
+            SELECT 1
+            FROM user_accounts
+            WHERE username = #{username}
+        )
+    </select>
+
+    <select id="selectEnabledByRole" resultType="com.scau.dormrepair.domain.entity.UserAccount">
+        SELECT
+        <include refid="UserAccountColumns"/>
+        FROM user_accounts
+        WHERE role_code = #{roleCode}
+          AND enabled = 1
+        ORDER BY id ASC
+    </select>
+
+    <select id="selectAccounts" resultType="com.scau.dormrepair.domain.entity.UserAccount">
+        SELECT
+        <include refid="UserAccountColumns"/>
+        FROM user_accounts
+        <where>
+            <if test="roleCode != null">
+                role_code = #{roleCode}
+            </if>
+            <if test="enabled != null">
+                AND enabled = #{enabled}
+            </if>
+        </where>
+        ORDER BY
+            CASE role_code
+                WHEN 'ADMIN' THEN 1
+                WHEN 'WORKER' THEN 2
+                WHEN 'STUDENT' THEN 3
+                ELSE 9
+            END,
+            id ASC
+    </select>
+
+    <insert id="insertStudentAccount" parameterType="com.scau.dormrepair.domain.entity.UserAccount" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_accounts (
+            username,
+            password_hash,
+            display_name,
+            phone,
+            role_code,
+            enabled
+        ) VALUES (
+            #{username},
+            #{passwordHash},
+            #{displayName},
+            #{phone},
+            #{roleCode},
+            #{enabled}
+        )
+    </insert>
+
+    <insert id="insertAccount" parameterType="com.scau.dormrepair.domain.entity.UserAccount" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_accounts (
+            username,
+            password_hash,
+            display_name,
+            phone,
+            role_code,
+            enabled
+        ) VALUES (
+            #{username},
+            #{passwordHash},
+            #{displayName},
+            #{phone},
+            #{roleCode},
+            #{enabled}
+        )
+    </insert>
+
+    <update id="updateOwnProfileById">
+        UPDATE user_accounts
+        SET display_name = #{displayName},
+            phone = #{phone},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateInternalProfileById">
+        UPDATE user_accounts
+        SET display_name = #{displayName},
+            phone = #{phone},
+            role_code = #{roleCode},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
+    <update id="updatePasswordHashById">
+        UPDATE user_accounts
+        SET password_hash = #{passwordHash}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateEnabledById">
+        UPDATE user_accounts
+        SET enabled = #{enabled}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updatePasswordHashByUsernameAndPhone">
+        UPDATE user_accounts
+        SET password_hash = #{passwordHash}
+        WHERE username = #{username}
+          AND phone = #{phone}
+    </update>
+</mapper>

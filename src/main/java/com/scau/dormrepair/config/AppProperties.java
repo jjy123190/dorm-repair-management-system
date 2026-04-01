@@ -4,10 +4,6 @@ import java.io.InputStream;
 import java.util.Map;
 import org.yaml.snakeyaml.Yaml;
 
-/**
- * 读取桌面端运行配置。
- * 当前统一从 resources 下的 application.yml 读取，便于小组成员直接修改数据库和窗口参数。
- */
 public record AppProperties(
         String name,
         String title,
@@ -18,7 +14,7 @@ public record AppProperties(
     public static AppProperties load() {
         try (InputStream inputStream = AppProperties.class.getClassLoader().getResourceAsStream("application.yml")) {
             if (inputStream == null) {
-                throw new IllegalStateException("未找到 application.yml 配置文件");
+                throw new IllegalStateException("application.yml not found");
             }
 
             Yaml yaml = new Yaml();
@@ -40,11 +36,13 @@ public record AppProperties(
                             doubleValue(uiMap, "width"),
                             doubleValue(uiMap, "height"),
                             doubleValue(uiMap, "min-width"),
-                            doubleValue(uiMap, "min-height")
+                            doubleValue(uiMap, "min-height"),
+                            doubleValue(uiMap, "design-width"),
+                            doubleValue(uiMap, "design-height")
                     )
             );
         } catch (Exception exception) {
-            throw new IllegalStateException("读取 application.yml 失败: " + exception.getMessage(), exception);
+            throw new IllegalStateException("Failed to read application.yml: " + exception.getMessage(), exception);
         }
     }
 
@@ -52,7 +50,7 @@ public record AppProperties(
     private static Map<String, Object> mapValue(Map<String, Object> root, String key) {
         Object value = root.get(key);
         if (!(value instanceof Map<?, ?> map)) {
-            throw new IllegalStateException("配置节点缺失或格式错误: " + key);
+            throw new IllegalStateException("Missing or invalid config section: " + key);
         }
         return (Map<String, Object>) map;
     }
@@ -60,7 +58,7 @@ public record AppProperties(
     private static String stringValue(Map<String, Object> source, String key) {
         Object value = source.get(key);
         if (value == null) {
-            throw new IllegalStateException("缺少配置项: " + key);
+            throw new IllegalStateException("Missing config value: " + key);
         }
         return String.valueOf(value);
     }
@@ -68,14 +66,11 @@ public record AppProperties(
     private static double doubleValue(Map<String, Object> source, String key) {
         Object value = source.get(key);
         if (value == null) {
-            throw new IllegalStateException("缺少配置项: " + key);
+            throw new IllegalStateException("Missing config value: " + key);
         }
         return Double.parseDouble(String.valueOf(value));
     }
 
-    /**
-     * 数据库连接参数。
-     */
     public record DatabaseProperties(
             String url,
             String username,
@@ -84,14 +79,13 @@ public record AppProperties(
     ) {
     }
 
-    /**
-     * 桌面端窗口参数。
-     */
     public record UiProperties(
             double width,
             double height,
             double minWidth,
-            double minHeight
+            double minHeight,
+            double designWidth,
+            double designHeight
     ) {
     }
 }

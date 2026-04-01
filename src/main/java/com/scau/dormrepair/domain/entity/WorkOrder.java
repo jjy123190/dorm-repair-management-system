@@ -5,7 +5,7 @@ import com.scau.dormrepair.domain.enums.WorkOrderStatus;
 import java.time.LocalDateTime;
 
 /**
- * 工单主实体。
+ * 宸ュ崟涓诲疄浣撱€?
  */
 public class WorkOrder extends BaseTimeEntity {
 
@@ -17,6 +17,7 @@ public class WorkOrder extends BaseTimeEntity {
     private WorkOrderStatus status;
     private WorkOrderPriority priority;
     private String assignmentNote;
+    private String completionNote;
     private LocalDateTime assignedAt;
     private LocalDateTime acceptedAt;
     private LocalDateTime completedAt;
@@ -83,6 +84,14 @@ public class WorkOrder extends BaseTimeEntity {
 
     public void setAssignmentNote(String assignmentNote) {
         this.assignmentNote = assignmentNote;
+    }
+
+    public String getCompletionNote() {
+        return completionNote;
+    }
+
+    public void setCompletionNote(String completionNote) {
+        this.completionNote = completionNote;
     }
 
     public LocalDateTime getAssignedAt() {

@@ -4,6 +4,21 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.scau.dormrepair.mapper.StatisticsMapper">
 
+    <sql id="requestColumns">
+        rr.id,
+        rr.request_no,
+        rr.student_name,
+        CASE
+            WHEN rr.dorm_area_snapshot IS NULL OR rr.dorm_area_snapshot = '' THEN CONCAT(rr.building_no_snapshot, '-', rr.room_no_snapshot)
+            ELSE CONCAT(rr.dorm_area_snapshot, ' ', rr.building_no_snapshot, '-', rr.room_no_snapshot)
+        END AS location_text,
+        rr.fault_category,
+        rr.status,
+        rr.submitted_at,
+        wo.assigned_at AS assignedAt,
+        wo.accepted_at AS acceptedAt
+    </sql>
+
     <select id="selectMonthlySummary" resultType="com.scau.dormrepair.domain.view.MonthlyRepairSummary">
         SELECT
             DATE_FORMAT(submitted_at, '%Y-%m') AS month_label,
@@ -11,8 +26,116 @@
             SUM(CASE WHEN status = 'COMPLETED' THEN 1 ELSE 0 END) AS completed_requests,
             ROUND(SUM(CASE WHEN status = 'COMPLETED' THEN 1 ELSE 0 END) / COUNT(*) * 100, 2) AS completion_rate
         FROM repair_requests
-        WHERE submitted_at >= DATE_SUB(CURRENT_DATE(), INTERVAL #{recentMonths} MONTH)
+        WHERE submitted_at &gt;= #{startDate}
         GROUP BY DATE_FORMAT(submitted_at, '%Y-%m')
         ORDER BY month_label DESC
+    </select>
+
+    <select id="selectFaultCategorySummary" resultType="com.scau.dormrepair.domain.view.FaultCategorySummary">
+        SELECT
+            fault_category,
+            COUNT(*) AS total_requests,
+            ROUND(COUNT(*) / totals.total_count * 100, 2) AS percentage
+        FROM repair_requests
+        CROSS JOIN (
+            SELECT COUNT(*) AS total_count
+            FROM repair_requests
+            WHERE submitted_at &gt;= #{startDate}
+        ) totals
+        WHERE submitted_at &gt;= #{startDate}
+        GROUP BY fault_category, totals.total_count
+        ORDER BY total_requests DESC, fault_category ASC
+    </select>
+
+    <select id="selectDormBuildingFaultSummary" resultType="com.scau.dormrepair.domain.view.DormBuildingFaultSummary">
+        SELECT
+            dorm_area_snapshot AS dorm_area,
+            building_no_snapshot AS building_no,
+            COUNT(*) AS total_requests
+        FROM repair_requests
+        WHERE submitted_at &gt;= #{startDate}
+        GROUP BY dorm_area_snapshot, building_no_snapshot
+        ORDER BY total_requests DESC, dorm_area_snapshot ASC, building_no_snapshot ASC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectTimeoutStageSummary" resultType="com.scau.dormrepair.domain.view.TimeoutStageSummary">
+        SELECT
+            stage_label,
+            total_count,
+            overdue_count,
+            ROUND(CASE WHEN total_count = 0 THEN 0 ELSE overdue_count / total_count * 100 END, 2) AS overdue_rate
+        FROM (
+            SELECT
+                'PENDING_ASSIGN' AS stage_label,
+                COUNT(*) AS total_count,
+                SUM(CASE WHEN submitted_at &lt; DATE_SUB(NOW(), INTERVAL 12 HOUR) THEN 1 ELSE 0 END) AS overdue_count
+            FROM repair_requests
+            WHERE status = 'SUBMITTED'
+
+            UNION ALL
+
+            SELECT
+                'PENDING_ACCEPT' AS stage_label,
+                COUNT(*) AS total_count,
+                SUM(CASE WHEN assigned_at &lt; DATE_SUB(NOW(), INTERVAL 6 HOUR) THEN 1 ELSE 0 END) AS overdue_count
+            FROM work_orders
+            WHERE status = 'ASSIGNED'
+
+            UNION ALL
+
+            SELECT
+                'PROCESSING' AS stage_label,
+                COUNT(*) AS total_count,
+                SUM(CASE WHEN COALESCE(accepted_at, assigned_at) &lt; DATE_SUB(NOW(), INTERVAL 48 HOUR) THEN 1 ELSE 0 END) AS overdue_count
+            FROM work_orders
+            WHERE status IN ('ACCEPTED', 'IN_PROGRESS', 'WAITING_PARTS')
+        ) summary_rows
+    </select>
+
+    <select id="selectDormBuildingRequestDetails" resultType="com.scau.dormrepair.domain.view.RecentRepairRequestView">
+        SELECT
+            <include refid="requestColumns"/>
+        FROM repair_requests rr
+        LEFT JOIN work_orders wo ON wo.repair_request_id = rr.id
+        WHERE rr.submitted_at &gt;= #{startDate}
+          AND rr.dorm_area_snapshot = #{dormArea}
+          AND rr.building_no_snapshot = #{buildingNo}
+        ORDER BY rr.submitted_at DESC, rr.id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectFaultCategoryRequestDetails" resultType="com.scau.dormrepair.domain.view.RecentRepairRequestView">
+        SELECT
+            <include refid="requestColumns"/>
+        FROM repair_requests rr
+        LEFT JOIN work_orders wo ON wo.repair_request_id = rr.id
+        WHERE rr.submitted_at &gt;= #{startDate}
+          AND rr.fault_category = #{faultCategory}
+        ORDER BY rr.submitted_at DESC, rr.id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectTimeoutStageRequestDetails" resultType="com.scau.dormrepair.domain.view.RecentRepairRequestView">
+        SELECT
+            <include refid="requestColumns"/>
+        FROM repair_requests rr
+        LEFT JOIN work_orders wo ON wo.repair_request_id = rr.id
+        <where>
+            <choose>
+                <when test="stageLabel == 'PENDING_ASSIGN'">
+                    rr.status = 'SUBMITTED' AND rr.submitted_at &lt; DATE_SUB(NOW(), INTERVAL 12 HOUR)
+                </when>
+                <when test="stageLabel == 'PENDING_ACCEPT'">
+                    wo.status = 'ASSIGNED' AND wo.assigned_at &lt; DATE_SUB(NOW(), INTERVAL 6 HOUR)
+                </when>
+                <otherwise>
+                    wo.status IN ('ACCEPTED', 'IN_PROGRESS', 'WAITING_PARTS')
+                    AND COALESCE(wo.accepted_at, wo.assigned_at) &lt; DATE_SUB(NOW(), INTERVAL 48 HOUR)
+                </otherwise>
+            </choose>
+        </where>
+        ORDER BY rr.submitted_at DESC, rr.id DESC
+        LIMIT #{limit}
     </select>
 </mapper>

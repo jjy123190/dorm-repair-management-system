@@ -10,7 +10,7 @@
             repair_request_id,
             rating,
             feedback_comment,
-            anonymous_flag,
+            COALESCE(anonymous_flag, anonymous) AS anonymous_flag,
             created_at,
             updated_at
         FROM repair_feedbacks
@@ -22,11 +22,13 @@
             repair_request_id,
             rating,
             feedback_comment,
-            anonymous_flag
+            anonymous_flag,
+            anonymous
         ) VALUES (
             #{repairRequestId},
             #{rating},
             #{feedbackComment},
+            #{anonymousFlag},
             #{anonymousFlag}
         )
     </insert>

@@ -3,14 +3,15 @@ app:
   title: 宿舍报修与工单管理系统
 
 database:
-  # 当前沿用小组统一的本地 MySQL 配置。
   url: jdbc:mysql://127.0.0.1:3306/dorm_repair_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8
   username: root
   password: 123456
   driver-class-name: com.mysql.cj.jdbc.Driver
 
 ui:
-  width: 1440
-  height: 900
+  width: 2378
+  height: 1554
   min-width: 1280
   min-height: 820
+  design-width: 1440
+  design-height: 900

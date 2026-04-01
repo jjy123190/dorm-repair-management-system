@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scau.dormrepair.mapper.AuditLogMapper">
+
+    <sql id="auditLogColumns">
+        al.id,
+        al.operator_id AS operatorId,
+        ua.display_name AS operatorName,
+        ua.role_code AS operatorRole,
+        al.action_type AS actionType,
+        al.target_type AS targetType,
+        al.target_id AS targetId,
+        al.target_label AS targetLabel,
+        al.old_value AS oldValue,
+        al.new_value AS newValue,
+        al.created_at AS createdAt
+    </sql>
+
+    <insert id="insert" parameterType="com.scau.dormrepair.domain.entity.AuditLog" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO audit_logs (
+            operator_id,
+            action_type,
+            target_type,
+            target_id,
+            target_label,
+            old_value,
+            new_value
+        ) VALUES (
+            #{operatorId},
+            #{actionType},
+            #{targetType},
+            #{targetId},
+            #{targetLabel},
+            #{oldValue},
+            #{newValue}
+        )
+    </insert>
+
+    <select id="selectLatest" resultType="com.scau.dormrepair.domain.view.AuditLogView">
+        SELECT
+            <include refid="auditLogColumns"/>
+        FROM audit_logs al
+        LEFT JOIN user_accounts ua ON ua.id = al.operator_id
+        ORDER BY al.created_at DESC, al.id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectFiltered" resultType="com.scau.dormrepair.domain.view.AuditLogView">
+        SELECT
+            <include refid="auditLogColumns"/>
+        FROM audit_logs al
+        LEFT JOIN user_accounts ua ON ua.id = al.operator_id
+        <where>
+            <if test="actionType != null and actionType != ''">
+                al.action_type = #{actionType}
+            </if>
+            <if test="operatorId != null">
+                AND al.operator_id = #{operatorId}
+            </if>
+            <if test="createdFrom != null">
+                AND al.created_at &gt;= #{createdFrom}
+            </if>
+            <if test="createdTo != null">
+                AND al.created_at &lt;= #{createdTo}
+            </if>
+        </where>
+        ORDER BY al.created_at DESC, al.id DESC
+        LIMIT #{limit}
+    </select>
+</mapper>

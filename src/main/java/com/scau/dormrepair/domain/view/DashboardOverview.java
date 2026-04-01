@@ -1,14 +1,15 @@
 package com.scau.dormrepair.domain.view;
 
-/**
- * 首页概览统计对象。
- */
 public class DashboardOverview {
 
     private Long totalRequests;
     private Long pendingReviewRequests;
     private Long activeWorkOrders;
     private Long completedThisMonth;
+    private Long timeoutWarningCount;
+    private Long timeoutOverdueCount;
+    private Long pendingConfirmationCount;
+    private Long reworkInProgressCount;
 
     public Long getTotalRequests() {
         return totalRequests;
@@ -40,5 +41,37 @@ public class DashboardOverview {
 
     public void setCompletedThisMonth(Long completedThisMonth) {
         this.completedThisMonth = completedThisMonth;
+    }
+
+    public Long getTimeoutWarningCount() {
+        return timeoutWarningCount;
+    }
+
+    public void setTimeoutWarningCount(Long timeoutWarningCount) {
+        this.timeoutWarningCount = timeoutWarningCount;
+    }
+
+    public Long getTimeoutOverdueCount() {
+        return timeoutOverdueCount;
+    }
+
+    public void setTimeoutOverdueCount(Long timeoutOverdueCount) {
+        this.timeoutOverdueCount = timeoutOverdueCount;
+    }
+
+    public Long getPendingConfirmationCount() {
+        return pendingConfirmationCount;
+    }
+
+    public void setPendingConfirmationCount(Long pendingConfirmationCount) {
+        this.pendingConfirmationCount = pendingConfirmationCount;
+    }
+
+    public Long getReworkInProgressCount() {
+        return reworkInProgressCount;
+    }
+
+    public void setReworkInProgressCount(Long reworkInProgressCount) {
+        this.reworkInProgressCount = reworkInProgressCount;
     }
 }

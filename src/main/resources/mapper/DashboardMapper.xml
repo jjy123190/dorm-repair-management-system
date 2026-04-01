@@ -4,51 +4,131 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.scau.dormrepair.mapper.DashboardMapper">
 
+    <sql id="locationTextExpression">
+        CASE
+            WHEN rr.dorm_area_snapshot IS NULL OR rr.dorm_area_snapshot = '' THEN CONCAT(rr.building_no_snapshot, '-', rr.room_no_snapshot)
+            ELSE CONCAT(rr.dorm_area_snapshot, ' ', rr.building_no_snapshot, '-', rr.room_no_snapshot)
+        END
+    </sql>
+
+    <sql id="latestWorkOrderActivityJoin">
+        LEFT JOIN (
+            SELECT
+                work_order_id,
+                MAX(created_at) AS latest_recorded_at
+            FROM work_order_records
+            GROUP BY work_order_id
+        ) activity ON activity.work_order_id = wo.id
+    </sql>
+
     <select id="selectOverview" resultType="com.scau.dormrepair.domain.view.DashboardOverview">
         SELECT
             COALESCE((SELECT COUNT(*) FROM repair_requests), 0) AS total_requests,
             COALESCE((SELECT COUNT(*) FROM repair_requests WHERE status = 'SUBMITTED'), 0) AS pending_review_requests,
             COALESCE((SELECT COUNT(*) FROM work_orders WHERE status IN ('ASSIGNED', 'ACCEPTED', 'IN_PROGRESS', 'WAITING_PARTS')), 0) AS active_work_orders,
+            COALESCE((SELECT COUNT(*) FROM repair_requests WHERE status = 'PENDING_CONFIRMATION'), 0) AS pending_confirmation_count,
+            COALESCE((SELECT COUNT(*) FROM repair_requests WHERE status = 'REWORK_IN_PROGRESS'), 0) AS rework_in_progress_count,
             COALESCE((
                 SELECT COUNT(*)
                 FROM repair_requests
                 WHERE status = 'COMPLETED'
                   AND DATE_FORMAT(completed_at, '%Y-%m') = DATE_FORMAT(CURRENT_DATE(), '%Y-%m')
-        ), 0) AS completed_this_month
+            ), 0) AS completed_this_month,
+            COALESCE((
+                SELECT COUNT(*)
+                FROM repair_requests rr
+                LEFT JOIN work_orders wo ON wo.repair_request_id = rr.id
+                WHERE (rr.status = 'SUBMITTED' AND rr.submitted_at &lt; DATE_SUB(NOW(), INTERVAL 6 HOUR) AND rr.submitted_at &gt;= DATE_SUB(NOW(), INTERVAL 12 HOUR))
+                   OR (wo.status = 'ASSIGNED' AND wo.assigned_at &lt; DATE_SUB(NOW(), INTERVAL 2 HOUR) AND wo.assigned_at &gt;= DATE_SUB(NOW(), INTERVAL 6 HOUR))
+                   OR (wo.status IN ('ACCEPTED', 'IN_PROGRESS', 'WAITING_PARTS') AND COALESCE(wo.accepted_at, wo.assigned_at) &lt; DATE_SUB(NOW(), INTERVAL 24 HOUR) AND COALESCE(wo.accepted_at, wo.assigned_at) &gt;= DATE_SUB(NOW(), INTERVAL 48 HOUR))
+            ), 0) AS timeout_warning_count,
+            COALESCE((
+                SELECT COUNT(*)
+                FROM repair_requests rr
+                LEFT JOIN work_orders wo ON wo.repair_request_id = rr.id
+                WHERE (rr.status = 'SUBMITTED' AND rr.submitted_at &lt; DATE_SUB(NOW(), INTERVAL 12 HOUR))
+                   OR (wo.status = 'ASSIGNED' AND wo.assigned_at &lt; DATE_SUB(NOW(), INTERVAL 6 HOUR))
+                   OR (wo.status IN ('ACCEPTED', 'IN_PROGRESS', 'WAITING_PARTS') AND COALESCE(wo.accepted_at, wo.assigned_at) &lt; DATE_SUB(NOW(), INTERVAL 48 HOUR))
+            ), 0) AS timeout_overdue_count
         FROM dual
     </select>
 
     <select id="selectStudentOverview" resultType="com.scau.dormrepair.domain.view.DashboardOverview">
         SELECT
-            COALESCE((
-                SELECT COUNT(*)
-                FROM repair_requests
-                WHERE student_id = #{studentId}
-                  AND student_name = #{studentName}
-            ), 0) AS total_requests,
-            COALESCE((
-                SELECT COUNT(*)
-                FROM repair_requests
-                WHERE student_id = #{studentId}
-                  AND student_name = #{studentName}
-                  AND status = 'SUBMITTED'
-            ), 0) AS pending_review_requests,
+            COALESCE((SELECT COUNT(*) FROM repair_requests WHERE student_id = #{studentId}), 0) AS total_requests,
+            COALESCE((SELECT COUNT(*) FROM repair_requests WHERE student_id = #{studentId} AND status = 'SUBMITTED'), 0) AS pending_review_requests,
             COALESCE((
                 SELECT COUNT(*)
                 FROM work_orders wo
                 INNER JOIN repair_requests rr ON rr.id = wo.repair_request_id
                 WHERE rr.student_id = #{studentId}
-                  AND rr.student_name = #{studentName}
                   AND wo.status IN ('ASSIGNED', 'ACCEPTED', 'IN_PROGRESS', 'WAITING_PARTS')
             ), 0) AS active_work_orders,
+            COALESCE((SELECT COUNT(*) FROM repair_requests WHERE student_id = #{studentId} AND status = 'PENDING_CONFIRMATION'), 0) AS pending_confirmation_count,
+            COALESCE((SELECT COUNT(*) FROM repair_requests WHERE student_id = #{studentId} AND status = 'REWORK_IN_PROGRESS'), 0) AS rework_in_progress_count,
             COALESCE((
                 SELECT COUNT(*)
                 FROM repair_requests
                 WHERE student_id = #{studentId}
-                  AND student_name = #{studentName}
                   AND status = 'COMPLETED'
                   AND DATE_FORMAT(completed_at, '%Y-%m') = DATE_FORMAT(CURRENT_DATE(), '%Y-%m')
-            ), 0) AS completed_this_month
+            ), 0) AS completed_this_month,
+            COALESCE((
+                SELECT COUNT(*)
+                FROM repair_requests rr
+                LEFT JOIN work_orders wo ON wo.repair_request_id = rr.id
+                WHERE rr.student_id = #{studentId}
+                  AND ((rr.status = 'SUBMITTED' AND rr.submitted_at &lt; DATE_SUB(NOW(), INTERVAL 6 HOUR) AND rr.submitted_at &gt;= DATE_SUB(NOW(), INTERVAL 12 HOUR))
+                   OR (wo.status = 'ASSIGNED' AND wo.assigned_at &lt; DATE_SUB(NOW(), INTERVAL 2 HOUR) AND wo.assigned_at &gt;= DATE_SUB(NOW(), INTERVAL 6 HOUR))
+                   OR (rr.status IN ('IN_PROGRESS', 'REWORK_IN_PROGRESS') AND COALESCE(wo.accepted_at, wo.assigned_at, rr.submitted_at) &lt; DATE_SUB(NOW(), INTERVAL 24 HOUR) AND COALESCE(wo.accepted_at, wo.assigned_at, rr.submitted_at) &gt;= DATE_SUB(NOW(), INTERVAL 48 HOUR)))
+            ), 0) AS timeout_warning_count,
+            COALESCE((
+                SELECT COUNT(*)
+                FROM repair_requests rr
+                LEFT JOIN work_orders wo ON wo.repair_request_id = rr.id
+                WHERE rr.student_id = #{studentId}
+                  AND ((rr.status = 'SUBMITTED' AND rr.submitted_at &lt; DATE_SUB(NOW(), INTERVAL 12 HOUR))
+                   OR (wo.status = 'ASSIGNED' AND wo.assigned_at &lt; DATE_SUB(NOW(), INTERVAL 6 HOUR))
+                   OR (rr.status IN ('IN_PROGRESS', 'REWORK_IN_PROGRESS') AND COALESCE(wo.accepted_at, wo.assigned_at, rr.submitted_at) &lt; DATE_SUB(NOW(), INTERVAL 48 HOUR)))
+            ), 0) AS timeout_overdue_count
+        FROM dual
+    </select>
+
+    <select id="selectWorkerOverview" resultType="com.scau.dormrepair.domain.view.DashboardOverview">
+        SELECT
+            COALESCE((SELECT COUNT(DISTINCT wo.repair_request_id) FROM work_orders wo WHERE wo.worker_id = #{workerId}), 0) AS total_requests,
+            COALESCE((SELECT COUNT(*) FROM work_orders wo WHERE wo.worker_id = #{workerId} AND wo.status = 'ASSIGNED'), 0) AS pending_review_requests,
+            COALESCE((SELECT COUNT(*) FROM work_orders wo WHERE wo.worker_id = #{workerId} AND wo.status IN ('ACCEPTED', 'IN_PROGRESS', 'WAITING_PARTS')), 0) AS active_work_orders,
+            COALESCE((SELECT COUNT(*) FROM work_orders wo WHERE wo.worker_id = #{workerId} AND wo.status = 'WAITING_CONFIRMATION'), 0) AS pending_confirmation_count,
+            COALESCE((
+                SELECT COUNT(*)
+                FROM work_orders wo
+                INNER JOIN repair_requests rr ON rr.id = wo.repair_request_id
+                WHERE wo.worker_id = #{workerId}
+                  AND rr.status = 'REWORK_IN_PROGRESS'
+                  AND wo.status IN ('ACCEPTED', 'IN_PROGRESS', 'WAITING_PARTS')
+            ), 0) AS rework_in_progress_count,
+            COALESCE((
+                SELECT COUNT(*)
+                FROM work_orders wo
+                WHERE wo.worker_id = #{workerId}
+                  AND wo.status = 'COMPLETED'
+                  AND DATE_FORMAT(wo.completed_at, '%Y-%m') = DATE_FORMAT(CURRENT_DATE(), '%Y-%m')
+            ), 0) AS completed_this_month,
+            COALESCE((
+                SELECT COUNT(*)
+                FROM work_orders wo
+                WHERE wo.worker_id = #{workerId}
+                  AND ((wo.status = 'ASSIGNED' AND wo.assigned_at &lt; DATE_SUB(NOW(), INTERVAL 2 HOUR) AND wo.assigned_at &gt;= DATE_SUB(NOW(), INTERVAL 6 HOUR))
+                   OR (wo.status IN ('ACCEPTED', 'IN_PROGRESS', 'WAITING_PARTS') AND COALESCE(wo.accepted_at, wo.assigned_at) &lt; DATE_SUB(NOW(), INTERVAL 24 HOUR) AND COALESCE(wo.accepted_at, wo.assigned_at) &gt;= DATE_SUB(NOW(), INTERVAL 48 HOUR)))
+            ), 0) AS timeout_warning_count,
+            COALESCE((
+                SELECT COUNT(*)
+                FROM work_orders wo
+                WHERE wo.worker_id = #{workerId}
+                  AND ((wo.status = 'ASSIGNED' AND wo.assigned_at &lt; DATE_SUB(NOW(), INTERVAL 6 HOUR))
+                   OR (wo.status IN ('ACCEPTED', 'IN_PROGRESS', 'WAITING_PARTS') AND COALESCE(wo.accepted_at, wo.assigned_at) &lt; DATE_SUB(NOW(), INTERVAL 48 HOUR)))
+            ), 0) AS timeout_overdue_count
         FROM dual
     </select>
 
@@ -57,12 +137,35 @@
             rr.id,
             rr.request_no,
             rr.student_name,
-            CONCAT(rr.building_no_snapshot, '-', rr.room_no_snapshot) AS location_text,
+            <include refid="locationTextExpression"/> AS location_text,
             rr.fault_category,
             rr.status,
-            rr.submitted_at
+            COALESCE(activity.latest_recorded_at, wo.assigned_at, rr.submitted_at) AS submitted_at,
+            wo.assigned_at AS assignedAt,
+            wo.accepted_at AS acceptedAt
         FROM repair_requests rr
-        ORDER BY rr.submitted_at DESC, rr.id DESC
+        LEFT JOIN work_orders wo ON wo.repair_request_id = rr.id
+        <include refid="latestWorkOrderActivityJoin"/>
+        ORDER BY COALESCE(activity.latest_recorded_at, wo.assigned_at, rr.submitted_at) DESC, rr.id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectWorkerRecentRepairRequests" resultType="com.scau.dormrepair.domain.view.RecentRepairRequestView">
+        SELECT
+            rr.id,
+            rr.request_no,
+            rr.student_name,
+            <include refid="locationTextExpression"/> AS location_text,
+            rr.fault_category,
+            rr.status,
+            COALESCE(activity.latest_recorded_at, wo.assigned_at, rr.submitted_at) AS submitted_at,
+            wo.assigned_at AS assignedAt,
+            wo.accepted_at AS acceptedAt
+        FROM work_orders wo
+        INNER JOIN repair_requests rr ON rr.id = wo.repair_request_id
+        <include refid="latestWorkOrderActivityJoin"/>
+        WHERE wo.worker_id = #{workerId}
+        ORDER BY COALESCE(activity.latest_recorded_at, wo.assigned_at, rr.submitted_at) DESC, wo.id DESC
         LIMIT #{limit}
     </select>
 
@@ -71,16 +174,15 @@
             rr.id,
             rr.request_no,
             rr.student_name,
-            CASE
-                WHEN rr.dorm_area_snapshot IS NULL OR rr.dorm_area_snapshot = '' THEN CONCAT(rr.building_no_snapshot, '-', rr.room_no_snapshot)
-                ELSE CONCAT(rr.dorm_area_snapshot, ' ', rr.building_no_snapshot, '-', rr.room_no_snapshot)
-            END AS location_text,
+            <include refid="locationTextExpression"/> AS location_text,
             rr.fault_category,
             rr.status,
-            rr.submitted_at
+            rr.submitted_at,
+            wo.assigned_at AS assignedAt,
+            wo.accepted_at AS acceptedAt
         FROM repair_requests rr
+        LEFT JOIN work_orders wo ON wo.repair_request_id = rr.id
         WHERE rr.student_id = #{studentId}
-          AND rr.student_name = #{studentName}
         ORDER BY rr.submitted_at DESC, rr.id DESC
         LIMIT #{limit}
     </select>

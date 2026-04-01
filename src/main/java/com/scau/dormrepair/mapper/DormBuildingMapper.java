@@ -12,4 +12,18 @@ public interface DormBuildingMapper {
     List<String> selectDistinctAreas();
 
     List<DormBuilding> selectByArea(@Param("campusName") String campusName);
+
+    List<DormBuilding> selectAll();
+
+    DormBuilding selectById(@Param("id") Long id);
+
+    DormBuilding selectByCampusAndBuildingNo(@Param("campusName") String campusName, @Param("buildingNo") String buildingNo);
+
+    int insert(DormBuilding dormBuilding);
+
+    int update(DormBuilding dormBuilding);
+
+    int countRooms(@Param("buildingId") Long buildingId);
+
+    int deleteById(@Param("id") Long id);
 }
