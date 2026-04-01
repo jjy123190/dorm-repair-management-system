@@ -196,15 +196,21 @@ public class LoginView {
 
         Label errorLabel = new Label();
         errorLabel.getStyleClass().add("login-error-label");
-        errorLabel.setManaged(false);
-        errorLabel.setVisible(false);
+        errorLabel.setManaged(true);
+        errorLabel.setVisible(true);
         errorLabel.setWrapText(true);
+        errorLabel.setMinHeight(46);
+        errorLabel.setPrefHeight(46);
+        errorLabel.setMaxWidth(Double.MAX_VALUE);
+        clearError(errorLabel);
 
         Label registerUsernameStatus = createStatusLabel();
         Label registerPasswordStatus = createStatusLabel();
         Label resetPasswordStatus = createStatusLabel();
 
         VBox formBody = new VBox(16);
+        formBody.getStyleClass().add("login-form-body");
+        formBody.setMinHeight(366);
 
         Button loginModeButton = createModeButton("\u767b\u5f55");
         Button registerModeButton = createModeButton("\u6ce8\u518c");
@@ -216,8 +222,10 @@ public class LoginView {
         Region footerSpacer = new Region();
         HBox.setHgrow(footerSpacer, Priority.ALWAYS);
         HBox forgotPasswordRow = new HBox(8, footerSpacer, forgotPasswordButton);
+        forgotPasswordRow.getStyleClass().add("login-footer-row");
         forgotPasswordRow.setAlignment(Pos.CENTER_RIGHT);
-        forgotPasswordRow.managedProperty().bind(forgotPasswordRow.visibleProperty());
+        forgotPasswordRow.setMinHeight(28);
+        forgotPasswordRow.setPrefHeight(28);
 
         Button submitButton = new Button();
         submitButton.getStyleClass().add("login-primary-button");
@@ -230,6 +238,7 @@ public class LoginView {
         loginModeButton.disableProperty().bind(submitting);
         registerModeButton.disableProperty().bind(submitting);
         forgotPasswordButton.disableProperty().bind(submitting);
+        forgotPasswordButton.setFocusTraversable(false);
 
         loginUsernameField.setOnAction(event -> loginPasswordField.requestInputFocus());
         loginPasswordField.setOnAction(event -> submitButton.fire());
@@ -303,7 +312,9 @@ public class LoginView {
             submitButton.setText(newMode.submitText(submitting.get()));
             setModeButtonActive(loginModeButton, newMode == LoginMode.LOGIN);
             setModeButtonActive(registerModeButton, newMode == LoginMode.REGISTER);
-            forgotPasswordRow.setVisible(newMode == LoginMode.LOGIN);
+            boolean showForgotPassword = newMode == LoginMode.LOGIN;
+            forgotPasswordRow.setOpacity(showForgotPassword ? 1 : 0);
+            forgotPasswordRow.setMouseTransparent(!showForgotPassword);
             if (newMode == LoginMode.REGISTER) {
                 refreshRegisterUsernameStatus.run();
                 refreshRegisterPasswordStatus.run();
@@ -446,11 +457,14 @@ public class LoginView {
     }
 
     private static Label createStatusLabel() {
-        Label label = new Label();
+        Label label = new Label(" ");
         label.getStyleClass().add("login-status-label");
-        label.setManaged(false);
-        label.setVisible(false);
+        label.setManaged(true);
+        label.setVisible(true);
         label.setWrapText(true);
+        label.setMinHeight(20);
+        label.setPrefHeight(20);
+        label.setOpacity(0);
         return label;
     }
 
@@ -600,29 +614,25 @@ public class LoginView {
 
     private static void showStatus(Label label, String text, boolean success) {
         label.setText(text);
-        label.setManaged(true);
-        label.setVisible(true);
+        label.setOpacity(1);
         label.getStyleClass().removeAll("login-status-label-success", "login-status-label-warning");
         label.getStyleClass().add(success ? "login-status-label-success" : "login-status-label-warning");
     }
 
     private static void hideStatus(Label label) {
-        label.setText("");
-        label.setManaged(false);
-        label.setVisible(false);
+        label.setText(" ");
+        label.setOpacity(0);
         label.getStyleClass().removeAll("login-status-label-success", "login-status-label-warning");
     }
 
     private static void showInlineError(Label errorLabel, String text) {
         errorLabel.setText(text);
-        errorLabel.setManaged(true);
-        errorLabel.setVisible(true);
+        errorLabel.setOpacity(1);
     }
 
     private static void clearError(Label errorLabel) {
-        errorLabel.setText("");
-        errorLabel.setManaged(false);
-        errorLabel.setVisible(false);
+        errorLabel.setText(" ");
+        errorLabel.setOpacity(0);
     }
 
     private enum LoginMode {

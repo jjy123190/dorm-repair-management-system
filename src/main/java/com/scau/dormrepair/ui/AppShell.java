@@ -55,6 +55,7 @@ public class AppShell {
     private BorderPane workbenchShell;
     private StackPane moduleHost;
     private Label identityChipLabel;
+    private Label moduleSummaryLabel;
     private WorkbenchModule activeModule;
     private UserRole renderedRole;
     private boolean windowListenerInstalled;
@@ -172,11 +173,25 @@ public class AppShell {
         identityChipLabel = new Label();
         identityChipLabel.getStyleClass().add("header-identity-chip");
 
+        Label moduleCaptionLabel = new Label("\u5f53\u524d\u6a21\u5757");
+        moduleCaptionLabel.getStyleClass().add("header-module-caption");
+
+        moduleSummaryLabel = new Label();
+        moduleSummaryLabel.getStyleClass().add("header-module-summary");
+
+        VBox moduleBox = new VBox(2, moduleCaptionLabel, moduleSummaryLabel);
+        moduleBox.getStyleClass().add("header-module-box");
+        moduleBox.setAlignment(Pos.CENTER_LEFT);
+
         Button profileButton = new Button("\u4e2a\u4eba\u4e2d\u5fc3");
         profileButton.getStyleClass().add("header-profile-action");
         profileButton.setOnAction(event -> openModuleByCode("profile"));
 
-        HBox summaryBox = new HBox(10, identityChipLabel, profileButton);
+        Button logoutButton = new Button("\u9000\u51fa\u767b\u5f55");
+        logoutButton.getStyleClass().add("header-logout-action");
+        logoutButton.setOnAction(event -> logoutCurrentAccount());
+
+        HBox summaryBox = new HBox(10, identityChipLabel, moduleBox, profileButton, logoutButton);
         summaryBox.getStyleClass().add("header-summary-inline");
         summaryBox.setAlignment(Pos.CENTER_RIGHT);
 
@@ -258,6 +273,9 @@ public class AppShell {
     private void updateHeader() {
         if (identityChipLabel != null) {
             identityChipLabel.setText(appSession.getCurrentRole().displayName() + "\u00b7" + appSession.getDisplayName());
+        }
+        if (moduleSummaryLabel != null) {
+            moduleSummaryLabel.setText(activeModule == null ? "\u672a\u9009\u62e9\u6a21\u5757" : activeModule.moduleName());
         }
     }
     private void updateSidebarSelection() {
@@ -453,5 +471,6 @@ public class AppShell {
         workbenchShell = null;
         moduleHost = null;
         identityChipLabel = null;
+        moduleSummaryLabel = null;
     }
 }

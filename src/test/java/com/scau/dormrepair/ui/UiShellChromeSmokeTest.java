@@ -1,0 +1,64 @@
+package com.scau.dormrepair.ui;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.junit.jupiter.api.Test;
+
+class UiShellChromeSmokeTest {
+
+    @Test
+    void shouldKeepHeaderContractReadableInSource() throws IOException {
+        String source = readSource("src/main/java/com/scau/dormrepair/ui/AppShell.java");
+
+        assertTrue(source.contains("header-module-summary"));
+        assertTrue(source.contains("\\u9000\\u51fa\\u767b\\u5f55"));
+        assertTrue(source.contains("moduleSummaryLabel.setText(activeModule == null ? \"\\u672a\\u9009\\u62e9\\u6a21\\u5757\" : activeModule.moduleName())"));
+        assertTrue(source.contains("new HBox(10, identityChipLabel, moduleBox, profileButton, logoutButton)"));
+    }
+
+    @Test
+    void shouldKeepLoginFeedbackLayoutStableInSource() throws IOException {
+        String source = readSource("src/main/java/com/scau/dormrepair/ui/LoginView.java");
+
+        assertTrue(source.contains("formBody.setMinHeight(366);"));
+        assertTrue(source.contains("errorLabel.setMinHeight(46);"));
+        assertTrue(source.contains("forgotPasswordRow.setOpacity(showForgotPassword ? 1 : 0);"));
+        assertTrue(source.contains("label.setOpacity(0);"));
+        assertTrue(source.contains("errorLabel.setText(\" \");"));
+    }
+
+    @Test
+    void shouldKeepSingleAuthoritativeShellSelectorsInCss() throws IOException {
+        String css = readSource("src/main/resources/styles/app.css");
+
+        assertEquals(1, countSelector(css, ".header-summary-inline"));
+        assertEquals(1, countSelector(css, ".header-profile-action"));
+        assertEquals(1, countSelector(css, ".header-profile-action:hover"));
+        assertEquals(1, countSelector(css, ".header-logout-action"));
+        assertEquals(1, countSelector(css, ".header-logout-action:hover"));
+        assertEquals(1, countSelector(css, ".header-module-summary"));
+        assertEquals(1, countSelector(css, ".login-form-body"));
+        assertEquals(1, countSelector(css, ".login-footer-row"));
+    }
+
+    private static int countSelector(String css, String selector) {
+        Pattern pattern = Pattern.compile("(?m)^" + Pattern.quote(selector) + "\\s*\\{");
+        Matcher matcher = pattern.matcher(css);
+        int count = 0;
+        while (matcher.find()) {
+            count++;
+        }
+        return count;
+    }
+
+    private static String readSource(String relativePath) throws IOException {
+        return Files.readString(Path.of(relativePath), StandardCharsets.UTF_8);
+    }
+}
