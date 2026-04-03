@@ -91,6 +91,33 @@ public final class ProjectImageStore {
         }
     }
 
+    public static void deleteProjectImages(List<String> storedPaths) {
+        if (storedPaths == null || storedPaths.isEmpty()) {
+            return;
+        }
+
+        Path projectRoot = resolveProjectRoot();
+        Path picsDirectory = projectRoot.resolve(PROJECT_PICS_DIR).normalize();
+        for (String storedPath : storedPaths) {
+            if (storedPath == null || storedPath.isBlank()) {
+                continue;
+            }
+            String normalizedStoredPath = storedPath.replace('\\', '/').trim();
+            if (!normalizedStoredPath.startsWith(PROJECT_PICS_DIR + "/")) {
+                continue;
+            }
+            Path absolutePath = projectRoot.resolve(normalizedStoredPath).normalize();
+            if (!absolutePath.startsWith(picsDirectory)) {
+                continue;
+            }
+            try {
+                Files.deleteIfExists(absolutePath);
+            } catch (IOException ignored) {
+                // Local pics cleanup is best-effort and should not block the repair flow.
+            }
+        }
+    }
+
     private static List<File> normalizeFiles(List<File> sourceFiles) {
         Set<Path> distinctPaths = new LinkedHashSet<>();
         List<File> normalizedFiles = new ArrayList<>();

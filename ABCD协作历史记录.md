@@ -774,7 +774,8 @@
 - 影响提醒 / 下一步
   - 这份文档属于共享协作入口，后续任何人改动前都应先确认编辑器编码为 UTF-8。
 - Push 结果
-  - 本轮待 commit + push
+  - 已 push 到 `origin/main`
+  - 提交号：`fb66317`
 
 ### 2026-04-03 14:12 | A
 - 改动文件
@@ -919,6 +920,23 @@
   - 新增测试覆盖“学生可删自己的图片”和“已完成报修不能删图”两条边界。
 - 影响提醒 / 下一步
   - 这轮仍然只触达 B 范围内的 service、mapper、学生提交页、学生记录页和测试，没有改 A 壳层与 C 工单主链。
+  - 已执行 `mvn -Dmaven.repo.local=.m2\repository compile`，结果为 `BUILD SUCCESS`。
+- Push 结果
+  - 已 push 到 `origin/main`
+  - 提交号：`fb66317`
+
+### 2026-04-03 22:08 | B
+- 改动文件
+  - src/main/java/com/scau/dormrepair/ui/module/StudentRepairModule.java
+  - src/main/java/com/scau/dormrepair/ui/module/StudentRepairHistoryModule.java
+  - src/main/java/com/scau/dormrepair/ui/support/ProjectImageStore.java
+  - ABCD协作历史记录.md
+- 完成内容
+  - 学生提交页新增“提交条件”即时反馈，未选宿舍、故障类型、联系电话异常、描述过短或超长时会直接提示，并同步禁用提交按钮，避免把明显不完整的报修单送进主链。
+  - 学生历史记录页在状态筛选之外再补了关键字检索，支持按报修单号、位置、故障类型、状态快速定位记录，并实时显示当前筛选结果数量。
+  - 学生补图流程改成先记录复制到 `pics/` 的路径，再在 service 成功后保留；如果补图失败会自动回收刚复制的本地图片，删除单张旧图时也会同步清理 `pics/`，减少本地脏文件堆积。
+- 影响提醒 / 下一步
+  - 这轮只继续收紧 B 的学生提交页、学生记录页和本地图片存储工具，没有改 A 壳层、C 工单主链和数据库结构。
   - 已执行 `mvn -Dmaven.repo.local=.m2\repository compile`，结果为 `BUILD SUCCESS`。
 - Push 结果
   - 本轮待 commit + push

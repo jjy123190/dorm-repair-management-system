@@ -34,6 +34,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -116,13 +117,30 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
             refreshHistory(historyState, state, currentStudent);
         });
 
+        TextField keywordField = new TextField();
+        keywordField.setPromptText("按单号、位置或故障类型检索");
+        keywordField.textProperty().addListener((observable, oldValue, newValue) -> {
+            historyState.keyword = newValue == null ? "" : newValue.trim();
+            refreshHistory(historyState, state, currentStudent);
+        });
+
+        Label resultCountLabel = helperLabel("当前显示 0 条记录");
+        historyState.resultCountLabel = resultCountLabel;
+
         Button refreshButton = new Button("刷新记录");
         refreshButton.getStyleClass().add("surface-button");
         refreshButton.setOnAction(event -> refreshHistory(historyState, state, currentStudent));
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox toolbar = new HBox(12, createFieldBlock("状态筛选", filterBox), spacer, refreshButton);
+        HBox toolbar = new HBox(
+                12,
+                createFieldBlock("状态筛选", filterBox),
+                createFieldBlock("关键字", keywordField),
+                resultCountLabel,
+                spacer,
+                refreshButton
+        );
         toolbar.setAlignment(Pos.CENTER_RIGHT);
 
         VBox historyBody = new VBox(12, toolbar, historyScroll);
@@ -259,7 +277,9 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         historyState.allRows = rows;
         List<RecentRepairRequestView> filteredRows = rows.stream()
                 .filter(row -> historyState.filterOption == null || historyState.filterOption.matches(row.getStatus()))
+                .filter(row -> matchesKeyword(row, historyState.keyword))
                 .toList();
+        historyState.resultCountLabel.setText("当前显示 " + filteredRows.size() + " / " + rows.size() + " 条记录");
         historyState.container.getChildren().clear();
         historyState.selectedCard = null;
         if (filteredRows.isEmpty()) {
@@ -475,6 +495,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
             UiAlerts.error("补图失败", "请先选择一条报修记录。");
             return;
         }
+        List<String> storedImageUrls = List.of();
         try {
             int currentImageCount = state.currentDetail.getImageUrls() == null ? 0 : state.currentDetail.getImageUrls().size();
             int maxAllowed = ProjectImageStore.MAX_IMAGE_COUNT - currentImageCount;
@@ -485,10 +506,11 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
                 throw new BusinessException("当前最多还能补充 " + maxAllowed + " 张图片，请减少后再提交。");
             }
             ProjectImageStore.validateImageFiles(state.pendingImageFiles);
+            storedImageUrls = ProjectImageStore.copyImagesToProject(state.pendingImageFiles);
             int total = appContext.repairRequestService().appendStudentRequestImages(
                     state.currentDetail.getStudentId(),
                     state.currentDetail.getId(),
-                    ProjectImageStore.copyImagesToProject(state.pendingImageFiles)
+                    storedImageUrls
             );
             state.pendingImageFiles.clear();
             refreshPendingImagePreview(state);
@@ -498,6 +520,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
             );
             UiAlerts.info("补图成功", "图片已补充到当前报修记录，当前共 " + total + " 张。");
         } catch (RuntimeException exception) {
+            ProjectImageStore.deleteProjectImages(storedImageUrls);
             UiAlerts.error("补图失败", exception.getMessage());
         }
     }
@@ -582,6 +605,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
                     state.currentDetail.getId(),
                     selectedImage
             );
+            ProjectImageStore.deleteProjectImages(List.of(selectedImage));
             reloadCurrentDetail(
                     appContext.userAccountService().requireCurrentAccount(appContext.appSession(), UserRole.STUDENT),
                     state
@@ -626,6 +650,21 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         state.timelineContainer.getChildren().setAll(
                 createTimelineList(records, "暂无处理记录", "报修生成工单后，时间线会显示在这里。")
         );
+    }
+
+    private boolean matchesKeyword(RecentRepairRequestView row, String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return true;
+        }
+        String normalizedKeyword = keyword.trim().toLowerCase();
+        return containsIgnoreCase(row.getRequestNo(), normalizedKeyword)
+                || containsIgnoreCase(row.getLocationText(), normalizedKeyword)
+                || containsIgnoreCase(categoryText(row.getFaultCategory()), normalizedKeyword)
+                || containsIgnoreCase(statusText(row.getStatus()), normalizedKeyword);
+    }
+
+    private boolean containsIgnoreCase(String value, String keyword) {
+        return value != null && !value.isBlank() && value.toLowerCase().contains(keyword);
     }
 
     private void renderFeedbackSection(DetailState state, StudentRepairDetailView detail) {
@@ -911,6 +950,8 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         private HistoryFilterOption filterOption = HistoryFilterOption.ALL;
         private StackPane selectedCard;
         private Long selectedRequestId;
+        private String keyword = "";
+        private Label resultCountLabel;
 
         private HistoryState(VBox container) {
             this.container = container;

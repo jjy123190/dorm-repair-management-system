@@ -103,6 +103,8 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         Label draftFaultValue = createDraftValueLabel("\u5f85\u9009\u62e9");
         Label draftImageCountValue = createDraftValueLabel("0 \u5f20");
         Label draftRecentHintValue = createDraftValueLabel("\u63d0\u4ea4\u540e\u53ef\u5728\u201c\u62a5\u4fee\u8bb0\u5f55\u201d\u6a21\u5757\u67e5\u770b\u5b8c\u6574\u8be6\u60c5\u3002");
+        Label submitReadinessLabel = createDraftValueLabel("");
+        submitReadinessLabel.getStyleClass().add("helper-text");
         VBox imageUploadBox = createImageUploadBox(selectedImageFiles, draftImageCountValue);
 
         dormAreaBox.valueProperty().addListener((observable, oldValue, newValue) -> {
@@ -132,6 +134,7 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         Button resetButton = new Button("\u6e05\u7a7a\u8868\u5355");
         resetButton.getStyleClass().add("surface-button");
 
+        Node[] submitButtonHolder = new Node[1];
         Node submitButton = FusionUiFactory.createPrimaryButton("\u63d0\u4ea4\u62a5\u4fee\u7533\u8bf7", 180, 40, () -> {
             try {
                 ProjectImageStore.validateImageFiles(selectedImageFiles);
@@ -167,11 +170,22 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
                 draftImageCountValue.setText("0 \u5f20");
                 draftRecentHintValue.setText("\u672c\u6b21\u62a5\u4fee\u5df2\u63d0\u4ea4\uff0c\u53ef\u5728\u201c\u62a5\u4fee\u8bb0\u5f55\u201d\u6a21\u5757\u67e5\u770b\u5904\u7406\u8fdb\u5ea6\u548c\u5b8c\u6574\u8be6\u60c5\u3002");
                 refreshDraftLocation(dormAreaBox, buildingBox, roomBox, draftLocationValue);
+                refreshSubmitReadiness(
+                        dormAreaBox,
+                        buildingBox,
+                        roomBox,
+                        phoneField,
+                        descriptionArea,
+                        faultCategoryBox,
+                        submitButtonHolder[0],
+                        submitReadinessLabel
+                );
                 UiAlerts.info("\u63d0\u4ea4\u6210\u529f", "\u62a5\u4fee\u7533\u8bf7\u5df2\u63d0\u4ea4\uff0c\u53ef\u5728\u201c\u62a5\u4fee\u8bb0\u5f55\u201d\u6a21\u5757\u67e5\u770b\u5904\u7406\u8fdb\u5ea6\u548c\u5b8c\u6574\u8be6\u60c5\u3002");
             } catch (RuntimeException exception) {
                 UiAlerts.error("\u63d0\u4ea4\u5931\u8d25", exception.getMessage());
             }
         }).getNode();
+        submitButtonHolder[0] = submitButton;
 
         resetButton.setOnAction(event -> {
             clearAfterSubmit(
@@ -189,7 +203,100 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
             draftFaultValue.setText("\u5f85\u9009\u62e9");
             draftImageCountValue.setText("0 \u5f20");
             draftRecentHintValue.setText("\u63d0\u4ea4\u540e\u53ef\u5728\u201c\u62a5\u4fee\u8bb0\u5f55\u201d\u6a21\u5757\u67e5\u770b\u5b8c\u6574\u8be6\u60c5\u3002");
+            refreshSubmitReadiness(
+                    dormAreaBox,
+                    buildingBox,
+                    roomBox,
+                    phoneField,
+                    descriptionArea,
+                    faultCategoryBox,
+                    submitButton,
+                    submitReadinessLabel
+            );
         });
+
+        dormAreaBox.valueProperty().addListener((observable, oldValue, newValue) ->
+                refreshSubmitReadiness(
+                        dormAreaBox,
+                        buildingBox,
+                        roomBox,
+                        phoneField,
+                        descriptionArea,
+                        faultCategoryBox,
+                        submitButton,
+                        submitReadinessLabel
+                )
+        );
+        buildingBox.valueProperty().addListener((observable, oldValue, newValue) ->
+                refreshSubmitReadiness(
+                        dormAreaBox,
+                        buildingBox,
+                        roomBox,
+                        phoneField,
+                        descriptionArea,
+                        faultCategoryBox,
+                        submitButton,
+                        submitReadinessLabel
+                )
+        );
+        roomBox.valueProperty().addListener((observable, oldValue, newValue) ->
+                refreshSubmitReadiness(
+                        dormAreaBox,
+                        buildingBox,
+                        roomBox,
+                        phoneField,
+                        descriptionArea,
+                        faultCategoryBox,
+                        submitButton,
+                        submitReadinessLabel
+                )
+        );
+        faultCategoryBox.valueProperty().addListener((observable, oldValue, newValue) ->
+                refreshSubmitReadiness(
+                        dormAreaBox,
+                        buildingBox,
+                        roomBox,
+                        phoneField,
+                        descriptionArea,
+                        faultCategoryBox,
+                        submitButton,
+                        submitReadinessLabel
+                )
+        );
+        phoneField.textProperty().addListener((observable, oldValue, newValue) ->
+                refreshSubmitReadiness(
+                        dormAreaBox,
+                        buildingBox,
+                        roomBox,
+                        phoneField,
+                        descriptionArea,
+                        faultCategoryBox,
+                        submitButton,
+                        submitReadinessLabel
+                )
+        );
+        descriptionArea.textProperty().addListener((observable, oldValue, newValue) ->
+                refreshSubmitReadiness(
+                        dormAreaBox,
+                        buildingBox,
+                        roomBox,
+                        phoneField,
+                        descriptionArea,
+                        faultCategoryBox,
+                        submitButton,
+                        submitReadinessLabel
+                )
+        );
+        refreshSubmitReadiness(
+                dormAreaBox,
+                buildingBox,
+                roomBox,
+                phoneField,
+                descriptionArea,
+                faultCategoryBox,
+                submitButton,
+                submitReadinessLabel
+        );
 
         GridPane dormRow = new GridPane();
         dormRow.setHgap(16);
@@ -220,6 +327,7 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
                 createFieldBlock("\u8054\u7cfb\u7535\u8bdd\u63d0\u793a", phoneHintLabel),
                 createFieldBlock("\u6545\u969c\u63cf\u8ff0", descriptionArea),
                 createFieldBlock("\u63cf\u8ff0\u5b57\u6570", descriptionHintLabel),
+                createFieldBlock("\u63d0\u4ea4\u6761\u4ef6", submitReadinessLabel),
                 createFieldBlock("\u56fe\u7247\u4e0a\u4f20", imageUploadBox),
                 actionRow
         );
@@ -376,6 +484,52 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
             return;
         }
         descriptionHintLabel.setText("当前已写 " + used + " 个字，还可填写 " + remaining + " 个字。");
+    }
+
+    private void refreshSubmitReadiness(
+            AppDropdown<String> dormAreaBox,
+            AppDropdown<DormBuilding> buildingBox,
+            AppDropdown<DormRoom> roomBox,
+            TextField phoneField,
+            TextArea descriptionArea,
+            AppDropdown<FaultCategory> faultCategoryBox,
+            Node submitButton,
+            Label submitReadinessLabel
+    ) {
+        List<String> issues = new ArrayList<>();
+        if (dormAreaBox.getValue() == null || dormAreaBox.getValue().isBlank()) {
+            issues.add("宿舍区");
+        }
+        if (buildingBox.getValue() == null) {
+            issues.add("宿舍楼");
+        }
+        if (roomBox.getValue() == null) {
+            issues.add("房间号");
+        }
+        if (faultCategoryBox.getValue() == null) {
+            issues.add("故障类型");
+        }
+
+        String phone = phoneField.getText() == null ? "" : phoneField.getText().trim();
+        if (phone.isEmpty()) {
+            issues.add("联系电话");
+        } else if (!PHONE_PATTERN.matcher(phone).matches()) {
+            issues.add("联系电话格式");
+        }
+
+        String description = descriptionArea.getText() == null ? "" : descriptionArea.getText().trim();
+        if (description.length() < 5) {
+            issues.add("故障描述至少 5 个字");
+        } else if (description.length() > MAX_DESCRIPTION_LENGTH) {
+            issues.add("故障描述超出上限");
+        }
+
+        boolean ready = issues.isEmpty();
+        submitButton.setDisable(!ready);
+        submitButton.setOpacity(ready ? 1.0 : 0.6);
+        submitReadinessLabel.setText(ready
+                ? "当前信息已经完整，可以直接提交报修申请。"
+                : "当前还需完善：" + String.join("、", issues) + "。");
     }
 
     private VBox createImageUploadBox(List<File> selectedImageFiles, Label draftImageCountLabel) {
