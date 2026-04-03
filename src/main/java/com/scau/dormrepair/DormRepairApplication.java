@@ -23,7 +23,7 @@ import javafx.stage.Stage;
 
 public class DormRepairApplication extends Application {
     private static final double LOGIN_WIDTH_RATIO = 0.84;
-    private static final double LOGIN_HEIGHT_RATIO = 0.90;
+    private static final double LOGIN_HEIGHT_RATIO = 0.88;
     private static final double WINDOW_MARGIN = 80;
     private static final double MIN_WINDOW_SIZE = 1;
 
@@ -60,16 +60,16 @@ public class DormRepairApplication extends Application {
             double maxWindowWidth = Math.max(960, visualBounds.getWidth() - WINDOW_MARGIN);
             double maxWindowHeight = Math.max(720, visualBounds.getHeight() - WINDOW_MARGIN);
             boolean authenticated = appContext.appSession().isAuthenticated();
-            double loginLaunchWidth = Math.min(ui.designWidth(), maxWindowWidth * LOGIN_WIDTH_RATIO);
-            double loginLaunchHeight = Math.min(ui.designHeight(), maxWindowHeight * LOGIN_HEIGHT_RATIO);
-            double launchBaseWidth = authenticated ? ui.designWidth() : loginLaunchWidth;
-            double launchBaseHeight = authenticated ? ui.designHeight() : loginLaunchHeight;
-            double designScale = Math.min(1.0, Math.min(
-                    maxWindowWidth / launchBaseWidth,
-                    maxWindowHeight / launchBaseHeight
-            ));
-            double initialWidth = launchBaseWidth * designScale;
-            double initialHeight = launchBaseHeight * designScale;
+            double[] initialSize = authenticated
+                    ? fitWindowSize(ui.designWidth(), ui.designHeight(), maxWindowWidth, maxWindowHeight)
+                    : fitWindowSize(
+                            ui.designWidth(),
+                            ui.designHeight(),
+                            maxWindowWidth * LOGIN_WIDTH_RATIO,
+                            maxWindowHeight * LOGIN_HEIGHT_RATIO
+                    );
+            double initialWidth = initialSize[0];
+            double initialHeight = initialSize[1];
 
             stage.getStage().setFullScreen(false);
             stage.getStage().setMaximized(false);
@@ -109,5 +109,15 @@ public class DormRepairApplication extends Application {
     private void showStartupError(Exception exception) {
         UiAlerts.error("\u542f\u52a8\u5931\u8d25", exception);
         Platform.exit();
+    }
+
+    private static double[] fitWindowSize(
+            double baseWidth,
+            double baseHeight,
+            double maxWidth,
+            double maxHeight
+    ) {
+        double scale = Math.min(1.0, Math.min(maxWidth / baseWidth, maxHeight / baseHeight));
+        return new double[] {baseWidth * scale, baseHeight * scale};
     }
 }
