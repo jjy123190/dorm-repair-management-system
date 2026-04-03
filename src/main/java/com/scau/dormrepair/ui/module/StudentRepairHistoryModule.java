@@ -441,6 +441,14 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
             return;
         }
         try {
+            int currentImageCount = state.currentDetail.getImageUrls() == null ? 0 : state.currentDetail.getImageUrls().size();
+            int maxAllowed = ProjectImageStore.MAX_IMAGE_COUNT - currentImageCount;
+            if (maxAllowed <= 0) {
+                throw new BusinessException("当前报修的图片已经达到上限，无需继续补图。");
+            }
+            if (state.pendingImageFiles.size() > maxAllowed) {
+                throw new BusinessException("当前最多还能补充 " + maxAllowed + " 张图片，请减少后再提交。");
+            }
             ProjectImageStore.validateImageFiles(state.pendingImageFiles);
             int total = appContext.repairRequestService().appendStudentRequestImages(
                     state.currentDetail.getStudentId(),
@@ -611,6 +619,9 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
             UiAlerts.error("确认失败", "请先选择一条报修记录。");
             return;
         }
+        if (!UiAlerts.confirm("确认完成", "确认当前维修结果已经满足需求，并将这条报修正式完结？", "确认完成")) {
+            return;
+        }
         try {
             appContext.repairRequestService().confirmStudentCompletion(currentStudent.getId(), state.currentDetail.getId());
             reloadCurrentDetail(currentStudent, state);
@@ -625,8 +636,16 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
             UiAlerts.error("返修失败", "请先选择一条报修记录。");
             return;
         }
+        String reworkReason = state.reworkArea.getText() == null ? "" : state.reworkArea.getText().trim();
+        if (reworkReason.isEmpty()) {
+            UiAlerts.error("返修失败", "请先填写返修原因后再提交。");
+            return;
+        }
+        if (!UiAlerts.confirm("申请返修", "确认按当前说明发起返修，并把这条报修重新送回处理中链路？", "确认返修")) {
+            return;
+        }
         try {
-            appContext.repairRequestService().requestStudentRework(currentStudent.getId(), state.currentDetail.getId(), state.reworkArea.getText());
+            appContext.repairRequestService().requestStudentRework(currentStudent.getId(), state.currentDetail.getId(), reworkReason);
             reloadCurrentDetail(currentStudent, state);
             UiAlerts.info("已提交返修", "当前报修已回到处理中链路。");
         } catch (RuntimeException exception) {

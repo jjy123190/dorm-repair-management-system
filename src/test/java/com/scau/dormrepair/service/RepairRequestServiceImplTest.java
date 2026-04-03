@@ -393,6 +393,61 @@ class RepairRequestServiceImplTest extends UserAccountIntegrationSupport {
     }
 
     @Test
+    void shouldRejectAppendingImagesToCompletedRequest() throws SQLException {
+        UserAccount admin = createInternalAccount("append_completed_admin", UserRole.ADMIN, "append_completed_admin", "13855551074", "admin123");
+        UserAccount worker = createInternalAccount("append_completed_worker", UserRole.WORKER, "append_completed_worker", "13855551075", "worker123");
+        Long studentId = userAccountService.registerStudent(
+                uniqueUsername("append_completed_student"),
+                "student123",
+                "student123",
+                "append_completed_student",
+                "13855551076"
+        );
+
+        Long requestId = repairRequestService.create(new CreateRepairRequestCommand(
+                studentId,
+                "append_completed_student",
+                "13855551076",
+                null,
+                "Taishan",
+                "11-BLD",
+                "602",
+                FaultCategory.ELECTRICITY,
+                "The desk lamp outlet keeps tripping after repair.",
+                List.of("pics/original-a.png")
+        ));
+        Long workOrderId = workOrderService.assign(new AssignWorkOrderCommand(
+                requestId,
+                admin.getId(),
+                worker.getId(),
+                WorkOrderPriority.NORMAL,
+                "Check the outlet and confirm stability."
+        ));
+        workOrderService.updateStatus(new UpdateWorkOrderStatusCommand(workOrderId, worker.getId(), WorkOrderStatus.ACCEPTED, "Accepted."));
+        workOrderService.updateStatus(new UpdateWorkOrderStatusCommand(workOrderId, worker.getId(), WorkOrderStatus.IN_PROGRESS, "Started fixing."));
+        workOrderService.updateStatus(new UpdateWorkOrderStatusCommand(
+                workOrderId,
+                worker.getId(),
+                WorkOrderStatus.WAITING_CONFIRMATION,
+                "Finished fixing.",
+                "Finished fixing.",
+                List.of()
+        ));
+        repairRequestService.confirmStudentCompletion(studentId, requestId);
+
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> repairRequestService.appendStudentRequestImages(
+                        studentId,
+                        requestId,
+                        List.of("pics/extra-a.png")
+                )
+        );
+
+        assertEquals("当前报修已结束，不能继续补充图片。", exception.getMessage());
+    }
+
+    @Test
     void shouldReturnMoreThanTwentyStudentRecordsWhenRequested() {
         Long studentId = userAccountService.registerStudent(
                 uniqueUsername("history_many_student"),

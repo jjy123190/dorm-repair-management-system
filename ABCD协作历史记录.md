@@ -884,4 +884,19 @@
   - 这轮仍然只动了 B 范围内的 service、学生记录页和测试，没有触碰 A 壳层和 C 工单处理逻辑。
   - 已执行 `mvn -Dmaven.repo.local=.m2\repository compile`，结果为 `BUILD SUCCESS`。
 - Push 结果
+  - 已 push 到 `origin/main`
+  - 提交号：`3438abe`
+
+### 2026-04-03 21:17 | B
+- 改动文件
+  - src/main/java/com/scau/dormrepair/ui/module/StudentRepairHistoryModule.java
+  - src/test/java/com/scau/dormrepair/service/RepairRequestServiceImplTest.java
+- 完成内容
+  - 学生侧“确认完成”和“申请返修”补上二次确认，避免误点后直接把报修推进到不可逆状态。
+  - 学生历史补图在复制到 `pics/` 之前，先按“当前已有图片数 + 待补图片数”做前置拦截，避免超上限时先落一批无效图片文件。
+  - 新增“已完成报修不能继续补图”的回归测试，继续收严 B 主链边界。
+- 影响提醒 / 下一步
+  - 这轮只动了学生记录页和 B 的测试基线，没有改 service 接口、数据库结构或 A/C 区共享逻辑。
+  - 已执行 `mvn -Dmaven.repo.local=.m2\repository compile`，结果为 `BUILD SUCCESS`。
+- Push 结果
   - 本轮待 commit + push
