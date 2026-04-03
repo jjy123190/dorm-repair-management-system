@@ -775,3 +775,18 @@
   - 这份文档属于共享协作入口，后续任何人改动前都应先确认编辑器编码为 UTF-8。
 - Push 结果
   - 本轮待 commit + push
+
+### 2026-04-03 13:45 | A
+- 改动文件
+  - src/main/java/com/scau/dormrepair/DormRepairApplication.java
+  - src/main/java/com/scau/dormrepair/ui/support/WindowResizeSupport.java
+  - ABCD协作历史记录.md
+- 完成内容
+  - 给自定义透明窗口补充了独立的八方向缩放支持，鼠标移动到上、下、左、右以及四个角时都会切换为对应的缩放光标并可直接拖拽调整窗口尺寸。
+  - 保留原有 vfx 窗口样式，只在主舞台挂载缩放事件，不改登录页和工作台业务布局。
+  - 缩放逻辑已处理最小宽高限制，并在窗口最大化、全屏或不可调整大小时自动禁用，避免和现有窗口状态冲突。
+- 影响提醒 / 下一步
+  - 当前只改了主窗口，项目里的弹窗仍保持不可缩放，这样可以继续维持弹窗排版稳定。
+  - 下一步建议实际跑一次 `mvn javafx:run` 做手感验证，重点确认四边和四角在不同分辨率下都能稳定命中。
+- Push 结果
+  - 本轮待 commit + push
