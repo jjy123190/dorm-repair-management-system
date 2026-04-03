@@ -801,3 +801,15 @@
   - 这次只调整桌面端窗口交互层，不涉及业务模块、数据库和样式资源；后续若继续改 `DormRepairApplication.java`，请先 pull 再合并。
 - Push 结果
   - 本轮待 commit + push
+
+### 2026-04-03 15:05 | A
+- 改动文件
+  - src/main/java/com/scau/dormrepair/DormRepairApplication.java
+  - ABCD协作历史记录.md
+- 完成内容
+  - 去掉主窗口沿用 `application.yml` 中 `1280 x 820` 的最小尺寸限制，改为接近技术下限的最小宽高设置。
+  - 让四边和四角缩放时不再过早被大窗口下限拦住，窗口可以继续明显缩小。
+- 影响提醒 / 下一步
+  - 这次只放开窗口最小尺寸，不改业务页面布局；极小尺寸下界面会继续按比例压缩，但可操作性会自然下降，这是预期表现。
+- Push 结果
+  - 本轮待 commit + push

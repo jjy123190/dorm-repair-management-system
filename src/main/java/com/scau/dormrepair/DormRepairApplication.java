@@ -24,8 +24,8 @@ import javafx.stage.Stage;
 public class DormRepairApplication extends Application {
     private static final double LOGIN_WIDTH_RATIO = 0.84;
     private static final double LOGIN_HEIGHT_RATIO = 0.90;
-
     private static final double WINDOW_MARGIN = 80;
+    private static final double MIN_WINDOW_SIZE = 1;
 
     private AppContext appContext;
 
@@ -74,8 +74,8 @@ public class DormRepairApplication extends Application {
             stage.getStage().setFullScreen(false);
             stage.getStage().setMaximized(false);
             stage.getStage().setResizable(true);
-            stage.getStage().setMinWidth(Math.min(ui.minWidth(), initialWidth));
-            stage.getStage().setMinHeight(Math.min(ui.minHeight(), initialHeight));
+            stage.getStage().setMinWidth(MIN_WINDOW_SIZE);
+            stage.getStage().setMinHeight(MIN_WINDOW_SIZE);
             stage.getStage().setWidth(initialWidth);
             stage.getStage().setHeight(initialHeight);
             stage.getStage().centerOnScreen();
