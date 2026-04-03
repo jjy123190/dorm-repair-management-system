@@ -392,6 +392,35 @@ class RepairRequestServiceImplTest extends UserAccountIntegrationSupport {
         assertEquals("当前报修最多保留 5 张图片，请减少后再提交。", exception.getMessage());
     }
 
+    @Test
+    void shouldReturnMoreThanTwentyStudentRecordsWhenRequested() {
+        Long studentId = userAccountService.registerStudent(
+                uniqueUsername("history_many_student"),
+                "student123",
+                "student123",
+                "history_many_student",
+                "13855551073"
+        );
+
+        for (int index = 0; index < 25; index++) {
+            repairRequestService.create(new CreateRepairRequestCommand(
+                    studentId,
+                    "history_many_student",
+                    "13855551073",
+                    null,
+                    "Taishan",
+                    "10-BLD",
+                    "6" + String.format("%02d", index),
+                    FaultCategory.OTHER,
+                    "History case " + index + " needs to remain visible in the student list.",
+                    List.of()
+            ));
+        }
+
+        List<RecentRepairRequestView> history = repairRequestService.listStudentSubmittedRequests(studentId, 100);
+        assertEquals(25, history.size());
+    }
+
     private UserAccount createInternalAccount(
             String suffix,
             UserRole role,

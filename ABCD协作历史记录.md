@@ -868,4 +868,20 @@
   - 已执行 `mvn -Dmaven.repo.local=.m2\repository compile`，结果为 `BUILD SUCCESS`。
   - 已尝试执行 `mvn -Dmaven.repo.local=.m2\repository test`，当前被 `org.junit.platform:junit-platform-commons:1.10.2` 依赖下载握手中断阻塞，测试未完整跑完。
 - Push 结果
+  - 已 push 到 `origin/main`
+  - 提交号：`848b358`
+
+### 2026-04-03 21:14 | B
+- 改动文件
+  - src/main/java/com/scau/dormrepair/service/impl/RepairRequestServiceImpl.java
+  - src/main/java/com/scau/dormrepair/ui/module/StudentRepairHistoryModule.java
+  - src/test/java/com/scau/dormrepair/service/RepairRequestServiceImplTest.java
+- 完成内容
+  - 学生报修记录页补齐派单时间、接单时间、派单备注展示，学生侧不再只能靠时间线和一句状态提示推测管理员处理过程。
+  - 学生历史记录查询上限从默认 20 条放宽到最多 100 条，避免记录稍多时旧报修直接从工作台里消失。
+  - 新增测试覆盖“同一学生请求 100 条上限时仍能拿到 25 条历史记录”的场景，补上这次产品级收口的验证。
+- 影响提醒 / 下一步
+  - 这轮仍然只动了 B 范围内的 service、学生记录页和测试，没有触碰 A 壳层和 C 工单处理逻辑。
+  - 已执行 `mvn -Dmaven.repo.local=.m2\repository compile`，结果为 `BUILD SUCCESS`。
+- Push 结果
   - 本轮待 commit + push

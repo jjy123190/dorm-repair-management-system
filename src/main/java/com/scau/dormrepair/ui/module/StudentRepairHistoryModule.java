@@ -138,8 +138,11 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         state.phoneValue = valueLabel("无");
         state.categoryValue = valueLabel("无");
         state.submittedAtValue = valueLabel("无");
+        state.assignedAtValue = valueLabel("无");
+        state.acceptedAtValue = valueLabel("无");
         state.completedAtValue = valueLabel("无");
         state.urgeCountValue = valueLabel("0");
+        state.assignmentNoteValue = valueLabel("当前暂无派单备注");
         state.reworkSummaryValue = valueLabel("当前没有返修记录");
         state.descriptionValue = valueLabel("无");
         state.completionSummaryValue = valueLabel("当前暂无完工说明");
@@ -203,8 +206,11 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
                 createFieldBlock("联系电话", state.phoneValue),
                 createFieldBlock("故障类别", state.categoryValue),
                 createFieldBlock("提交时间", state.submittedAtValue),
+                createFieldBlock("派单时间", state.assignedAtValue),
+                createFieldBlock("接单时间", state.acceptedAtValue),
                 createFieldBlock("完成时间", state.completedAtValue),
                 createFieldBlock("催办次数", state.urgeCountValue),
+                createFieldBlock("派单备注", state.assignmentNoteValue),
                 createFieldBlock("故障描述", state.descriptionValue),
                 createFieldBlock("报修附件", state.requestGallery),
                 createFieldBlock("补充图片", state.appendImageBox),
@@ -221,7 +227,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
 
     private void refreshHistory(HistoryState historyState, DetailState state, UserAccount currentStudent) {
         List<RecentRepairRequestView> rows = appContext.repairRequestService()
-                .listStudentSubmittedRequests(currentStudent.getId(), 20);
+                .listStudentSubmittedRequests(currentStudent.getId(), 100);
         historyState.container.getChildren().clear();
         historyState.selectedCard = null;
         if (rows.isEmpty()) {
@@ -314,8 +320,11 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         state.phoneValue.setText(placeholder(detail.getContactPhone()));
         state.categoryValue.setText(categoryText(detail.getFaultCategory()));
         state.submittedAtValue.setText(placeholder(formatTime(detail.getSubmittedAt())));
+        state.assignedAtValue.setText(placeholder(formatTime(detail.getAssignedAt())));
+        state.acceptedAtValue.setText(placeholder(formatTime(detail.getAcceptedAt())));
         state.completedAtValue.setText(placeholder(formatTime(detail.getCompletedAt())));
         state.urgeCountValue.setText(String.valueOf(detail.getUrgeCount() == null ? 0 : detail.getUrgeCount()));
+        state.assignmentNoteValue.setText(placeholder(detail.getAssignmentNote()));
         state.reworkSummaryValue.setText(buildReworkSummary(detail.getRecords()));
         state.descriptionValue.setText(placeholder(detail.getDescription()));
         state.completionSummaryValue.setText(buildCompletionSummary(detail));
@@ -458,8 +467,11 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         state.phoneValue.setText("无");
         state.categoryValue.setText("无");
         state.submittedAtValue.setText("无");
+        state.assignedAtValue.setText("无");
+        state.acceptedAtValue.setText("无");
         state.completedAtValue.setText("无");
         state.urgeCountValue.setText("0");
+        state.assignmentNoteValue.setText("当前暂无派单备注");
         state.reworkSummaryValue.setText("当前没有返修记录");
         state.descriptionValue.setText("无");
         state.completionSummaryValue.setText("当前暂无完工说明");
@@ -795,8 +807,11 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         private Label phoneValue;
         private Label categoryValue;
         private Label submittedAtValue;
+        private Label assignedAtValue;
+        private Label acceptedAtValue;
         private Label completedAtValue;
         private Label urgeCountValue;
+        private Label assignmentNoteValue;
         private Label reworkSummaryValue;
         private Label descriptionValue;
         private Label completionSummaryValue;

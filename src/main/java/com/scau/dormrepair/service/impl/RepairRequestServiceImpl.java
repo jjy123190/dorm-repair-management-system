@@ -90,7 +90,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
     @Override
     public List<RecentRepairRequestView> listLatestSubmittedRequests(int limit) {
-        int safeLimit = Math.min(Math.max(limit, 1), 20);
+        int safeLimit = Math.min(Math.max(limit, 1), 100);
         return myBatisExecutor.executeRead(session ->
                 decorateRows(session.getMapper(RepairRequestMapper.class).selectLatestSubmittedRequests(safeLimit))
         );
@@ -101,7 +101,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         if (studentId == null) {
             throw new BusinessException("学生账号不存在，无法查询报修记录。");
         }
-        int safeLimit = Math.min(Math.max(limit, 1), 20);
+        int safeLimit = Math.min(Math.max(limit, 1), 100);
         return myBatisExecutor.executeRead(session ->
                 decorateRows(session.getMapper(RepairRequestMapper.class).selectStudentSubmittedRequests(studentId, safeLimit))
         );
@@ -359,7 +359,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
     @Override
     public List<RecentRepairRequestView> listPendingAssignmentRequests(int limit) {
-        int safeLimit = Math.min(Math.max(limit, 1), 20);
+        int safeLimit = Math.min(Math.max(limit, 1), 100);
         return myBatisExecutor.executeRead(session ->
                 decorateRows(session.getMapper(RepairRequestMapper.class).selectPendingAssignmentRequests(safeLimit))
         );
