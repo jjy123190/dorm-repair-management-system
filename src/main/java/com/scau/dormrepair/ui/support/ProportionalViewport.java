@@ -31,19 +31,16 @@ public class ProportionalViewport extends Pane {
             return;
         }
 
-        double scale = Math.min(1.0, Math.min(viewportWidth / designWidth, viewportHeight / designHeight));
-        double scaledWidth = designWidth * scale;
-        double scaledHeight = designHeight * scale;
-        double offsetX = (viewportWidth - scaledWidth) / 2;
-        double offsetY = (viewportHeight - scaledHeight) / 2;
+        double scaleX = viewportWidth / designWidth;
+        double scaleY = viewportHeight / designHeight;
 
-        scaleTransform.setX(scale);
-        scaleTransform.setY(scale);
+        scaleTransform.setX(scaleX);
+        scaleTransform.setY(scaleY);
 
         if (content instanceof Region region) {
-            region.resizeRelocate(offsetX, offsetY, designWidth, designHeight);
+            region.resizeRelocate(0, 0, designWidth, designHeight);
         } else {
-            content.relocate(offsetX, offsetY);
+            content.relocate(0, 0);
         }
     }
 
