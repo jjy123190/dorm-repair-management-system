@@ -788,3 +788,16 @@
   - 当前主窗口已回到撤销前状态，如果后续还要继续优化窗口交互，建议先单独确认是要保留 vfx 原生行为，还是完全接管窗口边框交互。
 - Push 结果
   - 本轮待 commit + push
+
+### 2026-04-03 14:38 | A
+- 改动文件
+  - src/main/java/com/scau/dormrepair/DormRepairApplication.java
+  - src/main/java/com/scau/dormrepair/ui/support/WindowResizeSupport.java
+  - ABCD协作历史记录.md
+- 完成内容
+  - 为主窗口补齐四条边和四个角的拖拽缩放命中区域，不再只能从右下角调整窗口大小。
+  - 新增 `WindowResizeSupport` 统一处理鼠标命中、方向光标和最小宽高约束，并在主窗口启动时挂载到 `Stage`。
+- 影响提醒 / 下一步
+  - 这次只调整桌面端窗口交互层，不涉及业务模块、数据库和样式资源；后续若继续改 `DormRepairApplication.java`，请先 pull 再合并。
+- Push 结果
+  - 本轮待 commit + push

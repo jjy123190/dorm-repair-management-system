@@ -6,6 +6,7 @@ import com.scau.dormrepair.ui.AppShell;
 import com.scau.dormrepair.ui.support.BrandIconFactory;
 import com.scau.dormrepair.ui.support.ProportionalViewport;
 import com.scau.dormrepair.ui.support.UiAlerts;
+import com.scau.dormrepair.ui.support.WindowResizeSupport;
 import com.scau.dormrepair.ui.theme.DormVfxTheme;
 import io.vproxy.vfx.theme.Theme;
 import io.vproxy.vfx.ui.scene.VScene;
@@ -78,6 +79,7 @@ public class DormRepairApplication extends Application {
             stage.getStage().setWidth(initialWidth);
             stage.getStage().setHeight(initialHeight);
             stage.getStage().centerOnScreen();
+            WindowResizeSupport.install(stage.getStage());
             stage.show();
         } catch (Exception exception) {
             showStartupError(exception);
