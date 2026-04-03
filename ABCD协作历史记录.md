@@ -849,3 +849,23 @@
   - 这次只调整初始窗口比例，不影响后续拖拽缩放能力；如果继续手动把窗口拉成超宽比例，界面仍会按当前贴满策略拉伸。
 - Push 结果
   - 本轮待 commit + push
+
+### 2026-04-03 20:36 | B
+- 改动文件
+  - src/main/java/com/scau/dormrepair/service/RepairRequestService.java
+  - src/main/java/com/scau/dormrepair/service/impl/RepairRequestServiceImpl.java
+  - src/main/java/com/scau/dormrepair/mapper/RepairRequestImageMapper.java
+  - src/main/resources/mapper/RepairRequestImageMapper.xml
+  - src/main/java/com/scau/dormrepair/ui/module/StudentRepairHistoryModule.java
+  - src/test/java/com/scau/dormrepair/service/RepairRequestServiceImplTest.java
+- 完成内容
+  - 给 B 主链补上“学生提交后继续补充现场图片”的正式入口，沿用现有 `repair_request_images` 表和 `pics/` 本地图片存储，不额外新建表结构。
+  - service 层新增“只能补自己未结束报修、总图数最多 5 张、重复图片不重复入库”的校验，并把图片排序接到现有明细查询里。
+  - 学生报修记录详情页新增补图工作区，学生可以在历史详情里选择图片、清空待传、提交补图，提交后会自动刷新右侧详情。
+  - 补了对应集成测试，覆盖“本人可补图”和“超出 5 张上限会被拦截”两条关键路径。
+- 影响提醒 / 下一步
+  - 这轮改动只触达 B 允许范围内的 service、mapper、学生记录页和测试，没有动 A 区壳层和 C 区工单主链。
+  - 已执行 `mvn -Dmaven.repo.local=.m2\repository compile`，结果为 `BUILD SUCCESS`。
+  - 已尝试执行 `mvn -Dmaven.repo.local=.m2\repository test`，当前被 `org.junit.platform:junit-platform-commons:1.10.2` 依赖下载握手中断阻塞，测试未完整跑完。
+- Push 结果
+  - 本轮待 commit + push

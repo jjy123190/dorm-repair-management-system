@@ -319,6 +319,79 @@ class RepairRequestServiceImplTest extends UserAccountIntegrationSupport {
         assertEquals("所选房间已停用，请重新选择可报修房间。", exception.getMessage());
     }
 
+    @Test
+    void shouldAllowStudentToAppendImagesForOwnOpenRequest() throws SQLException {
+        Long studentId = userAccountService.registerStudent(
+                uniqueUsername("append_images_student"),
+                "student123",
+                "student123",
+                "append_images_student",
+                "13855551071"
+        );
+
+        Long requestId = repairRequestService.create(new CreateRepairRequestCommand(
+                studentId,
+                "append_images_student",
+                "13855551071",
+                null,
+                "Taishan",
+                "8-BLD",
+                "416",
+                FaultCategory.ELECTRICITY,
+                "The ceiling light keeps flickering in the dorm.",
+                List.of("pics/original-a.png", "pics/original-b.png")
+        ));
+
+        int totalImages = repairRequestService.appendStudentRequestImages(
+                studentId,
+                requestId,
+                List.of("pics/extra-a.png", "pics/extra-b.png")
+        );
+
+        assertEquals(4, totalImages);
+        assertEquals(4, countRepairRequestImages(requestId));
+
+        StudentRepairDetailView detail = repairRequestService.getStudentRequestDetail(studentId, requestId);
+        assertEquals(4, detail.getImageUrls().size());
+        assertTrue(detail.getImageUrls().contains("pics/extra-a.png"));
+        assertTrue(detail.getImageUrls().contains("pics/extra-b.png"));
+    }
+
+    @Test
+    void shouldRejectAppendingImagesBeyondLimit() {
+        Long studentId = userAccountService.registerStudent(
+                uniqueUsername("append_limit_student"),
+                "student123",
+                "student123",
+                "append_limit_student",
+                "13855551072"
+        );
+
+        Long requestId = repairRequestService.create(new CreateRepairRequestCommand(
+                studentId,
+                "append_limit_student",
+                "13855551072",
+                null,
+                "Taishan",
+                "9-BLD",
+                "512",
+                FaultCategory.WATER_PIPE,
+                "The water pipe keeps dripping and needs urgent repair.",
+                List.of("pics/original-a.png", "pics/original-b.png", "pics/original-c.png")
+        ));
+
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> repairRequestService.appendStudentRequestImages(
+                        studentId,
+                        requestId,
+                        List.of("pics/extra-a.png", "pics/extra-b.png", "pics/extra-c.png")
+                )
+        );
+
+        assertEquals("当前报修最多保留 5 张图片，请减少后再提交。", exception.getMessage());
+    }
+
     private UserAccount createInternalAccount(
             String suffix,
             UserRole role,
@@ -343,6 +416,21 @@ class RepairRequestServiceImplTest extends UserAccountIntegrationSupport {
              )) {
             statement.setLong(1, workOrderId);
             statement.setString(2, status);
+            try (var resultSet = statement.executeQuery()) {
+                if (!resultSet.next()) {
+                    return 0;
+                }
+                return resultSet.getInt(1);
+            }
+        }
+    }
+
+    private int countRepairRequestImages(Long requestId) throws SQLException {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     "SELECT COUNT(*) FROM repair_request_images WHERE repair_request_id = ?"
+             )) {
+            statement.setLong(1, requestId);
             try (var resultSet = statement.executeQuery()) {
                 if (!resultSet.next()) {
                     return 0;

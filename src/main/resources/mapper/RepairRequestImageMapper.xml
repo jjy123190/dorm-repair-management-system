@@ -14,7 +14,7 @@
             (
                 #{repairRequestId},
                 #{imageUrl},
-                ${index + 1}
+                (#{startSortNo} + ${index})
             )
         </foreach>
     </insert>

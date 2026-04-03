@@ -15,8 +15,10 @@ import com.scau.dormrepair.ui.component.AppDropdown;
 import com.scau.dormrepair.ui.component.EvidenceGallery;
 import com.scau.dormrepair.ui.component.StatusChip;
 import com.scau.dormrepair.ui.component.TimeoutChip;
+import com.scau.dormrepair.ui.support.ProjectImageStore;
 import com.scau.dormrepair.ui.support.UiAlerts;
 import com.scau.dormrepair.ui.support.UiMotion;
+import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -37,6 +39,8 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
+import javafx.stage.Window;
 
 public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
 
@@ -167,6 +171,12 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         state.confirmButton = new Button("确认完成");
         state.reworkButton = new Button("申请返修");
         state.feedbackButton = new Button("提交评价");
+        state.pendingImageFiles = new ArrayList<>();
+        state.appendImageCountLabel = helperLabel("已选 0 / " + ProjectImageStore.MAX_IMAGE_COUNT + " 张");
+        state.appendImagePreview = new VBox(8);
+        state.appendImagePreview.getStyleClass().add("upload-preview-box");
+        state.appendImagePreview.setFillWidth(true);
+        state.appendImageBox = createAppendImageBox(state);
         state.urgeButton.getStyleClass().add("surface-button");
         state.cancelButton.getStyleClass().add("surface-button");
         state.confirmButton.getStyleClass().add("surface-button");
@@ -197,6 +207,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
                 createFieldBlock("催办次数", state.urgeCountValue),
                 createFieldBlock("故障描述", state.descriptionValue),
                 createFieldBlock("报修附件", state.requestGallery),
+                createFieldBlock("补充图片", state.appendImageBox),
                 createFieldBlock("学生操作", state.actionContainer),
                 createFieldBlock("处理时间线", state.timelineContainer),
                 createFieldBlock("评价", state.feedbackContainer)
@@ -313,6 +324,9 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         state.ratingBox.clearSelection();
         state.feedbackArea.clear();
         state.anonymousBox.setSelected(false);
+        state.pendingImageFiles.clear();
+        refreshPendingImagePreview(state);
+        renderAppendImageSection(state, detail.getStatus());
         renderActionSection(state, detail.getStatus());
         renderTimelineSection(state, detail.getRecords());
         renderFeedbackSection(state, detail);
@@ -333,6 +347,109 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         );
     }
 
+    private VBox createAppendImageBox(DetailState state) {
+        Label helper = helperLabel("提交后还能继续补图，最多保留 5 张。已结束报修会自动关闭这个入口。");
+
+        Button chooseButton = new Button("选择补充图片");
+        Button clearButton = new Button("清空待传");
+        Button uploadButton = new Button("提交补图");
+        chooseButton.getStyleClass().add("surface-button");
+        clearButton.getStyleClass().add("surface-button");
+        uploadButton.getStyleClass().add("surface-button");
+
+        chooseButton.setOnAction(event -> {
+            List<File> selectedFiles = chooseImageFiles(chooseButton);
+            if (selectedFiles.isEmpty()) {
+                return;
+            }
+            for (File file : selectedFiles) {
+                boolean exists = state.pendingImageFiles.stream()
+                        .anyMatch(existing -> existing.toPath().equals(file.toPath()));
+                if (!exists) {
+                    state.pendingImageFiles.add(file);
+                }
+            }
+            try {
+                ProjectImageStore.validateImageFiles(state.pendingImageFiles);
+                refreshPendingImagePreview(state);
+            } catch (RuntimeException exception) {
+                state.pendingImageFiles.removeIf(file ->
+                        selectedFiles.stream().anyMatch(selected -> selected.toPath().equals(file.toPath()))
+                );
+                refreshPendingImagePreview(state);
+                UiAlerts.error("图片校验失败", exception.getMessage());
+            }
+        });
+
+        clearButton.setOnAction(event -> {
+            state.pendingImageFiles.clear();
+            refreshPendingImagePreview(state);
+        });
+
+        uploadButton.setOnAction(event -> appendImages(state));
+
+        HBox toolbar = new HBox(12, chooseButton, clearButton, uploadButton);
+        toolbar.setAlignment(Pos.CENTER_LEFT);
+
+        VBox box = new VBox(10, helper, state.appendImageCountLabel, toolbar, state.appendImagePreview);
+        box.setFillWidth(true);
+        refreshPendingImagePreview(state);
+        return box;
+    }
+
+    private void refreshPendingImagePreview(DetailState state) {
+        state.appendImagePreview.getChildren().clear();
+        state.appendImageCountLabel.setText("已选 " + state.pendingImageFiles.size() + " / " + ProjectImageStore.MAX_IMAGE_COUNT + " 张");
+        if (state.pendingImageFiles.isEmpty()) {
+            state.appendImagePreview.getChildren().add(helperLabel("当前没有待补充的图片。"));
+            return;
+        }
+        for (int index = 0; index < state.pendingImageFiles.size(); index++) {
+            Label label = new Label((index + 1) + ". " + state.pendingImageFiles.get(index).getName());
+            label.getStyleClass().add("upload-preview-item");
+            label.setWrapText(true);
+            state.appendImagePreview.getChildren().add(label);
+        }
+    }
+
+    private List<File> chooseImageFiles(Node ownerNode) {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("选择补充图片");
+        chooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("图片文件", "*.png", "*.jpg", "*.jpeg", "*.webp", "*.bmp", "*.gif")
+        );
+        Window ownerWindow = ownerNode.getScene() == null ? null : ownerNode.getScene().getWindow();
+        List<File> selectedFiles = chooser.showOpenMultipleDialog(ownerWindow);
+        if (selectedFiles == null || selectedFiles.isEmpty()) {
+            return List.of();
+        }
+        return selectedFiles;
+    }
+
+    private void appendImages(DetailState state) {
+        if (state.currentDetail == null) {
+            UiAlerts.error("补图失败", "请先选择一条报修记录。");
+            return;
+        }
+        try {
+            ProjectImageStore.validateImageFiles(state.pendingImageFiles);
+            int total = appContext.repairRequestService().appendStudentRequestImages(
+                    state.currentDetail.getStudentId(),
+                    state.currentDetail.getId(),
+                    ProjectImageStore.copyImagesToProject(state.pendingImageFiles)
+            );
+            state.pendingImageFiles.clear();
+            refreshPendingImagePreview(state);
+            reloadCurrentDetail(
+                    appContext.userAccountService().requireCurrentAccount(appContext.appSession(), UserRole.STUDENT),
+                    state
+            );
+            UiAlerts.info("补图成功", "图片已补充到当前报修记录，当前共 " + total + " 张。");
+        } catch (RuntimeException exception) {
+            UiAlerts.error("补图失败", exception.getMessage());
+        }
+    }
+
     private void clearDetail(DetailState state) {
         state.currentDetail = null;
         state.statusContainer.getChildren().setAll(helperLabel("未选择记录"));
@@ -349,9 +466,21 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         state.feedbackSummaryValue.setText("当前阶段无需评价");
         state.requestGallery.setImages(List.of(), "当前没有报修附件。");
         state.completionGallery.setImages(List.of(), "当前暂无完工凭证。");
+        state.pendingImageFiles.clear();
+        refreshPendingImagePreview(state);
+        renderAppendImageSection(state, null);
         state.actionContainer.getChildren().setAll(helperLabel("无"));
         renderTimelineSection(state, List.of());
         state.feedbackContainer.getChildren().setAll(state.feedbackSummaryValue);
+    }
+
+    private void renderAppendImageSection(DetailState state, RepairRequestStatus status) {
+        boolean canAppend = status != null
+                && status != RepairRequestStatus.COMPLETED
+                && status != RepairRequestStatus.REJECTED
+                && status != RepairRequestStatus.CANCELLED;
+        state.appendImageBox.setDisable(!canAppend);
+        state.appendImageBox.setOpacity(canAppend ? 1.0 : 0.6);
     }
 
     private void renderActionSection(DetailState state, RepairRequestStatus status) {
@@ -674,6 +803,10 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         private Label feedbackSummaryValue;
         private EvidenceGallery requestGallery;
         private EvidenceGallery completionGallery;
+        private VBox appendImageBox;
+        private Label appendImageCountLabel;
+        private VBox appendImagePreview;
+        private List<File> pendingImageFiles;
         private VBox actionContainer;
         private VBox timelineContainer;
         private VBox feedbackContainer;

@@ -19,6 +19,8 @@ public interface RepairRequestService {
 
     StudentRepairDetailView getStudentRequestDetail(Long studentId, Long requestId);
 
+    int appendStudentRequestImages(Long studentId, Long requestId, java.util.List<String> imageUrls);
+
     int urgeStudentRequest(Long studentId, Long requestId);
 
     void cancelStudentRequest(Long studentId, Long requestId);

@@ -11,6 +11,7 @@ public interface RepairRequestImageMapper {
 
     int batchInsert(
             @Param("repairRequestId") Long repairRequestId,
+            @Param("startSortNo") int startSortNo,
             @Param("imageUrls") List<String> imageUrls
     );
 
