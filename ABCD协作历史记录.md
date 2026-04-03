@@ -899,4 +899,26 @@
   - 这轮只动了学生记录页和 B 的测试基线，没有改 service 接口、数据库结构或 A/C 区共享逻辑。
   - 已执行 `mvn -Dmaven.repo.local=.m2\repository compile`，结果为 `BUILD SUCCESS`。
 - Push 结果
+  - 已 push 到 `origin/main`
+  - 提交号：`0805b6e`
+
+### 2026-04-03 21:55 | B
+- 改动文件
+  - src/main/java/com/scau/dormrepair/service/RepairRequestService.java
+  - src/main/java/com/scau/dormrepair/service/impl/RepairRequestServiceImpl.java
+  - src/main/java/com/scau/dormrepair/mapper/RepairRequestImageMapper.java
+  - src/main/resources/mapper/RepairRequestImageMapper.xml
+  - src/main/java/com/scau/dormrepair/ui/module/StudentRepairModule.java
+  - src/main/java/com/scau/dormrepair/ui/module/StudentRepairHistoryModule.java
+  - src/test/java/com/scau/dormrepair/service/RepairRequestServiceImplTest.java
+- 完成内容
+  - 学生提交页补了即时产品反馈：联系电话格式提示、故障描述字数和剩余字数提示，填写阶段就能知道哪里还不稳。
+  - 学生报修记录页新增状态筛选，支持按“全部 / 处理中 / 待确认 / 已完成 / 已关闭”快速看自己的历史记录。
+  - 学生报修图片支持删除单张已上传图片，老师如果追问“传错图怎么办”，现在可以在学生详情页直接演示删除。
+  - 补图流程在复制文件到 `pics/` 前先做剩余数量拦截，避免超上限时先落无效图片文件。
+  - 新增测试覆盖“学生可删自己的图片”和“已完成报修不能删图”两条边界。
+- 影响提醒 / 下一步
+  - 这轮仍然只触达 B 范围内的 service、mapper、学生提交页、学生记录页和测试，没有改 A 壳层与 C 工单主链。
+  - 已执行 `mvn -Dmaven.repo.local=.m2\repository compile`，结果为 `BUILD SUCCESS`。
+- Push 结果
   - 本轮待 commit + push

@@ -21,6 +21,8 @@ public interface RepairRequestService {
 
     int appendStudentRequestImages(Long studentId, Long requestId, java.util.List<String> imageUrls);
 
+    int removeStudentRequestImage(Long studentId, Long requestId, String imageUrl);
+
     int urgeStudentRequest(Long studentId, Long requestId);
 
     void cancelStudentRequest(Long studentId, Long requestId);

@@ -15,5 +15,10 @@ public interface RepairRequestImageMapper {
             @Param("imageUrls") List<String> imageUrls
     );
 
+    int deleteByRepairRequestIdAndImageUrl(
+            @Param("repairRequestId") Long repairRequestId,
+            @Param("imageUrl") String imageUrl
+    );
+
     List<RepairRequestImage> selectByRepairRequestId(@Param("repairRequestId") Long repairRequestId);
 }

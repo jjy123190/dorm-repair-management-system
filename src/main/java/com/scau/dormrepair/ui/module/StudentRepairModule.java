@@ -30,8 +30,12 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
+import java.util.regex.Pattern;
 
 public class StudentRepairModule extends AbstractWorkbenchModule {
+
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^[0-9+\\-\\s]{6,32}$");
+    private static final int MAX_DESCRIPTION_LENGTH = 1000;
 
     public StudentRepairModule(AppContext appContext) {
         super(appContext);
@@ -82,6 +86,8 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         TextField phoneField = new TextField();
         phoneField.setPromptText("\u8054\u7cfb\u7535\u8bdd");
         phoneField.setText(currentStudent.getPhone() == null ? "" : currentStudent.getPhone());
+        Label phoneHintLabel = createDraftValueLabel("");
+        phoneHintLabel.getStyleClass().add("helper-text");
 
         AppDropdown<FaultCategory> faultCategoryBox = createFaultCategoryBox();
 
@@ -89,6 +95,8 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         descriptionArea.setPromptText("\u8bf7\u5177\u4f53\u8bf4\u660e\u6545\u969c\u73b0\u8c61\u3001\u662f\u5426\u7d27\u6025\u3001\u662f\u5426\u5f71\u54cd\u6b63\u5e38\u751f\u6d3b\u3002");
         descriptionArea.setPrefRowCount(4);
         descriptionArea.setWrapText(true);
+        Label descriptionHintLabel = createDraftValueLabel("");
+        descriptionHintLabel.getStyleClass().add("helper-text");
 
         List<File> selectedImageFiles = new ArrayList<>();
         Label draftLocationValue = createDraftValueLabel("\u5f85\u8865\u5145");
@@ -112,6 +120,14 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
         faultCategoryBox.valueProperty().addListener((observable, oldValue, newValue) ->
                 draftFaultValue.setText(newValue == null ? "\u5f85\u9009\u62e9" : UiDisplayText.faultCategory(newValue))
         );
+        phoneField.textProperty().addListener((observable, oldValue, newValue) ->
+                refreshPhoneHint(phoneField, phoneHintLabel)
+        );
+        descriptionArea.textProperty().addListener((observable, oldValue, newValue) ->
+                refreshDescriptionHint(descriptionArea, descriptionHintLabel)
+        );
+        refreshPhoneHint(phoneField, phoneHintLabel);
+        refreshDescriptionHint(descriptionArea, descriptionHintLabel);
 
         Button resetButton = new Button("\u6e05\u7a7a\u8868\u5355");
         resetButton.getStyleClass().add("surface-button");
@@ -201,7 +217,9 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
                 dormRow,
                 contactRow,
                 createFieldBlock("\u6545\u969c\u7c7b\u578b", faultCategoryBox),
+                createFieldBlock("\u8054\u7cfb\u7535\u8bdd\u63d0\u793a", phoneHintLabel),
                 createFieldBlock("\u6545\u969c\u63cf\u8ff0", descriptionArea),
+                createFieldBlock("\u63cf\u8ff0\u5b57\u6570", descriptionHintLabel),
                 createFieldBlock("\u56fe\u7247\u4e0a\u4f20", imageUploadBox),
                 actionRow
         );
@@ -326,6 +344,38 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
             );
         }
         faultCategoryBox.clearSelection();
+    }
+
+    private void refreshPhoneHint(TextField phoneField, Label phoneHintLabel) {
+        String value = phoneField.getText() == null ? "" : phoneField.getText().trim();
+        if (value.isEmpty()) {
+            phoneHintLabel.setText("请填写可联系到你的手机号或常用电话。");
+            return;
+        }
+        if (PHONE_PATTERN.matcher(value).matches()) {
+            phoneHintLabel.setText("联系电话格式看起来正常，提交后维修员会按这个号码联系你。");
+            return;
+        }
+        phoneHintLabel.setText("当前电话格式可能有误，建议检查是否包含空号、错号或异常字符。");
+    }
+
+    private void refreshDescriptionHint(TextArea descriptionArea, Label descriptionHintLabel) {
+        String value = descriptionArea.getText() == null ? "" : descriptionArea.getText().trim();
+        int used = value.length();
+        int remaining = MAX_DESCRIPTION_LENGTH - used;
+        if (used == 0) {
+            descriptionHintLabel.setText("建议写清故障现象、影响范围和是否紧急，至少 5 个字。");
+            return;
+        }
+        if (remaining < 0) {
+            descriptionHintLabel.setText("已超出 " + MAX_DESCRIPTION_LENGTH + " 字上限 " + (-remaining) + " 个字，请精简后再提交。");
+            return;
+        }
+        if (used < 5) {
+            descriptionHintLabel.setText("当前已写 " + used + " 个字，还需要至少 " + (5 - used) + " 个字。");
+            return;
+        }
+        descriptionHintLabel.setText("当前已写 " + used + " 个字，还可填写 " + remaining + " 个字。");
     }
 
     private VBox createImageUploadBox(List<File> selectedImageFiles, Label draftImageCountLabel) {

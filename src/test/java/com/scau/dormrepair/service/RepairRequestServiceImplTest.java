@@ -448,6 +448,88 @@ class RepairRequestServiceImplTest extends UserAccountIntegrationSupport {
     }
 
     @Test
+    void shouldAllowStudentToRemoveOwnOpenRequestImage() throws SQLException {
+        Long studentId = userAccountService.registerStudent(
+                uniqueUsername("remove_image_student"),
+                "student123",
+                "student123",
+                "remove_image_student",
+                "13855551077"
+        );
+
+        Long requestId = repairRequestService.create(new CreateRepairRequestCommand(
+                studentId,
+                "remove_image_student",
+                "13855551077",
+                null,
+                "Taishan",
+                "12-BLD",
+                "410",
+                FaultCategory.NETWORK,
+                "The network panel is broken and one image was uploaded by mistake.",
+                List.of("pics/remove-a.png", "pics/remove-b.png")
+        ));
+
+        int remaining = repairRequestService.removeStudentRequestImage(studentId, requestId, "pics/remove-a.png");
+
+        assertEquals(1, remaining);
+        StudentRepairDetailView detail = repairRequestService.getStudentRequestDetail(studentId, requestId);
+        assertEquals(1, detail.getImageUrls().size());
+        assertTrue(detail.getImageUrls().contains("pics/remove-b.png"));
+    }
+
+    @Test
+    void shouldRejectRemovingImageFromCompletedRequest() throws SQLException {
+        UserAccount admin = createInternalAccount("remove_completed_admin", UserRole.ADMIN, "remove_completed_admin", "13855551078", "admin123");
+        UserAccount worker = createInternalAccount("remove_completed_worker", UserRole.WORKER, "remove_completed_worker", "13855551079", "worker123");
+        Long studentId = userAccountService.registerStudent(
+                uniqueUsername("remove_completed_student"),
+                "student123",
+                "student123",
+                "remove_completed_student",
+                "13855551080"
+        );
+
+        Long requestId = repairRequestService.create(new CreateRepairRequestCommand(
+                studentId,
+                "remove_completed_student",
+                "13855551080",
+                null,
+                "Taishan",
+                "13-BLD",
+                "508",
+                FaultCategory.OTHER,
+                "A wrong proof image should not be removable after completion.",
+                List.of("pics/remove-finished.png")
+        ));
+        Long workOrderId = workOrderService.assign(new AssignWorkOrderCommand(
+                requestId,
+                admin.getId(),
+                worker.getId(),
+                WorkOrderPriority.NORMAL,
+                "Close this request normally."
+        ));
+        workOrderService.updateStatus(new UpdateWorkOrderStatusCommand(workOrderId, worker.getId(), WorkOrderStatus.ACCEPTED, "Accepted."));
+        workOrderService.updateStatus(new UpdateWorkOrderStatusCommand(workOrderId, worker.getId(), WorkOrderStatus.IN_PROGRESS, "Processing."));
+        workOrderService.updateStatus(new UpdateWorkOrderStatusCommand(
+                workOrderId,
+                worker.getId(),
+                WorkOrderStatus.WAITING_CONFIRMATION,
+                "Finished.",
+                "Finished.",
+                List.of()
+        ));
+        repairRequestService.confirmStudentCompletion(studentId, requestId);
+
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> repairRequestService.removeStudentRequestImage(studentId, requestId, "pics/remove-finished.png")
+        );
+
+        assertEquals("当前报修已结束，不能继续删除图片。", exception.getMessage());
+    }
+
+    @Test
     void shouldReturnMoreThanTwentyStudentRecordsWhenRequested() {
         Long studentId = userAccountService.registerStudent(
                 uniqueUsername("history_many_student"),

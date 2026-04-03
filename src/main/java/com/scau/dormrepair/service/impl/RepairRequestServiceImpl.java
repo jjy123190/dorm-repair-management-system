@@ -219,6 +219,37 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     }
 
     @Override
+    public int removeStudentRequestImage(Long studentId, Long requestId, String imageUrl) {
+        if (studentId == null) {
+            throw new BusinessException("学生账号不存在，无法删除图片。");
+        }
+        if (requestId == null) {
+            throw new BusinessException("报修记录不存在，无法删除图片。");
+        }
+        String normalizedImageUrl = trimToNull(imageUrl);
+        if (normalizedImageUrl == null) {
+            throw new BusinessException("图片不存在，无法删除。");
+        }
+        return myBatisExecutor.executeWrite(session -> {
+            RepairRequestMapper repairRequestMapper = session.getMapper(RepairRequestMapper.class);
+            RepairRequestImageMapper imageMapper = session.getMapper(RepairRequestImageMapper.class);
+
+            RepairRequest repairRequest = requireStudentOwnedRequest(repairRequestMapper, studentId, requestId);
+            if (repairRequest.getStatus() == RepairRequestStatus.COMPLETED
+                    || repairRequest.getStatus() == RepairRequestStatus.REJECTED
+                    || repairRequest.getStatus() == RepairRequestStatus.CANCELLED) {
+                throw new BusinessException("当前报修已结束，不能继续删除图片。");
+            }
+
+            int affectedRows = imageMapper.deleteByRepairRequestIdAndImageUrl(requestId, normalizedImageUrl);
+            if (affectedRows == 0) {
+                throw new BusinessException("未找到这张报修图片，删除失败。");
+            }
+            return imageMapper.selectByRepairRequestId(requestId).size();
+        });
+    }
+
+    @Override
     public int urgeStudentRequest(Long studentId, Long requestId) {
         if (studentId == null) {
             throw new BusinessException("学生账号不存在，无法催办报修。");

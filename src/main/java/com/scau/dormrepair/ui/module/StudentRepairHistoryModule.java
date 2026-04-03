@@ -17,6 +17,7 @@ import com.scau.dormrepair.ui.component.StatusChip;
 import com.scau.dormrepair.ui.component.TimeoutChip;
 import com.scau.dormrepair.ui.support.ProjectImageStore;
 import com.scau.dormrepair.ui.support.UiAlerts;
+import com.scau.dormrepair.ui.support.UiDisplayText;
 import com.scau.dormrepair.ui.support.UiMotion;
 import java.io.File;
 import java.time.LocalDateTime;
@@ -104,13 +105,24 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         HistoryState historyState = new HistoryState(historyList);
         state.historyState = historyState;
 
+        AppDropdown<HistoryFilterOption> filterBox = new AppDropdown<>();
+        filterBox.setItems(List.of(HistoryFilterOption.values()));
+        filterBox.setTextMapper(HistoryFilterOption::label);
+        filterBox.setPromptText("筛选记录状态");
+        filterBox.setVisibleRowCount(6);
+        filterBox.setValue(HistoryFilterOption.ALL);
+        filterBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            historyState.filterOption = newValue == null ? HistoryFilterOption.ALL : newValue;
+            refreshHistory(historyState, state, currentStudent);
+        });
+
         Button refreshButton = new Button("刷新记录");
         refreshButton.getStyleClass().add("surface-button");
         refreshButton.setOnAction(event -> refreshHistory(historyState, state, currentStudent));
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox toolbar = new HBox(12, spacer, refreshButton);
+        HBox toolbar = new HBox(12, createFieldBlock("状态筛选", filterBox), spacer, refreshButton);
         toolbar.setAlignment(Pos.CENTER_RIGHT);
 
         VBox historyBody = new VBox(12, toolbar, historyScroll);
@@ -149,6 +161,21 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         state.feedbackSummaryValue = valueLabel("当前阶段无需评价");
         state.requestGallery = new EvidenceGallery("当前没有报修附件。");
         state.completionGallery = new EvidenceGallery("当前暂无完工凭证。");
+        state.existingImageBox = new AppDropdown<>();
+        state.existingImageBox.setPromptText("选择要删除的报修图片");
+        state.existingImageBox.setVisibleRowCount(5);
+        state.existingImageBox.setTextMapper(this::imageLabel);
+        state.deleteImageButton = new Button("删除选中图片");
+        state.deleteImageButton.getStyleClass().add("surface-button");
+        state.deleteImageButton.setOnAction(event -> removeSelectedImage(state));
+        state.imageManageHintLabel = helperLabel("当前没有可删除的报修图片。");
+        state.imageManageBox = new VBox(
+                10,
+                state.imageManageHintLabel,
+                createFieldBlock("报修图片", state.existingImageBox),
+                state.deleteImageButton
+        );
+        state.imageManageBox.setFillWidth(true);
         state.actionContainer = new VBox(10);
         state.actionContainer.setFillWidth(true);
         state.timelineContainer = new VBox(10);
@@ -213,6 +240,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
                 createFieldBlock("派单备注", state.assignmentNoteValue),
                 createFieldBlock("故障描述", state.descriptionValue),
                 createFieldBlock("报修附件", state.requestGallery),
+                createFieldBlock("图片管理", state.imageManageBox),
                 createFieldBlock("补充图片", state.appendImageBox),
                 createFieldBlock("学生操作", state.actionContainer),
                 createFieldBlock("处理时间线", state.timelineContainer),
@@ -228,10 +256,14 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
     private void refreshHistory(HistoryState historyState, DetailState state, UserAccount currentStudent) {
         List<RecentRepairRequestView> rows = appContext.repairRequestService()
                 .listStudentSubmittedRequests(currentStudent.getId(), 100);
+        historyState.allRows = rows;
+        List<RecentRepairRequestView> filteredRows = rows.stream()
+                .filter(row -> historyState.filterOption == null || historyState.filterOption.matches(row.getStatus()))
+                .toList();
         historyState.container.getChildren().clear();
         historyState.selectedCard = null;
-        if (rows.isEmpty()) {
-            historyState.container.getChildren().add(helperLabel("暂无报修记录。"));
+        if (filteredRows.isEmpty()) {
+            historyState.container.getChildren().add(helperLabel(rows.isEmpty() ? "暂无报修记录。" : "当前筛选条件下暂无报修记录。"));
             historyState.selectedRequestId = null;
             clearDetail(state);
             return;
@@ -239,7 +271,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         Long preferredId = historyState.selectedRequestId;
         RecentRepairRequestView preferredRow = null;
         StackPane preferredCard = null;
-        for (RecentRepairRequestView row : rows) {
+        for (RecentRepairRequestView row : filteredRows) {
             StackPane card = createHistoryCard(row);
             card.setOnMouseClicked(event -> {
                 applySelection(historyState, card, row.getId());
@@ -252,7 +284,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
             }
         }
         if (preferredRow == null) {
-            preferredRow = rows.get(0);
+            preferredRow = filteredRows.get(0);
             preferredCard = (StackPane) historyState.container.getChildren().get(0);
         }
         applySelection(historyState, preferredCard, preferredRow.getId());
@@ -329,6 +361,9 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         state.descriptionValue.setText(placeholder(detail.getDescription()));
         state.completionSummaryValue.setText(buildCompletionSummary(detail));
         state.requestGallery.setImages(detail.getImageUrls(), "当前没有报修附件。");
+        state.existingImageBox.setItems(detail.getImageUrls());
+        state.existingImageBox.clearSelection();
+        renderImageManageSection(state, detail);
         state.completionGallery.setImages(detail.getCompletionImageUrls(), "当前暂无完工凭证。");
         state.ratingBox.clearSelection();
         state.feedbackArea.clear();
@@ -485,6 +520,11 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         state.completionSummaryValue.setText("当前暂无完工说明");
         state.feedbackSummaryValue.setText("当前阶段无需评价");
         state.requestGallery.setImages(List.of(), "当前没有报修附件。");
+        state.existingImageBox.setItems(List.of());
+        state.existingImageBox.clearSelection();
+        state.imageManageHintLabel.setText("当前没有可删除的报修图片。");
+        state.imageManageBox.setDisable(true);
+        state.imageManageBox.setOpacity(0.6);
         state.completionGallery.setImages(List.of(), "当前暂无完工凭证。");
         state.pendingImageFiles.clear();
         refreshPendingImagePreview(state);
@@ -501,6 +541,55 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
                 && status != RepairRequestStatus.CANCELLED;
         state.appendImageBox.setDisable(!canAppend);
         state.appendImageBox.setOpacity(canAppend ? 1.0 : 0.6);
+    }
+
+    private void renderImageManageSection(DetailState state, StudentRepairDetailView detail) {
+        boolean canManage = detail != null
+                && detail.getStatus() != RepairRequestStatus.COMPLETED
+                && detail.getStatus() != RepairRequestStatus.REJECTED
+                && detail.getStatus() != RepairRequestStatus.CANCELLED
+                && detail.getImageUrls() != null
+                && !detail.getImageUrls().isEmpty();
+        state.imageManageBox.setDisable(!canManage);
+        state.imageManageBox.setOpacity(canManage ? 1.0 : 0.6);
+        if (detail == null || detail.getImageUrls() == null || detail.getImageUrls().isEmpty()) {
+            state.imageManageHintLabel.setText("当前没有可删除的报修图片。");
+            return;
+        }
+        if (!canManage) {
+            state.imageManageHintLabel.setText("当前报修已结束，不能再删除已上传图片。");
+            return;
+        }
+        state.imageManageHintLabel.setText("如果传错了图，可以先选中一张再删除。当前共有 " + detail.getImageUrls().size() + " 张。");
+    }
+
+    private void removeSelectedImage(DetailState state) {
+        if (state.currentDetail == null) {
+            UiAlerts.error("删除失败", "请先选择一条报修记录。");
+            return;
+        }
+        String selectedImage = state.existingImageBox.getValue();
+        if (selectedImage == null || selectedImage.isBlank()) {
+            UiAlerts.error("删除失败", "请先选中一张报修图片。");
+            return;
+        }
+        if (!UiAlerts.confirm("删除图片", "确认删除这张报修图片？删除后不会自动恢复。", "确认删除")) {
+            return;
+        }
+        try {
+            int remaining = appContext.repairRequestService().removeStudentRequestImage(
+                    state.currentDetail.getStudentId(),
+                    state.currentDetail.getId(),
+                    selectedImage
+            );
+            reloadCurrentDetail(
+                    appContext.userAccountService().requireCurrentAccount(appContext.appSession(), UserRole.STUDENT),
+                    state
+            );
+            UiAlerts.info("删除成功", "报修图片已删除，当前剩余 " + remaining + " 张。");
+        } catch (RuntimeException exception) {
+            UiAlerts.error("删除失败", exception.getMessage());
+        }
     }
 
     private void renderActionSection(DetailState state, RepairRequestStatus status) {
@@ -770,6 +859,15 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         return "尾号 " + (value.length() <= 6 ? value : value.substring(value.length() - 6));
     }
 
+    private String imageLabel(String imageUrl) {
+        String value = safe(imageUrl).trim();
+        if (value.isBlank()) {
+            return "未命名图片";
+        }
+        int slashIndex = Math.max(value.lastIndexOf('/'), value.lastIndexOf('\\'));
+        return slashIndex >= 0 ? value.substring(slashIndex + 1) : value;
+    }
+
     private String placeholder(String value) {
         String text = safe(value).trim();
         return text.isEmpty() ? "无" : text;
@@ -809,6 +907,8 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
 
     private static final class HistoryState {
         private final VBox container;
+        private List<RecentRepairRequestView> allRows = List.of();
+        private HistoryFilterOption filterOption = HistoryFilterOption.ALL;
         private StackPane selectedCard;
         private Long selectedRequestId;
 
@@ -837,6 +937,10 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         private Label feedbackSummaryValue;
         private EvidenceGallery requestGallery;
         private EvidenceGallery completionGallery;
+        private VBox imageManageBox;
+        private Label imageManageHintLabel;
+        private AppDropdown<String> existingImageBox;
+        private Button deleteImageButton;
         private VBox appendImageBox;
         private Label appendImageCountLabel;
         private VBox appendImagePreview;
@@ -853,5 +957,29 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         private Button confirmButton;
         private Button reworkButton;
         private Button feedbackButton;
+    }
+
+    private enum HistoryFilterOption {
+        ALL("全部状态"),
+        PROCESSING("处理中", RepairRequestStatus.SUBMITTED, RepairRequestStatus.ASSIGNED, RepairRequestStatus.IN_PROGRESS, RepairRequestStatus.REWORK_IN_PROGRESS),
+        PENDING_CONFIRM("待确认", RepairRequestStatus.PENDING_CONFIRMATION),
+        COMPLETED("已完成", RepairRequestStatus.COMPLETED),
+        CLOSED("已关闭", RepairRequestStatus.REJECTED, RepairRequestStatus.CANCELLED);
+
+        private final String label;
+        private final Set<RepairRequestStatus> statuses;
+
+        HistoryFilterOption(String label, RepairRequestStatus... statuses) {
+            this.label = label;
+            this.statuses = statuses.length == 0 ? Set.of() : Set.of(statuses);
+        }
+
+        private String label() {
+            return label;
+        }
+
+        private boolean matches(RepairRequestStatus status) {
+            return this == ALL || statuses.contains(status);
+        }
     }
 }

@@ -30,4 +30,10 @@
         WHERE repair_request_id = #{repairRequestId}
         ORDER BY sort_no ASC, id ASC
     </select>
+
+    <delete id="deleteByRepairRequestIdAndImageUrl">
+        DELETE FROM repair_request_images
+        WHERE repair_request_id = #{repairRequestId}
+          AND image_url = #{imageUrl}
+    </delete>
 </mapper>
