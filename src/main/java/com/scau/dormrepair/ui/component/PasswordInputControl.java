@@ -4,6 +4,7 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
@@ -101,7 +102,14 @@ public class PasswordInputControl extends StackPane {
         hiddenField.setVisible(!nextVisible);
         hiddenField.setManaged(!nextVisible);
         toggleButton.setGraphic(nextVisible ? eyeClosedIcon : eyeOpenIcon);
-        requestInputFocus();
+        TextInputControl targetField = activeField();
+        String currentText = targetField.getText();
+        Platform.runLater(() -> {
+            targetField.requestFocus();
+            int caretPosition = currentText == null ? 0 : currentText.length();
+            targetField.positionCaret(caretPosition);
+            targetField.deselect();
+        });
     }
 
     private void syncValues(boolean fromHiddenField) {
