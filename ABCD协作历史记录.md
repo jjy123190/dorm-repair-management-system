@@ -989,4 +989,5 @@
   - 这轮只继续优化 B 的图片交互细节，没有改 service 接口、数据库结构和 A/C 模块。
   - 已执行 `mvn -Dmaven.repo.local=.m2\repository compile`，结果为 `BUILD SUCCESS`。
 - Push 结果
-  - 本轮待 commit + push
+  - 已 push 到 `origin/main`
+  - 提交号：`b727c58`
