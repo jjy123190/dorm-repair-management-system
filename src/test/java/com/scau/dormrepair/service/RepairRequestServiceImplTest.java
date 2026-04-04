@@ -178,6 +178,63 @@ class RepairRequestServiceImplTest extends UserAccountIntegrationSupport {
     }
 
     @Test
+    void shouldRejectFeedbackCommentBeyondLimit() throws SQLException {
+        UserAccount admin = createInternalAccount("feedback_limit_admin", UserRole.ADMIN, "feedback_limit_admin", "13855551015", "admin123");
+        UserAccount worker = createInternalAccount("feedback_limit_worker", UserRole.WORKER, "feedback_limit_worker", "13855551016", "worker123");
+        Long studentId = userAccountService.registerStudent(
+                uniqueUsername("feedback_limit_student"),
+                "student123",
+                "student123",
+                "feedback_limit_student",
+                "13855551017"
+        );
+
+        Long requestId = repairRequestService.create(new CreateRepairRequestCommand(
+                studentId,
+                "feedback_limit_student",
+                "13855551017",
+                null,
+                "Taishan",
+                "3-BLD",
+                "305",
+                FaultCategory.NETWORK,
+                "Dorm network port has no signal after repair.",
+                List.of()
+        ));
+        Long workOrderId = workOrderService.assign(new AssignWorkOrderCommand(
+                requestId,
+                admin.getId(),
+                worker.getId(),
+                WorkOrderPriority.NORMAL,
+                "Check the room network port."
+        ));
+        workOrderService.updateStatus(new UpdateWorkOrderStatusCommand(workOrderId, worker.getId(), WorkOrderStatus.ACCEPTED, "Accepted."));
+        workOrderService.updateStatus(new UpdateWorkOrderStatusCommand(workOrderId, worker.getId(), WorkOrderStatus.IN_PROGRESS, "Diagnosed on site."));
+        workOrderService.updateStatus(new UpdateWorkOrderStatusCommand(
+                workOrderId,
+                worker.getId(),
+                WorkOrderStatus.WAITING_CONFIRMATION,
+                "Recovered the network line.",
+                "Recovered the network line.",
+                List.of()
+        ));
+        repairRequestService.confirmStudentCompletion(studentId, requestId);
+
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> repairRequestService.submitFeedback(new SubmitRepairFeedbackCommand(
+                        studentId,
+                        requestId,
+                        5,
+                        "a".repeat(1001),
+                        false
+                ))
+        );
+
+        assertEquals("评价内容不能超过 1000 个字符。", exception.getMessage());
+    }
+
+    @Test
     void shouldCancelAssignedRepairAndCloseLinkedWorkOrder() throws SQLException {
         UserAccount admin = createInternalAccount("cancel_admin", UserRole.ADMIN, "dispatch_admin", "13855551031", "admin123");
         UserAccount worker = createInternalAccount("cancel_worker", UserRole.WORKER, "dispatch_worker", "13855551032", "worker123");

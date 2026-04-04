@@ -43,6 +43,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     private static final int MAX_DESCRIPTION_LENGTH = 1000;
     private static final int MAX_IMAGE_COUNT = 5;
     private static final int MAX_REWORK_NOTE_LENGTH = 300;
+    private static final int MAX_FEEDBACK_COMMENT_LENGTH = 1000;
     private static final String STUDENT_CANCEL_WORK_ORDER_NOTE = "学生取消报修，工单同步关闭。";
     private static final String STUDENT_CONFIRM_NOTE = "学生确认维修完成。";
 
@@ -404,6 +405,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         if (command.rating() == null || command.rating() < 1 || command.rating() > 5) {
             throw new BusinessException("评分必须在 1 到 5 分之间。");
         }
+        String normalizedFeedbackComment = normalizeFeedbackComment(command.feedbackComment());
         myBatisExecutor.executeWrite(session -> {
             RepairRequestMapper repairRequestMapper = session.getMapper(RepairRequestMapper.class);
             RepairFeedbackMapper repairFeedbackMapper = session.getMapper(RepairFeedbackMapper.class);
@@ -423,7 +425,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             RepairFeedback repairFeedback = new RepairFeedback();
             repairFeedback.setRepairRequestId(command.repairRequestId());
             repairFeedback.setRating(command.rating());
-            repairFeedback.setFeedbackComment(trimToNull(command.feedbackComment()));
+            repairFeedback.setFeedbackComment(normalizedFeedbackComment);
             repairFeedback.setAnonymousFlag(command.anonymousFlag());
             repairFeedbackMapper.insert(repairFeedback);
             return null;
@@ -597,6 +599,14 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         }
         if (normalized.length() > MAX_REWORK_NOTE_LENGTH) {
             throw new BusinessException("返修说明不能超过 " + MAX_REWORK_NOTE_LENGTH + " 个字符。");
+        }
+        return normalized;
+    }
+
+    private String normalizeFeedbackComment(String value) {
+        String normalized = trimToNull(value);
+        if (normalized != null && normalized.length() > MAX_FEEDBACK_COMMENT_LENGTH) {
+            throw new BusinessException("评价内容不能超过 " + MAX_FEEDBACK_COMMENT_LENGTH + " 个字符。");
         }
         return normalized;
     }

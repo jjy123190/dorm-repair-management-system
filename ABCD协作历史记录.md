@@ -991,3 +991,19 @@
 - Push 结果
   - 已 push 到 `origin/main`
   - 提交号：`b727c58`
+
+### 2026-04-04 21:07 | B
+- 改动文件
+  - src/main/java/com/scau/dormrepair/ui/module/StudentRepairHistoryModule.java
+  - src/main/java/com/scau/dormrepair/service/impl/RepairRequestServiceImpl.java
+  - src/test/java/com/scau/dormrepair/service/RepairRequestServiceImplTest.java
+  - ABCD协作历史记录.md
+- 完成内容
+  - 学生历史详情里的“申请返修”和“提交评价”补了即时字数反馈，返修说明会显示已写/剩余字数，评价内容会显示已写/剩余字数并联动评分选择。
+  - 前端按钮现在会跟随内容状态自动禁用：未选评分不能提交评价，返修说明为空或超长时不能直接发起返修，减少最后一步才报错的体验断点。
+  - service 层新增评价内容长度兜底校验，统一限制在 1000 字以内，并补了一条超长评价的集成测试，保证前后端边界一致。
+- 影响提醒 / 下一步
+  - 这轮只继续优化 B 的学生历史详情和评价/返修校验，没有改数据库结构和 A/C 模块。
+  - 已执行 `mvn -Dmaven.repo.local=.m2\repository compile`，结果为 `BUILD SUCCESS`。
+- Push 结果
+  - 本轮待 commit + push

@@ -47,6 +47,8 @@ import javafx.stage.Window;
 public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
 
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    private static final int MAX_REWORK_NOTE_LENGTH = 300;
+    private static final int MAX_FEEDBACK_COMMENT_LENGTH = 1000;
 
     public StudentRepairHistoryModule(AppContext appContext) {
         super(appContext);
@@ -209,11 +211,13 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         state.feedbackArea.setPromptText("可以补充维修体验或处理感受。");
         state.feedbackArea.setWrapText(true);
         state.feedbackArea.setPrefRowCount(3);
+        state.feedbackHintLabel = helperLabel("");
         state.anonymousBox = new CheckBox("匿名评价");
         state.reworkArea = new TextArea();
         state.reworkArea.setPromptText("请填写申请返修的原因或异议说明。");
         state.reworkArea.setWrapText(true);
         state.reworkArea.setPrefRowCount(3);
+        state.reworkHintLabel = helperLabel("");
         state.urgeButton = new Button("催办一次");
         state.cancelButton = new Button("取消报修");
         state.confirmButton = new Button("确认完成");
@@ -230,6 +234,11 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         state.confirmButton.getStyleClass().add("surface-button");
         state.reworkButton.getStyleClass().add("surface-button");
         state.feedbackButton.getStyleClass().add("surface-button");
+        state.feedbackArea.textProperty().addListener((observable, oldValue, newValue) -> refreshFeedbackHint(state));
+        state.ratingBox.valueProperty().addListener((observable, oldValue, newValue) -> refreshFeedbackHint(state));
+        state.reworkArea.textProperty().addListener((observable, oldValue, newValue) -> refreshReworkHint(state));
+        refreshFeedbackHint(state);
+        refreshReworkHint(state);
         return state;
     }
 
@@ -388,6 +397,8 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         state.ratingBox.clearSelection();
         state.feedbackArea.clear();
         state.anonymousBox.setSelected(false);
+        refreshFeedbackHint(state);
+        refreshReworkHint(state);
         state.pendingImageFiles.clear();
         refreshPendingImagePreview(state);
         renderAppendImageSection(state, detail.getStatus());
@@ -572,6 +583,8 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         state.completionGallery.setImages(List.of(), "当前暂无完工凭证。");
         state.pendingImageFiles.clear();
         refreshPendingImagePreview(state);
+        refreshFeedbackHint(state);
+        refreshReworkHint(state);
         renderAppendImageSection(state, null);
         state.actionContainer.getChildren().setAll(helperLabel("无"));
         renderTimelineSection(state, List.of());
@@ -659,6 +672,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         if (canConfirm) {
             state.reworkArea.clear();
             state.actionContainer.getChildren().add(createFieldBlock("返修说明", state.reworkArea));
+            state.actionContainer.getChildren().add(state.reworkHintLabel);
             nodes.add(state.confirmButton);
             nodes.add(state.reworkButton);
         }
@@ -688,6 +702,43 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         return value != null && !value.isBlank() && value.toLowerCase().contains(keyword);
     }
 
+    private void refreshFeedbackHint(DetailState state) {
+        String comment = state.feedbackArea.getText() == null ? "" : state.feedbackArea.getText().trim();
+        int used = comment.length();
+        int remaining = MAX_FEEDBACK_COMMENT_LENGTH - used;
+        Integer rating = state.ratingBox.getValue();
+        boolean ready = rating != null && remaining >= 0;
+        state.feedbackButton.setDisable(!ready);
+        state.feedbackButton.setOpacity(ready ? 1.0 : 0.6);
+        if (remaining < 0) {
+            state.feedbackHintLabel.setText("评价内容已超出 " + MAX_FEEDBACK_COMMENT_LENGTH + " 字上限 " + (-remaining) + " 个字。");
+            return;
+        }
+        if (rating == null) {
+            state.feedbackHintLabel.setText("请先选择评分，再决定是否补充评价内容。当前还可填写 " + remaining + " 个字。");
+            return;
+        }
+        state.feedbackHintLabel.setText("当前已写 " + used + " 个字，还可填写 " + remaining + " 个字。");
+    }
+
+    private void refreshReworkHint(DetailState state) {
+        String reworkReason = state.reworkArea.getText() == null ? "" : state.reworkArea.getText().trim();
+        int used = reworkReason.length();
+        int remaining = MAX_REWORK_NOTE_LENGTH - used;
+        boolean ready = used > 0 && remaining >= 0;
+        state.reworkButton.setDisable(!ready);
+        state.reworkButton.setOpacity(ready ? 1.0 : 0.6);
+        if (used == 0) {
+            state.reworkHintLabel.setText("请填写返修原因后再提交，最多 " + MAX_REWORK_NOTE_LENGTH + " 个字。");
+            return;
+        }
+        if (remaining < 0) {
+            state.reworkHintLabel.setText("返修说明已超出 " + MAX_REWORK_NOTE_LENGTH + " 字上限 " + (-remaining) + " 个字。");
+            return;
+        }
+        state.reworkHintLabel.setText("当前已写 " + used + " 个字，还可填写 " + remaining + " 个字。");
+    }
+
     private void renderFeedbackSection(DetailState state, StudentRepairDetailView detail) {
         state.feedbackContainer.getChildren().clear();
         state.feedbackSummaryValue.setText(buildFeedbackSummary(detail));
@@ -697,6 +748,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
                     10,
                     createFieldBlock("评分", state.ratingBox),
                     createFieldBlock("评价内容", state.feedbackArea),
+                    state.feedbackHintLabel,
                     state.anonymousBox,
                     state.feedbackButton
             );
@@ -1012,8 +1064,10 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         private VBox feedbackContainer;
         private AppDropdown<Integer> ratingBox;
         private TextArea feedbackArea;
+        private Label feedbackHintLabel;
         private CheckBox anonymousBox;
         private TextArea reworkArea;
+        private Label reworkHintLabel;
         private Button urgeButton;
         private Button cancelButton;
         private Button confirmButton;
