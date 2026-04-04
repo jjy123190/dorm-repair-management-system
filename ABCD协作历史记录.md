@@ -1008,3 +1008,16 @@
 - Push 结果
   - 已 push 到 `origin/main`
   - 提交号：`a929b86`
+
+### 2026-04-04 21:19 | B
+- 改动文件
+  - src/main/java/com/scau/dormrepair/ui/module/StudentRepairHistoryModule.java
+  - ABCD协作历史记录.md
+- 完成内容
+  - 学生历史记录工具栏新增“清空筛选”，切过状态筛选和关键字检索后可以一键回到默认列表，不用手动逐项还原。
+  - 学生历史卡片补充了故障类型这一行，列表页扫读时能更快区分同一宿舍位置下的不同报修内容，查单更直观。
+- 影响提醒 / 下一步
+  - 这轮只优化 B 的学生历史列表展示和筛选操作，没有改 service、数据库结构和其他模块。
+  - 已执行 `mvn -Dmaven.repo.local=.m2\repository compile`，结果为 `BUILD SUCCESS`。
+- Push 结果
+  - 本轮待 commit + push

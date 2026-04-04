@@ -130,6 +130,12 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         historyState.resultCountLabel = resultCountLabel;
 
         Button refreshButton = new Button("刷新记录");
+        Button clearFilterButton = new Button("清空筛选");
+        clearFilterButton.getStyleClass().add("surface-button");
+        clearFilterButton.setOnAction(event -> {
+            filterBox.setValue(HistoryFilterOption.ALL);
+            keywordField.clear();
+        });
         refreshButton.getStyleClass().add("surface-button");
         refreshButton.setOnAction(event -> refreshHistory(historyState, state, currentStudent));
 
@@ -141,6 +147,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
                 createFieldBlock("关键字", keywordField),
                 resultCountLabel,
                 spacer,
+                clearFilterButton,
                 refreshButton
         );
         toolbar.setAlignment(Pos.CENTER_RIGHT);
@@ -330,6 +337,11 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         request.setManaged(!request.getText().isBlank());
         request.setVisible(!request.getText().isBlank());
 
+        Label category = new Label(categoryText(row.getFaultCategory()));
+        category.getStyleClass().add("student-history-card-meta");
+        category.setManaged(!category.getText().isBlank());
+        category.setVisible(!category.getText().isBlank());
+
         Label status = new Label(statusText(row.getStatus()));
         status.getStyleClass().addAll("student-history-card-chip", historyStatusStyle(row.getStatus()));
         String timeout = row.getTimeoutLabel() == null || row.getTimeoutLabel().isBlank() ? "" : " / " + row.getTimeoutLabel();
@@ -340,7 +352,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         HBox meta = new HBox(10, status, spacer, time);
         meta.setAlignment(Pos.CENTER_LEFT);
 
-        VBox body = new VBox(8, title, request, meta);
+        VBox body = new VBox(8, title, request, category, meta);
         body.getStyleClass().add("student-history-card-body");
         StackPane card = new StackPane(body);
         card.getStyleClass().add("student-history-card");
