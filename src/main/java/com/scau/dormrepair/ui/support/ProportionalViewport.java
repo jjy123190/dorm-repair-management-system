@@ -25,22 +25,19 @@ public class ProportionalViewport extends Pane {
 
     @Override
     protected void layoutChildren() {
-        double viewportWidth = getWidth();
-        double viewportHeight = getHeight();
-        if (viewportWidth <= 0 || viewportHeight <= 0 || designWidth <= 0 || designHeight <= 0) {
+        LayoutMetrics metrics = resolveLayout(getWidth(), getHeight(), designWidth, designHeight);
+        if (metrics == null) {
             return;
         }
 
-        double scaleX = viewportWidth / designWidth;
-        double scaleY = viewportHeight / designHeight;
-
-        scaleTransform.setX(scaleX);
-        scaleTransform.setY(scaleY);
+        scaleTransform.setX(metrics.scale());
+        scaleTransform.setY(metrics.scale());
 
         if (content instanceof Region region) {
-            region.resizeRelocate(0, 0, designWidth, designHeight);
+            region.resize(designWidth, designHeight);
+            region.relocate(metrics.offsetX(), metrics.offsetY());
         } else {
-            content.relocate(0, 0);
+            content.relocate(metrics.offsetX(), metrics.offsetY());
         }
     }
 
@@ -52,5 +49,27 @@ public class ProportionalViewport extends Pane {
     @Override
     protected double computePrefHeight(double width) {
         return designHeight;
+    }
+
+    static LayoutMetrics resolveLayout(
+            double viewportWidth,
+            double viewportHeight,
+            double designWidth,
+            double designHeight
+    ) {
+        if (viewportWidth <= 0 || viewportHeight <= 0 || designWidth <= 0 || designHeight <= 0) {
+            return null;
+        }
+
+        // Keep one shared scale factor so the UI always preserves its designed aspect ratio.
+        double scale = Math.min(viewportWidth / designWidth, viewportHeight / designHeight);
+        double scaledWidth = designWidth * scale;
+        double scaledHeight = designHeight * scale;
+        double offsetX = (viewportWidth - scaledWidth) / 2;
+        double offsetY = (viewportHeight - scaledHeight) / 2;
+        return new LayoutMetrics(scale, offsetX, offsetY);
+    }
+
+    record LayoutMetrics(double scale, double offsetX, double offsetY) {
     }
 }

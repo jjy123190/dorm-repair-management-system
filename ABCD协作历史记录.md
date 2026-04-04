@@ -941,3 +941,19 @@
 - Push 结果
   - 已 push 到 `origin/main`
   - 提交号：`9c1bba5`
+
+### 2026-04-04 14:43 | A
+- 改动文件
+  - src/main/java/com/scau/dormrepair/ui/support/ProportionalViewport.java
+  - src/test/java/com/scau/dormrepair/ui/support/ProportionalViewportTest.java
+  - ABCD协作历史记录.md
+- 完成内容
+  - 把主窗口视口从“宽高分别拉伸”改回“单一缩放因子 + 居中”，窗口缩放时不再把登录页和工作台内容横向或纵向压扁。
+  - 抽出视口布局计算并补了回归测试，明确验证“窄窗口时保持等比缩放”和“横向有余量时居中显示”两条关键行为。
+  - 已执行 `git pull origin main`，并执行 `mvn -Dmaven.repo.local=.m2\repository compile`，结果为 `BUILD SUCCESS`。
+- 影响提醒 / 下一步
+  - 这轮只收 A 壳层的缩放适配，没有改业务模块、数据库结构和共享 service / mapper 主链。
+  - 当窗口长宽比和设计稿不一致时，界面会保留留白而不是继续拉伸变形；如果后面还想“铺满且不变形”，应改成窗口本身锁定比例，而不是再把 UI 横纵分别拉伸。
+  - 尝试执行 `mvn -Dmaven.repo.local=.m2\repository -Dtest=ProportionalViewportTest test` 时，当前环境缺少 `maven-surefire-plugin` 本地缓存且网络下载被拦截，测试未能在本机跑完。
+- Push 结果
+  - 本轮收尾时执行 `commit + push`
