@@ -956,4 +956,5 @@
   - 当窗口长宽比和设计稿不一致时，界面会保留留白而不是继续拉伸变形；如果后面还想“铺满且不变形”，应改成窗口本身锁定比例，而不是再把 UI 横纵分别拉伸。
   - 尝试执行 `mvn -Dmaven.repo.local=.m2\repository -Dtest=ProportionalViewportTest test` 时，当前环境缺少 `maven-surefire-plugin` 本地缓存且网络下载被拦截，测试未能在本机跑完。
 - Push 结果
-  - 本轮收尾时执行 `commit + push`
+  - 已 push 到 `origin/main`
+  - 提交号：`771de36`
