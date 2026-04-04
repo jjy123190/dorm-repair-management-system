@@ -3,6 +3,7 @@ package com.scau.dormrepair.ui.support;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Scale;
 
 public class ProportionalViewport extends Pane {
@@ -11,20 +12,26 @@ public class ProportionalViewport extends Pane {
     private final double designWidth;
     private final double designHeight;
     private final Scale scaleTransform;
+    private final Rectangle viewportClip;
 
     public ProportionalViewport(Node content, double designWidth, double designHeight) {
         this.content = content;
         this.designWidth = designWidth;
         this.designHeight = designHeight;
         this.scaleTransform = new Scale(1, 1, 0, 0);
+        this.viewportClip = new Rectangle();
 
         content.setManaged(false);
         content.getTransforms().add(scaleTransform);
+        setClip(viewportClip);
         getChildren().add(content);
     }
 
     @Override
     protected void layoutChildren() {
+        viewportClip.setWidth(getWidth());
+        viewportClip.setHeight(getHeight());
+
         LayoutMetrics metrics = resolveLayout(getWidth(), getHeight(), designWidth, designHeight);
         if (metrics == null) {
             return;
@@ -61,8 +68,8 @@ public class ProportionalViewport extends Pane {
             return null;
         }
 
-        // Keep one shared scale factor so the UI always preserves its designed aspect ratio.
-        double scale = Math.min(viewportWidth / designWidth, viewportHeight / designHeight);
+        // Use a shared scale factor that covers the entire viewport without distorting the UI.
+        double scale = Math.max(viewportWidth / designWidth, viewportHeight / designHeight);
         double scaledWidth = designWidth * scale;
         double scaledHeight = designHeight * scale;
         double offsetX = (viewportWidth - scaledWidth) / 2;

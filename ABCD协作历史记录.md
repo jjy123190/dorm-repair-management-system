@@ -958,3 +958,19 @@
 - Push 结果
   - 已 push 到 `origin/main`
   - 提交号：`771de36`
+
+### 2026-04-04 15:38 | A
+- 改动文件
+  - src/main/java/com/scau/dormrepair/ui/support/ProportionalViewport.java
+  - src/test/java/com/scau/dormrepair/ui/support/ProportionalViewportTest.java
+  - ABCD协作历史记录.md
+- 完成内容
+  - 把视口缩放从“等比完整显示”切到“等比 cover 铺满”，缩放时继续保持比例，但会优先贴满整个窗口，不再在上下或左右留下灰白空边。
+  - 给视口容器补了 clip 裁切边界，放大后超出视口的部分会被裁掉，不会把溢出的内容露到窗口外层。
+  - 同步更新回归测试，明确验证窄窗口和宽窗口下都会铺满视口且保持比例。
+  - 已执行 `git pull origin main`，并执行 `mvn -Dmaven.repo.local=.m2\repository compile`，结果为 `BUILD SUCCESS`。
+- 影响提醒 / 下一步
+  - 这轮仍然只改 A 壳层的视口缩放适配，没有改业务模块和数据库结构。
+  - 现在当窗口比例和设计稿不一致时，界面会裁掉一部分边缘内容来换取“无留白铺满”；这是有意的 cover 行为，不再是之前的变形拉伸。
+- Push 结果
+  - 本轮收尾时执行 `commit + push`
