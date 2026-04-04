@@ -975,3 +975,18 @@
 - Push 结果
   - 已 push 到 `origin/main`
   - 提交号：`d367047`
+
+### 2026-04-04 20:48 | B
+- 改动文件
+  - src/main/java/com/scau/dormrepair/ui/module/StudentRepairModule.java
+  - src/main/java/com/scau/dormrepair/ui/module/StudentRepairHistoryModule.java
+  - ABCD协作历史记录.md
+- 完成内容
+  - 学生提交页的待上传图片列表补了“单张移除”操作，不再只能整批清空；学生如果选错一张图，可以直接在预览区删掉那一张再继续提交。
+  - 学生历史详情里的补图队列也补了“单张移除”操作，补图前可以逐张整理待传图片，不用每次点错都整批清空重选。
+  - 补图计数提示改成同时显示“已上传多少张、待补多少张、还可补多少张”，学生在历史详情里更容易判断剩余额度。
+- 影响提醒 / 下一步
+  - 这轮只继续优化 B 的图片交互细节，没有改 service 接口、数据库结构和 A/C 模块。
+  - 已执行 `mvn -Dmaven.repo.local=.m2\repository compile`，结果为 `BUILD SUCCESS`。
+- Push 结果
+  - 本轮待 commit + push

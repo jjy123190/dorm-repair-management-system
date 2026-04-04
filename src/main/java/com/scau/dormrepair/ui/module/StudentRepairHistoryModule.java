@@ -463,16 +463,37 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
 
     private void refreshPendingImagePreview(DetailState state) {
         state.appendImagePreview.getChildren().clear();
-        state.appendImageCountLabel.setText("已选 " + state.pendingImageFiles.size() + " / " + ProjectImageStore.MAX_IMAGE_COUNT + " 张");
+        int currentImageCount = state.currentDetail == null || state.currentDetail.getImageUrls() == null
+                ? 0
+                : state.currentDetail.getImageUrls().size();
+        int pendingCount = state.pendingImageFiles.size();
+        int remainingCount = Math.max(ProjectImageStore.MAX_IMAGE_COUNT - currentImageCount - pendingCount, 0);
+        state.appendImageCountLabel.setText(
+                "已上传 " + currentImageCount
+                        + " 张，待补 " + pendingCount
+                        + " 张，还可补 " + remainingCount + " 张"
+        );
         if (state.pendingImageFiles.isEmpty()) {
             state.appendImagePreview.getChildren().add(helperLabel("当前没有待补充的图片。"));
             return;
         }
         for (int index = 0; index < state.pendingImageFiles.size(); index++) {
-            Label label = new Label((index + 1) + ". " + state.pendingImageFiles.get(index).getName());
+            File pendingFile = state.pendingImageFiles.get(index);
+            Label label = new Label((index + 1) + ". " + pendingFile.getName());
             label.getStyleClass().add("upload-preview-item");
             label.setWrapText(true);
-            state.appendImagePreview.getChildren().add(label);
+            Button removeButton = new Button("移除");
+            removeButton.getStyleClass().add("surface-button");
+            removeButton.setOnAction(event -> {
+                state.pendingImageFiles.remove(pendingFile);
+                refreshPendingImagePreview(state);
+            });
+
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            HBox row = new HBox(10, label, spacer, removeButton);
+            row.setAlignment(Pos.CENTER_LEFT);
+            state.appendImagePreview.getChildren().add(row);
         }
     }
 

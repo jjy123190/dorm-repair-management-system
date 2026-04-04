@@ -639,7 +639,18 @@ public class StudentRepairModule extends AbstractWorkbenchModule {
             Label imageLabel = new Label((index + 1) + ". " + selectedFile.getName());
             imageLabel.getStyleClass().add("upload-preview-item");
             imageLabel.setWrapText(true);
-            previewBox.getChildren().add(imageLabel);
+            Button removeButton = new Button("\u79fb\u9664");
+            removeButton.getStyleClass().add("surface-button");
+            removeButton.setOnAction(event -> {
+                selectedImageFiles.remove(selectedFile);
+                refreshImagePreview(previewBox, selectedImageFiles, imageCountLabel, draftImageCountLabel);
+            });
+
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+            HBox row = new HBox(10, imageLabel, spacer, removeButton);
+            row.setAlignment(Pos.CENTER_LEFT);
+            previewBox.getChildren().add(row);
         }
     }
 
