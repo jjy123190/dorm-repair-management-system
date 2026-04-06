@@ -1022,3 +1022,22 @@
 - Push 结果
   - 已 push 到 `origin/main`
   - 提交号：`8affe03`
+
+### 2026-04-06 20:28 | D
+- 改动文件
+  - README.md
+  - docs/architecture/JavaFX与MyBatis交接说明.md
+  - docs/architecture/起步问题与待办.md
+  - docs/course/课程设计报告.md
+  - ABCD协作历史记录.md
+- 完成内容
+  - 把项目 README、交接说明、起步待办和课程设计报告统一更新到当前真实实现，不再沿用旧的 Web CRUD 或“未做登录/未做前端”的过时口径。
+  - 课程报告按当前 JavaFX + MyBatis + MySQL 桌面端重写了模块划分、数据库设计、状态流转、测试验证和课程交付建议，新增审计日志、完工凭证和闭环流程说明。
+  - README 同步补齐审计日志、学生确认/返修、完工凭证等现状，并把测试基线更新为 `mvn test` 通过 `51` 个测试。
+  - 已执行 `git pull origin main`，并执行 `mvn "-Dmaven.repo.local=.m2\\repository" test`，结果为 `BUILD SUCCESS`。
+- 影响提醒 / 下一步
+  - 当前课程文档已经以桌面端成品为准，后续不要再把旧 REST 接口清单或“待实现登录页”一类表述写回主文档。
+  - 下一步更适合继续补 ER 图、关键界面截图和答辩 PPT，而不是再重写技术路线。
+- Push 结果
+  - 已 push 到 `origin/main`
+  - 提交号：`17ad2dc`
