@@ -1041,3 +1041,19 @@
 - Push 结果
   - 已 push 到 `origin/main`
   - 提交号：`17ad2dc`
+
+### 2026-04-06 20:45 | A
+- 改动文件
+  - src/main/resources/styles/app.css
+  - src/test/java/com/scau/dormrepair/ui/UiShellChromeSmokeTest.java
+  - ABCD协作历史记录.md
+- 完成内容
+  - 把登录页和工作台壳层的重复样式定义收成单一权威实现，清掉了 `.login-shell`、`.login-card-title`、`.login-status-label`、`.login-error-label`、`.login-hero-panel`、`.sidebar`、`.nav-button`、`.nav-button-active` 这些 A 区关键选择器的重复块。
+  - 保留当前最终视觉效果，不重做观感，只把 `nav-button` 从通用“按钮居中”规则里移出，并把侧栏、导航按钮和登录页标题/反馈区的最终样式合并回单处定义。
+  - 扩充 `UiShellChromeSmokeTest`，把登录页壳层、错误/状态提示、侧栏和导航按钮都纳入“单一定义来源”断言，防止以后再叠出第二份样式。
+  - 已执行 `git pull origin main`，并执行 `mvn "-Dmaven.repo.local=.m2\\repository" test`，结果为 `BUILD SUCCESS`，`51` 个测试全部通过。
+- 影响提醒 / 下一步
+  - 这轮只收 A 区的共享样式和 smoke test，没有改 B / C / D 的业务逻辑。
+  - 当前 `.m2` 目录仍有 Maven 本地缓存变更，后续提交时继续只 stage A 区源码和协作文档，不要把这些缓存带进版本库。
+- Push 结果
+  - 本轮待 commit + push

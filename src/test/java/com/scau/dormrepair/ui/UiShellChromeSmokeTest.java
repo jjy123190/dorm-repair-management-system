@@ -44,8 +44,16 @@ class UiShellChromeSmokeTest {
         assertEquals(1, countSelector(css, ".header-logout-action"));
         assertEquals(1, countSelector(css, ".header-logout-action:hover"));
         assertEquals(1, countSelector(css, ".header-module-summary"));
+        assertEquals(1, countSelector(css, ".login-shell"));
+        assertEquals(1, countSelector(css, ".login-hero-panel"));
+        assertEquals(1, countSelector(css, ".login-card-title"));
         assertEquals(1, countSelector(css, ".login-form-body"));
         assertEquals(1, countSelector(css, ".login-footer-row"));
+        assertEquals(1, countSelector(css, ".login-status-label"));
+        assertEquals(1, countSelector(css, ".login-error-label"));
+        assertEquals(1, countSelector(css, ".sidebar"));
+        assertEquals(1, countSelector(css, ".nav-button"));
+        assertEquals(1, countSelector(css, ".nav-button-active"));
     }
 
     private static int countSelector(String css, String selector) {
