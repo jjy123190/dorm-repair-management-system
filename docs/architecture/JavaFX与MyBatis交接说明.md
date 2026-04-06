@@ -13,9 +13,11 @@
 
 - 启动入口：[DormRepairApplication.java](/D:/1ForCode/SCAU/DB/src/main/java/com/scau/dormrepair/DormRepairApplication.java)
 - 主工作台：[AppShell.java](/D:/1ForCode/SCAU/DB/src/main/java/com/scau/dormrepair/ui/AppShell.java)
+- 登录页：[LoginView.java](/D:/1ForCode/SCAU/DB/src/main/java/com/scau/dormrepair/ui/LoginView.java)
 - 配置读取：[AppProperties.java](/D:/1ForCode/SCAU/DB/src/main/java/com/scau/dormrepair/config/AppProperties.java)
 - 数据源与 MyBatis 装配：[DatabaseConfig.java](/D:/1ForCode/SCAU/DB/src/main/java/com/scau/dormrepair/config/DatabaseConfig.java)
 - 应用上下文：[AppContext.java](/D:/1ForCode/SCAU/DB/src/main/java/com/scau/dormrepair/common/AppContext.java)
+- 会话上下文：[AppSession.java](/D:/1ForCode/SCAU/DB/src/main/java/com/scau/dormrepair/common/AppSession.java)
 - 事务模板：[MyBatisExecutor.java](/D:/1ForCode/SCAU/DB/src/main/java/com/scau/dormrepair/common/MyBatisExecutor.java)
 - SQL 映射目录：`src/main/resources/mapper/`
 
@@ -24,23 +26,23 @@
 1. 启动 `DormRepairApplication`
 2. 读取 `application.yml`
 3. `DatabaseConfig` 创建 `HikariDataSource` 和 `SqlSessionFactory`
-4. `AppContext` 装配 service
-5. `AppShell` 创建主窗口和左侧模块导航
-6. 各模块再调用 service 拉取数据
+4. `AppContext` 装配各个 service
+5. `AppShell` 根据当前登录状态渲染 `LoginView` 或工作台
+6. 各业务模块再通过 service 拉取数据并渲染
 
 ## 4. 分层怎么接
 
 ### UI 层
 
 - 位置：`com.scau.dormrepair.ui`、`com.scau.dormrepair.ui.module`
-- 只负责界面布局、按钮事件、表格展示
+- 只负责界面布局、按钮事件、输入提示、表格和时间线展示
 - 不允许直接打开 `SqlSession`
 - 不允许在界面类里手写 SQL
 
 ### Service 层
 
 - 位置：`com.scau.dormrepair.service`、`com.scau.dormrepair.service.impl`
-- 负责业务流程、状态流转、事务边界、异常抛出
+- 负责业务流程、状态流转、事务边界、权限判断和异常抛出
 - UI 想新增功能，先补 service 接口，再补实现
 
 ### Mapper 层
@@ -53,13 +55,13 @@
 ### Domain 层
 
 - `domain.command`：界面传给 service 的入参对象
-- `domain.entity`：和数据表字段基本一一对应
+- `domain.entity`：与数据表字段基本一一对应
 - `domain.enums`：状态、角色、优先级、故障分类
-- `domain.view`：表格和统计面板展示对象
+- `domain.view`：表格、统计面板和时间线展示对象
 
 ## 5. 标准开发链路
 
-新增一个功能时，按这个顺序走：
+新增功能时，按这个顺序走：
 
 1. 先确认表和字段
 2. 再补 `entity / enum / command / view`
@@ -75,22 +77,30 @@
 
 | 功能模块 | JavaFX 模块类 | 主要服务 |
 | --- | --- | --- |
+| 登录与账号入口 | `LoginView`、`ProfileCenterModule` | `UserAccountService` |
 | 首页概览 | `DashboardModule` | `DashboardService` |
-| 学生报修 | `StudentRepairModule` | `RepairRequestService` |
+| 学生报修 | `StudentRepairModule` | `RepairRequestService`、`DormCatalogService` |
+| 学生历史 | `StudentRepairHistoryModule` | `RepairRequestService`、`WorkOrderService` |
 | 管理员派单 | `AdminDispatchModule` | `RepairRequestService`、`WorkOrderService` |
+| 账号管理 | `AccountManagementModule` | `UserAccountService` |
+| 宿舍目录维护 | `DormCatalogManagementModule` | `DormCatalogService` |
 | 维修处理 | `WorkerProcessingModule` | `WorkOrderService` |
 | 月度统计 | `StatisticsModule` | `StatisticsService` |
+| 审计日志 | `AuditLogModule` | `AuditLogService` |
 
 ## 7. 现在已经接好的主链路
 
-- 报修申请创建：`RepairRequestService`
-- 评价提交：`RepairRequestService`
-- 工单派单：`WorkOrderService`
-- 工单状态流转：`WorkOrderService`
+- 真实数据库账号登录与角色切换：`UserAccountService`
+- 学生自助注册、手机号找回密码、个人中心改密
+- 报修申请创建、历史列表、补图、删图、评价、返修：`RepairRequestService`
+- 工单派单、接单、处理、完工、待确认闭环：`WorkOrderService`
 - 首页概览查询：`DashboardService`
-- 月度统计查询：`StatisticsService`
+- 宿舍区/楼栋/房间目录维护：`DormCatalogService`
+- 内部账号维护：`UserAccountService`
+- 审计日志查询：`AuditLogService`
+- 月度统计与图表数据：`StatisticsService`
 
-这说明底层主链路已经有骨架，后面主要是继续把界面表单、下拉框、校验和交互补完整。
+这说明当前主链已经不是“待补骨架”，而是可运行、可测试、可演示的完整桌面应用。
 
 ## 8. 当前默认配置
 
@@ -98,6 +108,9 @@
 - 用户名：`root`
 - 密码：`123456`
 - 配置文件：[application.yml](/D:/1ForCode/SCAU/DB/src/main/resources/application.yml)
+- 初始化脚本：
+  - `sql/mysql/01_init_schema_v1.sql`
+  - `sql/mysql/02_demo_seed_v1.sql`
 
 ## 9. 常见禁区
 
@@ -106,32 +119,32 @@
 - 不要在 UI 里直接操作数据库
 - 不要把业务判断塞进 Mapper XML
 - 不要随意改枚举英文值，否则会影响数据库和状态流转
+- 不要把认证逻辑退回 `DemoAccountDirectory` 本地假账号
 
 ## 10. 小组分工建议
 
-### 前端界面同学
+### A. 桌面壳层与视觉
 
-- 主要改 `ui/module`
-- 只调用 service，不碰 SQL
+- 主要改 `ui`、`ui.component`、`ui.support`、`styles/app.css`
+- 负责登录页、AppShell、公共交互和主题统一
 
-### 数据库同学
+### B. 学生报修主链
 
-- 主要改 `sql/mysql`、`mapper/*.xml`、`domain.entity`
-- 改表后要同步 `MySQL最小表设计.md`
+- 主要改 `StudentRepairModule`、`StudentRepairHistoryModule`、`RepairRequestService`
+- 负责学生提交、历史详情、补图、评价、返修交互
 
-### 业务逻辑同学
+### C. 管理员 / 维修员 / 统计主链
 
-- 主要改 `service`、`service.impl`
-- 负责状态流转、校验、事务
+- 主要改 `AdminDispatchModule`、`WorkerProcessingModule`、`StatisticsModule`
+- 负责派单、处理、完工凭证和统计展示
 
-### 文档同学
+### D. 数据库 / 文档 / 测试基线
 
-- 主要维护 `docs/course`、`docs/architecture`
-- 技术口径统一写 `JavaFX + MyBatis + MySQL`
+- 主要改 `sql/mysql`、`docs/**`、公共配置与测试
+- 负责 DDL、种子数据、课程文档和最终收口
 
 ## 11. 建议下一步
 
-1. 先补初始化测试数据 SQL
-2. 再做登录页和角色入口
-3. 接着补学生报修表单和管理员派单表单
-4. 最后补文件上传、图表统计和导出
+1. 继续把课程交付材料收全，包括 ER 图、关键截图和答辩 PPT
+2. 继续完善 demo seed，让 fresh DB 的三类角色演示更顺滑
+3. 如需继续收尾，优先保证文档、DDL、测试基线和真实实现保持一致
