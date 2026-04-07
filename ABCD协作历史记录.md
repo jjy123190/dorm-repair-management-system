@@ -1069,4 +1069,6 @@
   - 显式设置 JAVA_HOME=D:\APP\JDKs\ms-17.0.18 后执行 mvn "-Dmaven.repo.local=.m2\\repository" test，51 项测试全部通过；同样方式执行 mvn "-Dmaven.repo.local=.m2\\repository" javafx:run 已确认能正常拉起 JavaFX 应用。
 - 影响提醒 / 下一步
   - 这轮没有改 service、mapper 和数据库结构，主要修 C 区维修员处理页的可见 bug。
-  - 当前仓库仍有 .m2 本地缓存脏改，提交时继续只 stage 源码和协作文档，不把这些缓存带进版本库。
+  - 当前仓库仍有 .m2 本地缓存脏改，提交时继续只 stage 源码和协作文档，不把这些缓存带进版本库。- Push 结果
+  - 已 push 到 `origin/main`
+  - 功能提交号：`9d511dd`
