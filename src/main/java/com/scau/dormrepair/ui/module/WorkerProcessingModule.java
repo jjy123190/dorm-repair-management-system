@@ -59,7 +59,7 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
 
     @Override
     public String moduleName() {
-        return "\u7ef4\u4fee\u5904\u7406";
+        return "维修处理";
     }
 
     @Override
@@ -85,22 +85,22 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
         AppDropdown<StatusFilterOption> statusFilterBox = new AppDropdown<>();
         statusFilterBox.setItems(List.of(StatusFilterOption.values()));
         statusFilterBox.setTextMapper(StatusFilterOption::label);
-        statusFilterBox.setPromptText("Filter status");
+        statusFilterBox.setPromptText("筛选工单状态");
         statusFilterBox.setVisibleRowCount(8);
         statusFilterBox.setValue(StatusFilterOption.ALL);
 
         AppDropdown<WorkOrderStatus> statusBox = new AppDropdown<>();
         statusBox.setTextMapper(UiDisplayText::workOrderStatus);
-        statusBox.setPromptText("Select next status");
+        statusBox.setPromptText("选择下一状态");
         statusBox.setVisibleRowCount(5);
 
         TextArea recordNoteArea = new TextArea();
-        recordNoteArea.setPromptText("Add processing notes. Before waiting for confirmation, write a clear completion note.");
+        recordNoteArea.setPromptText("填写处理说明；如准备提交待学生确认，请写清完工说明。");
         recordNoteArea.setPrefRowCount(4);
         recordNoteArea.setWrapText(true);
 
         List<File> completionImageFiles = new ArrayList<>();
-        Label completionCountLabel = new Label("Selected 0 / 3");
+        Label completionCountLabel = new Label("已选 0 / 3");
         completionCountLabel.getStyleClass().add("plain-text");
         VBox completionPreviewBox = new VBox(8);
         completionPreviewBox.getStyleClass().add("upload-preview-box");
@@ -124,47 +124,47 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
                 buildStatusForm(currentWorker, trackedDetail, statusBox, recordNoteArea, completionImageFiles, completionCountLabel, completionPreviewBox, refreshTracked),
                 buildTrackedListPanel(keywordField, statusFilterBox, trackedTableContainer, refreshTracked)
         );
-        return createPage(moduleName(), "Overdue, waiting-confirmation and active items are shown first.", contentGrid);
+        return createPage(moduleName(), "超时、待学生确认和当前处理中工单会优先显示在这里。", contentGrid);
     }
 
     private Node buildStatusForm(UserAccount currentWorker, ObjectProperty<WorkOrderDetailView> trackedDetail, AppDropdown<WorkOrderStatus> statusBox, TextArea recordNoteArea, List<File> completionImageFiles, Label completionCountLabel, VBox completionPreviewBox, Runnable refreshTracked) {
-        Label workOrderNoLabel = new Label("No work order selected");
+        Label workOrderNoLabel = new Label("未选择工单");
         workOrderNoLabel.getStyleClass().add("dashboard-spotlight-value");
 
         VBox statusContainer = new VBox();
         statusContainer.setFillWidth(true);
 
-        Label requestInfoLabel = new Label("Pick one work order from the list on the right.");
+        Label requestInfoLabel = new Label("请先从右侧列表中选择一条工单。");
         requestInfoLabel.getStyleClass().add("dashboard-mini-title");
         requestInfoLabel.setWrapText(true);
 
-        Label locationLabel = new Label("Location, category and admin note will appear here.");
+        Label locationLabel = new Label("选中后会在这里显示宿舍位置、故障类别和派单说明。");
         locationLabel.getStyleClass().add("dashboard-mini-description");
         locationLabel.setWrapText(true);
 
         Label noteLabel = plainLabel("--");
-        Label completionSummaryLabel = plainLabel("No completion note or proof yet.");
-        Label feedbackLabel = plainLabel("No student feedback yet.");
+        Label completionSummaryLabel = plainLabel("当前暂无完工说明或凭证。");
+        Label feedbackLabel = plainLabel("当前暂无学生评价。");
 
-        EvidenceGallery existingCompletionGallery = new EvidenceGallery("No stored completion proof.");
+        EvidenceGallery existingCompletionGallery = new EvidenceGallery("当前暂无已存完工凭证。");
         VBox timelineContainer = new VBox(10);
         timelineContainer.setFillWidth(true);
-        timelineContainer.getChildren().setAll(createTimelineList(List.of(), "No records", "Timeline entries will appear here after status updates."));
+        timelineContainer.getChildren().setAll(createTimelineList(List.of(), "暂无处理记录", "工单产生处理记录后，会显示在这里。"));
 
         trackedDetail.addListener((observable, oldValue, detail) -> {
             recordNoteArea.clear();
             completionImageFiles.clear();
             refreshCompletionPreview(completionPreviewBox, completionImageFiles, completionCountLabel);
             if (detail == null) {
-                workOrderNoLabel.setText("No work order selected");
-                statusContainer.getChildren().setAll(helperLabel("Pick one work order from the list on the right."));
-                requestInfoLabel.setText("Pick one work order from the list on the right.");
-                locationLabel.setText("Location, category and admin note will appear here.");
+                workOrderNoLabel.setText("未选择工单");
+                statusContainer.getChildren().setAll(helperLabel("请先从右侧列表中选择一条工单。"));
+                requestInfoLabel.setText("请先从右侧列表中选择一条工单。");
+                locationLabel.setText("选中后会在这里显示宿舍位置、故障类别和派单说明。");
                 noteLabel.setText("--");
-                completionSummaryLabel.setText("No completion note or proof yet.");
-                feedbackLabel.setText("No student feedback yet.");
-                existingCompletionGallery.setImages(List.of(), "No stored completion proof.");
-                timelineContainer.getChildren().setAll(createTimelineList(List.of(), "No records", "Timeline entries will appear here after status updates."));
+                completionSummaryLabel.setText("当前暂无完工说明或凭证。");
+                feedbackLabel.setText("当前暂无学生评价。");
+                existingCompletionGallery.setImages(List.of(), "当前暂无已存完工凭证。");
+                timelineContainer.getChildren().setAll(createTimelineList(List.of(), "暂无处理记录", "工单产生处理记录后，会显示在这里。"));
                 refreshStatusChoices(statusBox, null);
                 return;
             }
@@ -175,20 +175,20 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
             noteLabel.setText(placeholderText(detail.getAssignmentNote()));
             completionSummaryLabel.setText(composeCompletionSummary(detail));
             feedbackLabel.setText(buildFeedbackSummary(detail));
-            existingCompletionGallery.setImages(detail.getCompletionImageUrls(), "No stored completion proof.");
-            timelineContainer.getChildren().setAll(createTimelineList(detail.getRecords(), "No records", "Timeline entries will appear here after status updates."));
+            existingCompletionGallery.setImages(detail.getCompletionImageUrls(), "当前暂无已存完工凭证。");
+            timelineContainer.getChildren().setAll(createTimelineList(detail.getRecords(), "暂无处理记录", "工单产生处理记录后，会显示在这里。"));
             refreshStatusChoices(statusBox, detail.getStatus());
         });
 
         statusBox.disableProperty().bind(Bindings.createBooleanBinding(() -> trackedDetail.get() == null || statusBox.getItems().isEmpty(), trackedDetail, statusBox.valueProperty()));
         recordNoteArea.disableProperty().bind(trackedDetail.isNull());
 
-        Button chooseProofButton = new Button("Choose proof images");
+        Button chooseProofButton = new Button("选择完工凭证");
         chooseProofButton.getStyleClass().add("surface-button");
         chooseProofButton.disableProperty().bind(Bindings.createBooleanBinding(() -> trackedDetail.get() == null || statusBox.getValue() != WorkOrderStatus.WAITING_CONFIRMATION, trackedDetail, statusBox.valueProperty()));
         chooseProofButton.setOnAction(event -> chooseProofImages(chooseProofButton, completionImageFiles, completionPreviewBox, completionCountLabel));
 
-        Button clearProofButton = new Button("Clear proof");
+        Button clearProofButton = new Button("清空待上传");
         clearProofButton.getStyleClass().add("surface-button");
         clearProofButton.disableProperty().bind(trackedDetail.isNull());
         clearProofButton.setOnAction(event -> {
@@ -196,23 +196,23 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
             refreshCompletionPreview(completionPreviewBox, completionImageFiles, completionCountLabel);
         });
 
-        Button refreshButton = createFilterActionButton("Refresh", refreshTracked);
+        Button refreshButton = createFilterActionButton("刷新列表", refreshTracked);
 
         Node updateButton = FusionUiFactory.createPrimaryButton("更新处理状态", 170, 40, () -> {
             try {
                 WorkOrderDetailView selected = trackedDetail.get();
                 if (selected == null) {
-                    throw new IllegalArgumentException("Select one work order first.");
+                    throw new IllegalArgumentException("请先选择一条工单。");
                 }
                 if (statusBox.getValue() == null) {
-                    throw new IllegalArgumentException("Select the next status first.");
+                    throw new IllegalArgumentException("请选择下一状态。");
                 }
                 List<String> storedProofs = List.of();
                 String completionNote = null;
                 if (statusBox.getValue() == WorkOrderStatus.WAITING_CONFIRMATION) {
                     ProjectImageStore.validateImageFiles(completionImageFiles);
                     if (completionImageFiles.size() > 3) {
-                        throw new IllegalArgumentException("At most 3 completion-proof images are allowed.");
+                        throw new IllegalArgumentException("完工凭证最多只能上传 3 张。");
                     }
                     storedProofs = ProjectImageStore.copyImagesToProject(completionImageFiles);
                     completionNote = recordNoteArea.getText();
@@ -230,9 +230,9 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
                 completionImageFiles.clear();
                 refreshCompletionPreview(completionPreviewBox, completionImageFiles, completionCountLabel);
                 refreshTracked.run();
-                UiAlerts.info("Updated", "Work order status updated.");
+                UiAlerts.info("更新成功", "工单状态已更新。");
             } catch (RuntimeException exception) {
-                UiAlerts.error("Update failed", exception.getMessage());
+                UiAlerts.error("更新失败", exception.getMessage());
             }
         }).getNode();
         updateButton.disableProperty().bind(Bindings.createBooleanBinding(() -> trackedDetail.get() == null || statusBox.getItems().isEmpty(), trackedDetail, statusBox.valueProperty()));
@@ -252,22 +252,22 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
 
         VBox formBody = new VBox(
                 18,
-                createInlineSummaryCard("Current selection", summaryBox, "dashboard-mini-card", "dashboard-mini-soft"),
+                createInlineSummaryCard("当前选择", summaryBox, "dashboard-mini-card", "dashboard-mini-soft"),
                 statusContainer,
-                createFieldBlock("Admin note", noteLabel),
-                createFieldBlock("Completion summary", completionSummaryLabel),
-                createFieldBlock("Student feedback", feedbackLabel),
-                createFieldBlock("Stored proof", existingCompletionGallery),
-                createFieldBlock("Next status", statusBox),
-                createFieldBlock("Process note", recordNoteArea),
-                createFieldBlock("Pending upload", completionCountLabel),
+                createFieldBlock("派单说明", noteLabel),
+                createFieldBlock("完工说明", completionSummaryLabel),
+                createFieldBlock("学生评价", feedbackLabel),
+                createFieldBlock("已存凭证", existingCompletionGallery),
+                createFieldBlock("下一状态", statusBox),
+                createFieldBlock("处理说明", recordNoteArea),
+                createFieldBlock("待上传凭证", completionCountLabel),
                 proofToolbar,
                 completionPreviewBox,
                 actionRow,
-                createFieldBlock("Timeline", timelineContainer)
+                createFieldBlock("处理时间线", timelineContainer)
         );
         formBody.setFillWidth(true);
-        return wrapPanel("Processing actions", formBody);
+        return wrapPanel("处理操作", formBody);
     }
 
     private void chooseProofImages(Node ownerNode, List<File> completionImageFiles, VBox completionPreviewBox, Label completionCountLabel) {
@@ -284,26 +284,26 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
         try {
             ProjectImageStore.validateImageFiles(completionImageFiles);
             if (completionImageFiles.size() > 3) {
-                throw new IllegalStateException("At most 3 completion-proof images are allowed.");
+                throw new IllegalStateException("完工凭证最多只能上传 3 张。");
             }
             refreshCompletionPreview(completionPreviewBox, completionImageFiles, completionCountLabel);
         } catch (RuntimeException exception) {
             completionImageFiles.removeIf(file -> chosenFiles.stream().anyMatch(chosen -> chosen.toPath().equals(file.toPath())));
             refreshCompletionPreview(completionPreviewBox, completionImageFiles, completionCountLabel);
-            UiAlerts.error("Proof selection failed", exception.getMessage());
+            UiAlerts.error("选择凭证失败", exception.getMessage());
         }
     }
 
     private Node buildTrackedListPanel(TextField keywordField, AppDropdown<StatusFilterOption> statusFilterBox, VBox trackedTableContainer, Runnable refreshTracked) {
-        Button refreshButton = createFilterActionButton("Refresh", refreshTracked);
+        Button refreshButton = createFilterActionButton("刷新列表", refreshTracked);
         keywordField.setMaxWidth(Double.MAX_VALUE);
         keywordField.setMinWidth(0);
         statusFilterBox.setMaxWidth(Double.MAX_VALUE);
         statusFilterBox.setMinWidth(0);
 
         GridPane filterGrid = createFilterGrid(58, 24, 18);
-        filterGrid.add(createFieldLabel("Keyword"), 0, 0);
-        filterGrid.add(createFieldLabel("Status"), 1, 0);
+        filterGrid.add(createFieldLabel("关键词筛选"), 0, 0);
+        filterGrid.add(createFieldLabel("状态筛选"), 1, 0);
         filterGrid.add(keywordField, 0, 1);
         filterGrid.add(statusFilterBox, 1, 1);
         filterGrid.add(refreshButton, 2, 1);
@@ -314,7 +314,7 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
         VBox content = new VBox(14, filterGrid, trackedTableContainer);
         content.setFillWidth(true);
         VBox.setVgrow(trackedTableContainer, Priority.ALWAYS);
-        return wrapPanel("My work orders", content);
+        return wrapPanel("我的工单", content);
     }
 
     private VBox buildTableContainer() {
@@ -358,7 +358,7 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
     private void renderTrackedTable(VBox trackedTableContainer, List<WorkOrderDetailView> visibleRows, ObjectProperty<WorkOrderDetailView> trackedDetail, Long workerId) {
         trackedTableContainer.getChildren().clear();
         if (visibleRows.isEmpty()) {
-            trackedTableContainer.getChildren().add(createEmptyState("No work orders", "Assigned and history work orders will appear here."));
+            trackedTableContainer.getChildren().add(createEmptyState("当前没有工单", "已派给你的工单和历史工单会显示在这里。"));
             return;
         }
         GridPane table = new GridPane();
@@ -367,11 +367,11 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
         table.setMinWidth(0);
         table.getColumnConstraints().addAll(percentColumn(20), percentColumn(16), percentColumn(16), percentColumn(20), percentColumn(28));
 
-        addCell(table, 0, 0, "Work order", true, false, true, false, null);
-        addCell(table, 0, 1, "Status", true, false, false, false, null);
-        addCell(table, 0, 2, "Student", true, false, false, false, null);
-        addCell(table, 0, 3, "Location", true, false, false, false, null);
-        addCell(table, 0, 4, "Fault / SLA", true, false, false, true, null);
+        addCell(table, 0, 0, "工单号", true, false, true, false, null);
+        addCell(table, 0, 1, "状态", true, false, false, false, null);
+        addCell(table, 0, 2, "学生", true, false, false, false, null);
+        addCell(table, 0, 3, "宿舍位置", true, false, false, false, null);
+        addCell(table, 0, 4, "故障 / 时效", true, false, false, true, null);
 
         Long selectedId = trackedDetail.get() == null ? null : trackedDetail.get().getId();
         int visibleCount = Math.max(6, visibleRows.size());
@@ -395,7 +395,7 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
     private VBox buildStatusRows(WorkOrderDetailView detail) {
         HBox chipRow = new HBox(10, StatusChip.workOrder(detail.getStatus()), TimeoutChip.create(detail.getTimeoutLevel(), detail.getTimeoutLabel()));
         chipRow.setAlignment(Pos.CENTER_LEFT);
-        VBox box = new VBox(8, chipRow, helperLabel(UiDisplayText.workOrderPriority(detail.getPriority()) + " / Assigned at " + formatTime(detail.getAssignedAt())));
+        VBox box = new VBox(8, chipRow, helperLabel(UiDisplayText.workOrderPriority(detail.getPriority()) + " / 派单时间：" + formatTime(detail.getAssignedAt())));
         box.setFillWidth(true);
         return box;
     }
@@ -464,8 +464,8 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
 
     private List<File> chooseImageFiles(Node ownerNode) {
         FileChooser chooser = new FileChooser();
-        chooser.setTitle("Choose proof images");
-        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image files", "*.png", "*.jpg", "*.jpeg", "*.webp", "*.bmp", "*.gif"));
+        chooser.setTitle("选择完工凭证图片");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("图片文件", "*.png", "*.jpg", "*.jpeg", "*.webp", "*.bmp", "*.gif"));
         Window ownerWindow = ownerNode.getScene() == null ? null : ownerNode.getScene().getWindow();
         List<File> selectedFiles = chooser.showOpenMultipleDialog(ownerWindow);
         return selectedFiles == null || selectedFiles.isEmpty() ? List.of() : selectedFiles;
@@ -473,9 +473,9 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
 
     private void refreshCompletionPreview(VBox previewBox, List<File> completionImageFiles, Label completionCountLabel) {
         previewBox.getChildren().clear();
-        completionCountLabel.setText("Selected " + completionImageFiles.size() + " / 3");
+        completionCountLabel.setText("已选 " + completionImageFiles.size() + " / 3");
         if (completionImageFiles.isEmpty()) {
-            Label emptyLabel = new Label("Upload 1-3 after-repair images before moving to waiting confirmation.");
+            Label emptyLabel = new Label("进入待学生确认前，请先上传 1 到 3 张完工凭证图片。");
             emptyLabel.getStyleClass().add("helper-text");
             emptyLabel.setWrapText(true);
             previewBox.getChildren().add(emptyLabel);
@@ -490,45 +490,45 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
     }
 
     private String composeFaultSummary(WorkOrderDetailView workOrder) {
-        String timeout = workOrder.getTimeoutLabel() == null || workOrder.getTimeoutLabel().isBlank() ? "Normal" : workOrder.getTimeoutLabel();
+        String timeout = workOrder.getTimeoutLabel() == null || workOrder.getTimeoutLabel().isBlank() ? "时效正常" : workOrder.getTimeoutLabel();
         return UiDisplayText.faultCategory(workOrder.getFaultCategory()) + " / " + timeout;
     }
 
     private String composeCompletionSummary(WorkOrderDetailView detail) {
         if (detail == null) {
-            return "No completion note or proof yet.";
+            return "当前暂无完工说明或凭证。";
         }
         String note = detail.getCompletionNote();
         int imageCount = detail.getCompletionImageUrls() == null ? 0 : detail.getCompletionImageUrls().size();
         if ((note == null || note.isBlank()) && imageCount == 0) {
-            return "No completion note or proof yet.";
+            return "当前暂无完工说明或凭证。";
         }
         StringBuilder builder = new StringBuilder();
         if (detail.getCompletedAt() != null) {
-            builder.append("Completed at ").append(formatTime(detail.getCompletedAt()));
+            builder.append("完工时间：").append(formatTime(detail.getCompletedAt()));
         }
         if (note != null && !note.isBlank()) {
             if (builder.length() > 0) {
                 builder.append(" / ");
             }
-            builder.append("Note: ").append(note.trim());
+            builder.append("处理说明：").append(note.trim());
         }
         if (imageCount > 0) {
             if (builder.length() > 0) {
                 builder.append(" / ");
             }
-            builder.append("Proof ").append(imageCount).append(" image(s)");
+            builder.append("完工凭证 ").append(imageCount).append(" 张");
         }
         return builder.toString();
     }
 
     private String buildFeedbackSummary(WorkOrderDetailView detail) {
         if (detail == null || !detail.hasFeedback()) {
-            return "No student feedback yet.";
+            return "当前暂无学生评价。";
         }
-        StringBuilder builder = new StringBuilder("Rated ").append(detail.getFeedbackRating());
+        StringBuilder builder = new StringBuilder("已评分 ").append(detail.getFeedbackRating());
         if (Boolean.TRUE.equals(detail.getFeedbackAnonymousFlag())) {
-            builder.append(" / anonymous");
+            builder.append(" / 匿名评价");
         }
         if (detail.getFeedbackComment() != null && !detail.getFeedbackComment().isBlank()) {
             builder.append(" / ").append(detail.getFeedbackComment().trim());
@@ -569,15 +569,15 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
     }
 
     private enum StatusFilterOption {
-        ALL("All", null),
-        ASSIGNED("Assigned", WorkOrderStatus.ASSIGNED),
-        ACCEPTED("Accepted", WorkOrderStatus.ACCEPTED),
-        IN_PROGRESS("In progress", WorkOrderStatus.IN_PROGRESS),
-        WAITING_PARTS("Waiting parts", WorkOrderStatus.WAITING_PARTS),
-        WAITING_CONFIRMATION("Waiting confirmation", WorkOrderStatus.WAITING_CONFIRMATION),
-        COMPLETED("Completed", WorkOrderStatus.COMPLETED),
-        REJECTED("Rejected", WorkOrderStatus.REJECTED),
-        CANCELLED("Cancelled", WorkOrderStatus.CANCELLED);
+        ALL("全部状态", null),
+        ASSIGNED("已派单", WorkOrderStatus.ASSIGNED),
+        ACCEPTED("已受理", WorkOrderStatus.ACCEPTED),
+        IN_PROGRESS("处理中", WorkOrderStatus.IN_PROGRESS),
+        WAITING_PARTS("待配件", WorkOrderStatus.WAITING_PARTS),
+        WAITING_CONFIRMATION("待学生确认", WorkOrderStatus.WAITING_CONFIRMATION),
+        COMPLETED("已处理", WorkOrderStatus.COMPLETED),
+        REJECTED("已驳回", WorkOrderStatus.REJECTED),
+        CANCELLED("已取消", WorkOrderStatus.CANCELLED);
 
         private final String label;
         private final WorkOrderStatus status;

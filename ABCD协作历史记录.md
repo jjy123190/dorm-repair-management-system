@@ -1058,3 +1058,15 @@
 - Push 结果
   - 已 push 到 `origin/main`
   - 功能提交号：`8318807`
+
+### 2026-04-07 10:31 | C
+- 改动文件
+  - src/main/java/com/scau/dormrepair/ui/module/WorkerProcessingModule.java
+  - ABCD协作历史记录.md
+- 完成内容
+  - 将维修员处理页仍然直接暴露在界面上的英文按钮、筛选标签、空状态、凭证说明和反馈摘要统一改回中文，收口“处理中 / 待学生确认 / 完工凭证”这条 C 区主链的页面文案。
+  - 保持工单状态流转、凭证上传和时间线逻辑不变，只修 WorkerProcessingModule 的可见 UI bug，避免演示时出现中英混杂和错误提示。
+  - 显式设置 JAVA_HOME=D:\APP\JDKs\ms-17.0.18 后执行 mvn "-Dmaven.repo.local=.m2\\repository" test，51 项测试全部通过；同样方式执行 mvn "-Dmaven.repo.local=.m2\\repository" javafx:run 已确认能正常拉起 JavaFX 应用。
+- 影响提醒 / 下一步
+  - 这轮没有改 service、mapper 和数据库结构，主要修 C 区维修员处理页的可见 bug。
+  - 当前仓库仍有 .m2 本地缓存脏改，提交时继续只 stage 源码和协作文档，不把这些缓存带进版本库。
