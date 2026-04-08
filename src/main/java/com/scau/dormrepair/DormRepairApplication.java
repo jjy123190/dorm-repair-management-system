@@ -4,7 +4,6 @@ import com.scau.dormrepair.common.AppContext;
 import com.scau.dormrepair.config.AppProperties;
 import com.scau.dormrepair.ui.AppShell;
 import com.scau.dormrepair.ui.support.BrandIconFactory;
-import com.scau.dormrepair.ui.support.ProportionalViewport;
 import com.scau.dormrepair.ui.support.UiAlerts;
 import com.scau.dormrepair.ui.support.WindowResizeSupport;
 import com.scau.dormrepair.ui.theme.DormVfxTheme;
@@ -13,11 +12,11 @@ import io.vproxy.vfx.ui.scene.VScene;
 import io.vproxy.vfx.ui.scene.VSceneRole;
 import io.vproxy.vfx.ui.stage.VStage;
 import io.vproxy.vfx.ui.stage.VStageInitParams;
-import io.vproxy.vfx.util.FXUtils;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
@@ -37,8 +36,6 @@ public class DormRepairApplication extends Application {
             Parent appRoot = appShell.createContent();
             AppProperties.UiProperties ui = appContext.properties().ui();
 
-            ProportionalViewport viewport = new ProportionalViewport(appRoot, ui.designWidth(), ui.designHeight());
-
             VScene mainScene = new VScene(VSceneRole.MAIN);
             mainScene.enableAutoContentWidthHeight();
 
@@ -47,8 +44,12 @@ public class DormRepairApplication extends Application {
             stage.useLightBorder();
             BrandIconFactory.attachStageIcon(stage.getStage());
 
-            FXUtils.observeWidthHeight(mainScene.getContentPane(), viewport);
-            mainScene.getContentPane().getChildren().add(viewport);
+            StackPane rootContainer = new StackPane(appRoot);
+            rootContainer.setMinSize(0, 0);
+            rootContainer.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+            rootContainer.prefWidthProperty().bind(mainScene.getContentPane().widthProperty());
+            rootContainer.prefHeightProperty().bind(mainScene.getContentPane().heightProperty());
+            mainScene.getContentPane().getChildren().add(rootContainer);
 
             if (getClass().getResource("/styles/app.css") != null) {
                 stage.getStage().getScene().getStylesheets().add(
@@ -74,8 +75,8 @@ public class DormRepairApplication extends Application {
             stage.getStage().setFullScreen(false);
             stage.getStage().setMaximized(false);
             stage.getStage().setResizable(true);
-            stage.getStage().setMinWidth(MIN_WINDOW_SIZE);
-            stage.getStage().setMinHeight(MIN_WINDOW_SIZE);
+            stage.getStage().setMinWidth(Math.min(maxWindowWidth, Math.max(ui.minWidth(), MIN_WINDOW_SIZE)));
+            stage.getStage().setMinHeight(Math.min(maxWindowHeight, Math.max(ui.minHeight(), MIN_WINDOW_SIZE)));
             stage.getStage().setWidth(initialWidth);
             stage.getStage().setHeight(initialHeight);
             stage.getStage().centerOnScreen();

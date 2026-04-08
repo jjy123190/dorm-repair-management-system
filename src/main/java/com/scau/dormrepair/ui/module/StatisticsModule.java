@@ -183,7 +183,7 @@ public class StatisticsModule extends AbstractWorkbenchModule {
     }
 
     private Parent buildSummaryTable(List<MonthlyRepairSummary> monthlyRows) {
-        return (Parent) createStaticDataTableOrEmpty(
+        Parent table = (Parent) createStaticDataTableOrEmpty(
                 List.of(
                         staticColumn("月份", 1.08, MonthlyRepairSummary::getMonthLabel),
                         staticColumn("报修总数", 0.96, item -> String.valueOf(safeLong(item.getTotalRequests()))),
@@ -195,6 +195,8 @@ public class StatisticsModule extends AbstractWorkbenchModule {
                 "暂无统计数据",
                 "当前月份范围内还没有可展示的统计结果。"
         );
+        table.getStyleClass().add("statistics-summary-table");
+        return table;
     }
 
     private Node buildDormBuildingTable(List<DormBuildingFaultSummary> rows, ObjectProperty<DrillDownSelection> selection, Label detailTitle, VBox detailTableContainer) {
@@ -279,7 +281,7 @@ public class StatisticsModule extends AbstractWorkbenchModule {
     }
 
     private Parent buildRequestDetailTable(List<RecentRepairRequestView> rows) {
-        return (Parent) createStaticDataTableOrEmpty(
+        Parent table = (Parent) createStaticDataTableOrEmpty(
                 List.of(
                         staticColumn("报修单号", 1.1, RecentRepairRequestView::getRequestNo),
                         staticColumn("学生", 0.8, RecentRepairRequestView::getStudentName),
@@ -292,6 +294,8 @@ public class StatisticsModule extends AbstractWorkbenchModule {
                 "暂无对应单据",
                 "当前筛选口径下没有找到对应报修单。"
         );
+        table.getStyleClass().add("statistics-detail-table");
+        return table;
     }
 
     private <T> Node createSelectableDrillDownTable(List<String> headers, List<T> rows, List<java.util.function.Function<T, String>> valueProviders, java.util.function.Consumer<T> onClick, String emptyTitle, String emptyDescription) {

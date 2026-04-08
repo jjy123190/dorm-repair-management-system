@@ -1101,3 +1101,19 @@
   - Keep excluding local .m2 cache changes from commits.- Push result
   - pushed to `origin/main`
   - feature commit: `047b844`
+### 2026-04-08 14:37 | A
+- Changed files
+  - src/main/java/com/scau/dormrepair/DormRepairApplication.java
+  - src/main/java/com/scau/dormrepair/ui/AppShell.java
+  - src/main/java/com/scau/dormrepair/ui/module/StatisticsModule.java
+  - src/main/resources/styles/app.css
+  - src/test/java/com/scau/dormrepair/ui/UiShellChromeSmokeTest.java
+  - ABCD协作历史记录.md
+- Completed
+  - Removed whole-window proportional scaling from DormRepairApplication so JavaFX text renders at native size instead of being blurred by scaled-down scene transforms.
+  - Removed the header current-module block and kept only identity plus personal-center/logout actions, reducing duplicate module information on the dashboard and workbench pages.
+  - Tightened static-table typography and added dedicated statistics table styles so the monthly summary and drill-down detail tables use smaller text and taller cells instead of spilling text outside the grid.
+  - Verified with mvn "-Dmaven.repo.local=.m2\\repository" test (51 tests passed) and mvn "-Dmaven.repo.local=.m2\\repository" javafx:run (JavaFX app launched successfully).
+- Impact / Next
+  - This round only refined UI clarity and statistics/header presentation; no service, mapper, or database schema changes were made.
+  - Keep local .m2 cache changes out of git commits.

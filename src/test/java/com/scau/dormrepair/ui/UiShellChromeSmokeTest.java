@@ -18,10 +18,10 @@ class UiShellChromeSmokeTest {
     void shouldKeepHeaderContractReadableInSource() throws IOException {
         String source = readSource("src/main/java/com/scau/dormrepair/ui/AppShell.java");
 
-        assertTrue(source.contains("header-module-summary"));
         assertTrue(source.contains("\\u9000\\u51fa\\u767b\\u5f55"));
-        assertTrue(source.contains("moduleSummaryLabel.setText(activeModule == null ? \"\\u672a\\u9009\\u62e9\\u6a21\\u5757\" : activeModule.moduleName())"));
-        assertTrue(source.contains("new HBox(10, identityChipLabel, moduleBox, profileButton, logoutButton)"));
+        assertTrue(source.contains("new HBox(12, identityChipLabel, profileButton, logoutButton)"));
+        assertFalse(source.contains("moduleSummaryLabel"));
+        assertFalse(source.contains("header-module-summary"));
     }
 
     @Test
@@ -48,7 +48,6 @@ class UiShellChromeSmokeTest {
         assertEquals(1, countSelector(css, ".header-profile-action:hover"));
         assertEquals(1, countSelector(css, ".header-logout-action"));
         assertEquals(1, countSelector(css, ".header-logout-action:hover"));
-        assertEquals(1, countSelector(css, ".header-module-summary"));
         assertEquals(1, countSelector(css, ".login-shell"));
         assertEquals(1, countSelector(css, ".login-hero-panel"));
         assertEquals(1, countSelector(css, ".login-card-title"));
