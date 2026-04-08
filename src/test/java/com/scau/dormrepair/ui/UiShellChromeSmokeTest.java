@@ -1,6 +1,7 @@
 package com.scau.dormrepair.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -27,11 +28,15 @@ class UiShellChromeSmokeTest {
     void shouldKeepLoginFeedbackLayoutStableInSource() throws IOException {
         String source = readSource("src/main/java/com/scau/dormrepair/ui/LoginView.java");
 
-        assertTrue(source.contains("formBody.setMinHeight(366);"));
-        assertTrue(source.contains("errorLabel.setMinHeight(46);"));
+        assertTrue(source.contains("formBody.getStyleClass().add(\"login-form-body\");"));
+        assertTrue(source.contains("errorLabel.getStyleClass().add(\"login-error-label\");"));
+        assertTrue(source.contains("errorLabel.setWrapText(true);"));
         assertTrue(source.contains("forgotPasswordRow.setOpacity(showForgotPassword ? 1 : 0);"));
+        assertTrue(source.contains("label.setWrapText(true);"));
         assertTrue(source.contains("label.setOpacity(0);"));
         assertTrue(source.contains("errorLabel.setText(\" \");"));
+        assertFalse(source.contains("formBody.setMinHeight(366);"));
+        assertFalse(source.contains("errorLabel.setMinHeight(46);"));
     }
 
     @Test

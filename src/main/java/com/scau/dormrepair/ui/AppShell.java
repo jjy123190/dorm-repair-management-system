@@ -30,6 +30,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -54,6 +55,7 @@ public class AppShell {
 
     private BorderPane workbenchShell;
     private StackPane moduleHost;
+    private ScrollPane moduleScrollPane;
     private Label identityChipLabel;
     private Label moduleSummaryLabel;
     private WorkbenchModule activeModule;
@@ -126,9 +128,19 @@ public class AppShell {
         moduleHost.getStyleClass().add("module-host");
         moduleHost.setAlignment(Pos.TOP_CENTER);
         moduleHost.setMinWidth(0);
+        moduleHost.setMaxWidth(Double.MAX_VALUE);
+
+        moduleScrollPane = new ScrollPane(moduleHost);
+        moduleScrollPane.getStyleClass().add("module-scroll-pane");
+        moduleScrollPane.setFitToWidth(true);
+        moduleScrollPane.setFitToHeight(false);
+        moduleScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        moduleScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        moduleScrollPane.setPannable(true);
+        moduleScrollPane.setFocusTraversable(false);
 
         workbenchShell.setTop(buildHeader());
-        workbenchShell.setCenter(moduleHost);
+        workbenchShell.setCenter(moduleScrollPane);
     }
 
     private void syncWorkbench() {
@@ -208,9 +220,9 @@ public class AppShell {
         VBox sidebar = new VBox(12);
         sidebar.getStyleClass().add("sidebar");
         sidebar.setPadding(new Insets(20));
-        sidebar.setMinWidth(244);
-        sidebar.setPrefWidth(244);
-        sidebar.setMaxWidth(244);
+        sidebar.setMinWidth(176);
+        sidebar.setPrefWidth(216);
+        sidebar.setMaxWidth(260);
 
         Label navTitle = new Label("\u5de5\u4f5c\u6a21\u5757");
         navTitle.getStyleClass().add("sidebar-title");
@@ -292,6 +304,10 @@ public class AppShell {
             moduleViewCache.remove(module.moduleCode());
         }
         Parent nextContent = loadModuleView(module);
+        if (nextContent instanceof Region region) {
+            region.setMinWidth(0);
+            region.setMaxWidth(Double.MAX_VALUE);
+        }
         moduleHost.getChildren().setAll(nextContent);
     }
 
@@ -331,8 +347,6 @@ public class AppShell {
         errorLabel.setWrapText(true);
         errorLabel.setManaged(true);
         errorLabel.setVisible(true);
-        errorLabel.setMinHeight(48);
-        errorLabel.setPrefHeight(48);
         errorLabel.setMaxWidth(Double.MAX_VALUE);
         clearInlineError(errorLabel);
 
@@ -470,6 +484,7 @@ public class AppShell {
         renderedRole = null;
         workbenchShell = null;
         moduleHost = null;
+        moduleScrollPane = null;
         identityChipLabel = null;
         moduleSummaryLabel = null;
     }

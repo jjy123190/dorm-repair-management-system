@@ -412,9 +412,7 @@ public class WorkerProcessingModule extends AbstractWorkbenchModule {
         cellShell.setAlignment(Pos.CENTER);
         cellShell.setMaxWidth(Double.MAX_VALUE);
         cellShell.setMinWidth(0);
-        cellShell.setPrefHeight(columnIndex == 4 && !headerCell ? 58 : 48);
         cellShell.setMinHeight(columnIndex == 4 && !headerCell ? 58 : 48);
-        cellShell.setMaxHeight(columnIndex == 4 && !headerCell ? 58 : 48);
         cellShell.getStyleClass().add(headerCell ? "selectable-static-grid-header-shell" : "selectable-static-grid-cell-shell");
         if (firstHeaderCell) {
             cellShell.getStyleClass().add("selectable-static-grid-header-first");

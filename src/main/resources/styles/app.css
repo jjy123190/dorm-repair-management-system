@@ -501,6 +501,17 @@
     -fx-padding: 18 24 24 24;
 }
 
+.module-scroll-pane {
+    -fx-fit-to-width: true;
+    -fx-fit-to-height: false;
+    -fx-pannable: true;
+}
+
+.module-scroll-pane > .viewport,
+.module-host {
+    -fx-background-color: transparent;
+}
+
 .fusion-node {
     -fx-effect: none;
 }
@@ -792,11 +803,9 @@
 .static-table-cell-shell {
     -fx-alignment: center;
     -fx-min-height: 48px;
-    -fx-pref-height: 48px;
-    -fx-max-height: 48px;
     -fx-border-color: transparent rgba(46,46,46,0.10) transparent transparent;
     -fx-border-width: 0 1 0 0;
-    -fx-padding: 0 10 0 10;
+    -fx-padding: 10 10 10 10;
 }
 
 .static-table-last-cell-shell {
@@ -1501,9 +1510,7 @@
 .selectable-static-grid-cell-shell {
     -fx-alignment: center;
     -fx-min-height: 48px;
-    -fx-pref-height: 48px;
-    -fx-max-height: 48px;
-    -fx-padding: 0 10 0 10;
+    -fx-padding: 10 10 10 10;
     -fx-border-color: transparent rgba(46,46,46,0.10) transparent transparent;
     -fx-border-width: 0 1 0 0;
 }
@@ -2183,7 +2190,6 @@
 /* 2026-04-01 A-line shell authority */
 .login-form-body {
     -fx-padding: 2 0 0 0;
-    -fx-pref-height: 366px;
 }
 
 .login-footer-row {

@@ -68,8 +68,8 @@ public class ProportionalViewport extends Pane {
             return null;
         }
 
-        // Use a shared scale factor that covers the entire viewport without distorting the UI.
-        double scale = Math.max(viewportWidth / designWidth, viewportHeight / designHeight);
+        // Keep the full UI visible and scale it proportionally when the viewport is smaller.
+        double scale = Math.min(viewportWidth / designWidth, viewportHeight / designHeight);
         double scaledWidth = designWidth * scale;
         double scaledHeight = designHeight * scale;
         double offsetX = (viewportWidth - scaledWidth) / 2;

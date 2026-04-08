@@ -145,8 +145,8 @@ public class StatisticsModule extends AbstractWorkbenchModule {
         chart.setLegendVisible(true);
         chart.setCreateSymbols(true);
         chart.setAnimated(false);
-        chart.setMinHeight(320);
-        chart.setPrefHeight(320);
+        chart.setMinHeight(240);
+        chart.setPrefHeight(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
         chart.setMaxWidth(Double.MAX_VALUE);
         chart.setTitle(null);
 
@@ -171,8 +171,8 @@ public class StatisticsModule extends AbstractWorkbenchModule {
         chart.setLegendVisible(true);
         chart.setLabelsVisible(true);
         chart.setClockwise(true);
-        chart.setMinHeight(320);
-        chart.setPrefHeight(320);
+        chart.setMinHeight(240);
+        chart.setPrefHeight(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
         for (FaultCategorySummary item : categoryRows) {
             chart.getData().add(new PieChart.Data(
                     faultCategoryLabel(item.getFaultCategory()) + " " + formatRate(item.getPercentage()) + " / " + safeLong(item.getTotalRequests()),
@@ -330,7 +330,7 @@ public class StatisticsModule extends AbstractWorkbenchModule {
         shell.setMaxWidth(Double.MAX_VALUE);
         shell.setMinWidth(0);
         shell.setAlignment(javafx.geometry.Pos.CENTER);
-        shell.setPrefHeight(headerCell ? 48 : 54);
+        shell.setMinHeight(headerCell ? 48 : 54);
         shell.getStyleClass().add(headerCell ? "selectable-static-grid-header-shell" : "selectable-static-grid-cell-shell");
         if (firstHeaderCell) {
             shell.getStyleClass().add("selectable-static-grid-header-first");

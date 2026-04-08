@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -30,8 +31,6 @@ public class EvidenceGallery extends VBox {
         this.previewHint.setWrapText(true);
 
         this.previewImage = new ImageView();
-        this.previewImage.setFitWidth(320);
-        this.previewImage.setFitHeight(220);
         this.previewImage.setPreserveRatio(true);
         this.previewImage.setSmooth(true);
         this.previewImage.setManaged(false);
@@ -39,13 +38,15 @@ public class EvidenceGallery extends VBox {
 
         this.previewFrame = new StackPane(previewImage);
         this.previewFrame.getStyleClass().add("evidence-preview-frame");
-        this.previewFrame.setMinHeight(220);
-        this.previewFrame.setPrefHeight(220);
+        this.previewFrame.setMinHeight(180);
+        this.previewFrame.prefHeightProperty().bind(Bindings.max(180.0, previewFrame.widthProperty().multiply(0.46)));
+        this.previewImage.fitWidthProperty().bind(Bindings.max(220.0, previewFrame.widthProperty().subtract(24)));
+        this.previewImage.fitHeightProperty().bind(Bindings.max(160.0, previewFrame.widthProperty().multiply(0.58)));
 
         this.thumbPane = new FlowPane(10, 10);
         this.thumbPane.getStyleClass().add("evidence-thumb-pane");
         this.thumbPane.setPadding(new Insets(2, 0, 2, 0));
-        this.thumbPane.setPrefWrapLength(360);
+        this.thumbPane.prefWrapLengthProperty().bind(Bindings.max(240.0, widthProperty().subtract(12)));
 
         getStyleClass().add("evidence-gallery");
         setFillWidth(true);
@@ -71,7 +72,7 @@ public class EvidenceGallery extends VBox {
                 thumb.setFitHeight(72);
                 thumb.setPreserveRatio(true);
 
-                Label tag = new Label("图 " + (index + 1));
+                Label tag = new Label("\u56fe" + (index + 1));
                 tag.getStyleClass().add("evidence-thumb-index");
 
                 VBox card = new VBox(6, thumb, tag);
@@ -121,7 +122,7 @@ public class EvidenceGallery extends VBox {
 
     private String fileLabel(Path path, int index) {
         String fileName = path.getFileName() == null ? null : path.getFileName().toString();
-        return fileName == null || fileName.isBlank() ? "已加载图片 " + (index + 1) : fileName;
+        return fileName == null || fileName.isBlank() ? "\u5df2\u52a0\u8f7d\u56fe\u7247" + (index + 1) : fileName;
     }
 
     private Path resolvePath(String storedPath) {

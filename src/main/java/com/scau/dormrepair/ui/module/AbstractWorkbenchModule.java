@@ -28,6 +28,7 @@ import javafx.scene.layout.VBox;
 
 public abstract class AbstractWorkbenchModule implements WorkbenchModule {
 
+    private static final double COMPACT_WORKSPACE_BREAKPOINT = 1120;
     private static final double WORKBENCH_MAX_WIDTH = 1720;
     private static final DateTimeFormatter TIMELINE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
@@ -99,10 +100,37 @@ public abstract class AbstractWorkbenchModule implements WorkbenchModule {
         workspace.setVgap(18);
         workspace.setMinWidth(0);
         workspace.setMaxWidth(Double.MAX_VALUE);
-        workspace.getColumnConstraints().addAll(percentColumn(leftPercent), percentColumn(rightPercent));
-        workspace.add(prepareContentNode(leftContent), 0, 0);
-        workspace.add(prepareContentNode(rightContent), 1, 0);
+
+        Node preparedLeft = prepareContentNode(leftContent);
+        Node preparedRight = prepareContentNode(rightContent);
+        refreshRatioWorkspaceLayout(workspace, preparedLeft, preparedRight, leftPercent, rightPercent, workspace.getWidth());
+        workspace.widthProperty().addListener((observable, oldValue, newValue) ->
+                refreshRatioWorkspaceLayout(workspace, preparedLeft, preparedRight, leftPercent, rightPercent, newValue.doubleValue())
+        );
         return workspace;
+    }
+
+    private void refreshRatioWorkspaceLayout(
+            GridPane workspace,
+            Node leftContent,
+            Node rightContent,
+            double leftPercent,
+            double rightPercent,
+            double availableWidth
+    ) {
+        workspace.getChildren().clear();
+        workspace.getColumnConstraints().clear();
+
+        if (availableWidth > 0 && availableWidth < COMPACT_WORKSPACE_BREAKPOINT) {
+            workspace.getColumnConstraints().add(percentColumn(100));
+            workspace.add(leftContent, 0, 0);
+            workspace.add(rightContent, 0, 1);
+            return;
+        }
+
+        workspace.getColumnConstraints().addAll(percentColumn(leftPercent), percentColumn(rightPercent));
+        workspace.add(leftContent, 0, 0);
+        workspace.add(rightContent, 1, 0);
     }
 
     protected VBox createFieldBlock(String labelText, Region input) {
@@ -348,7 +376,7 @@ public abstract class AbstractWorkbenchModule implements WorkbenchModule {
     ) {
         Label label = new Label(text == null ? "" : text);
         label.getStyleClass().add(headerCell ? "static-table-header-cell" : "static-table-cell");
-        label.setWrapText(false);
+        label.setWrapText(true);
         label.setAlignment(Pos.CENTER);
         label.setMaxWidth(Double.MAX_VALUE);
         label.setMinWidth(0);

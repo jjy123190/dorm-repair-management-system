@@ -519,7 +519,7 @@ public class AccountManagementModule extends AbstractWorkbenchModule {
     ) {
         Label label = new Label(text == null ? "" : text);
         label.getStyleClass().add(headerCell ? "static-table-header-cell" : "static-table-cell");
-        label.setWrapText(false);
+        label.setWrapText(!headerCell);
         label.setAlignment(Pos.CENTER);
         label.setMaxWidth(Double.MAX_VALUE);
         label.setMinWidth(0);
@@ -528,9 +528,7 @@ public class AccountManagementModule extends AbstractWorkbenchModule {
         cellShell.setAlignment(Pos.CENTER);
         cellShell.setMaxWidth(Double.MAX_VALUE);
         cellShell.setMinWidth(0);
-        cellShell.setPrefHeight(48);
         cellShell.setMinHeight(48);
-        cellShell.setMaxHeight(48);
         cellShell.getStyleClass().add(headerCell ? "selectable-static-grid-header-shell" : "selectable-static-grid-cell-shell");
         if (firstHeaderCell) {
             cellShell.getStyleClass().add("selectable-static-grid-header-first");

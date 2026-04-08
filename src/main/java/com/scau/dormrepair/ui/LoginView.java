@@ -35,6 +35,7 @@ public class LoginView {
     private static final String BRAND_NAME = "\u4fee\u4e86\u4e48";
     private static final String LAST_USERNAME_KEY = "login.lastUsername";
     private static final Pattern USERNAME_HINT_PATTERN = Pattern.compile("^[A-Za-z0-9_]{4,32}$");
+    private static final double COMPACT_LOGIN_BREAKPOINT = 980;
     private static final Preferences LOGIN_PREFERENCES = Preferences.userNodeForPackage(LoginView.class);
 
     private final AppContext appContext;
@@ -73,27 +74,60 @@ public class LoginView {
         ColumnConstraints heroColumn = new ColumnConstraints();
         heroColumn.setPercentWidth(58);
         heroColumn.setHgrow(Priority.ALWAYS);
+        heroColumn.setFillWidth(true);
+        heroColumn.setMinWidth(0);
 
         ColumnConstraints authColumn = new ColumnConstraints();
         authColumn.setPercentWidth(42);
-        authColumn.setMinWidth(410);
-
-        content.getColumnConstraints().setAll(heroColumn, authColumn);
+        authColumn.setHgrow(Priority.ALWAYS);
+        authColumn.setFillWidth(true);
+        authColumn.setMinWidth(0);
 
         VBox heroPanel = buildHeroPanel();
         heroPanel.setMaxWidth(Double.MAX_VALUE);
         VBox authCard = createAuthCard(currentMode);
         authCard.setMaxWidth(Double.MAX_VALUE);
-        authCard.setMinWidth(410);
+        GridPane.setHgrow(heroPanel, Priority.ALWAYS);
+        GridPane.setHgrow(authCard, Priority.ALWAYS);
 
-        content.add(heroPanel, 0, 0);
-        content.add(authCard, 1, 0);
+        updateResponsiveLayout(content, heroPanel, authCard, heroColumn, authColumn, centerPane.getWidth());
+        centerPane.widthProperty().addListener((observable, oldValue, newValue) ->
+                updateResponsiveLayout(content, heroPanel, authCard, heroColumn, authColumn, newValue.doubleValue())
+        );
 
         centerPane.getChildren().addAll(orbLeft, orbRight, content);
         StackPane.setAlignment(orbLeft, Pos.TOP_LEFT);
         StackPane.setAlignment(orbRight, Pos.BOTTOM_RIGHT);
         StackPane.setAlignment(content, Pos.CENTER);
         return centerPane;
+    }
+
+    private static void updateResponsiveLayout(
+            GridPane content,
+            VBox heroPanel,
+            VBox authCard,
+            ColumnConstraints heroColumn,
+            ColumnConstraints authColumn,
+            double availableWidth
+    ) {
+        content.getChildren().clear();
+        content.getColumnConstraints().clear();
+
+        if (availableWidth > 0 && availableWidth < COMPACT_LOGIN_BREAKPOINT) {
+            ColumnConstraints singleColumn = new ColumnConstraints();
+            singleColumn.setPercentWidth(100);
+            singleColumn.setHgrow(Priority.ALWAYS);
+            singleColumn.setFillWidth(true);
+            singleColumn.setMinWidth(0);
+            content.getColumnConstraints().setAll(singleColumn);
+            content.add(heroPanel, 0, 0);
+            content.add(authCard, 0, 1);
+            return;
+        }
+
+        content.getColumnConstraints().setAll(heroColumn, authColumn);
+        content.add(heroPanel, 0, 0);
+        content.add(authCard, 1, 0);
     }
 
     private VBox buildHeroPanel() {
@@ -199,8 +233,6 @@ public class LoginView {
         errorLabel.setManaged(true);
         errorLabel.setVisible(true);
         errorLabel.setWrapText(true);
-        errorLabel.setMinHeight(46);
-        errorLabel.setPrefHeight(46);
         errorLabel.setMaxWidth(Double.MAX_VALUE);
         clearError(errorLabel);
 
@@ -210,7 +242,6 @@ public class LoginView {
 
         VBox formBody = new VBox(16);
         formBody.getStyleClass().add("login-form-body");
-        formBody.setMinHeight(366);
 
         Button loginModeButton = createModeButton("\u767b\u5f55");
         Button registerModeButton = createModeButton("\u6ce8\u518c");
@@ -224,8 +255,6 @@ public class LoginView {
         HBox forgotPasswordRow = new HBox(8, footerSpacer, forgotPasswordButton);
         forgotPasswordRow.getStyleClass().add("login-footer-row");
         forgotPasswordRow.setAlignment(Pos.CENTER_RIGHT);
-        forgotPasswordRow.setMinHeight(28);
-        forgotPasswordRow.setPrefHeight(28);
 
         Button submitButton = new Button();
         submitButton.getStyleClass().add("login-primary-button");
@@ -462,8 +491,6 @@ public class LoginView {
         label.setManaged(true);
         label.setVisible(true);
         label.setWrapText(true);
-        label.setMinHeight(20);
-        label.setPrefHeight(20);
         label.setOpacity(0);
         return label;
     }

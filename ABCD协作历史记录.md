@@ -1072,3 +1072,30 @@
   - 当前仓库仍有 .m2 本地缓存脏改，提交时继续只 stage 源码和协作文档，不把这些缓存带进版本库。- Push 结果
   - 已 push 到 `origin/main`
   - 功能提交号：`9d511dd`
+### 2026-04-08 14:03 | A
+- Changed files
+  - src/main/java/com/scau/dormrepair/ui/AppShell.java
+  - src/main/java/com/scau/dormrepair/ui/LoginView.java
+  - src/main/java/com/scau/dormrepair/ui/component/EvidenceGallery.java
+  - src/main/java/com/scau/dormrepair/ui/module/AbstractWorkbenchModule.java
+  - src/main/java/com/scau/dormrepair/ui/module/AccountManagementModule.java
+  - src/main/java/com/scau/dormrepair/ui/module/AdminDispatchModule.java
+  - src/main/java/com/scau/dormrepair/ui/module/DormCatalogManagementModule.java
+  - src/main/java/com/scau/dormrepair/ui/module/StatisticsModule.java
+  - src/main/java/com/scau/dormrepair/ui/module/StudentRepairHistoryModule.java
+  - src/main/java/com/scau/dormrepair/ui/module/WorkerProcessingModule.java
+  - src/main/java/com/scau/dormrepair/ui/support/ProportionalViewport.java
+  - src/main/resources/styles/app.css
+  - src/test/java/com/scau/dormrepair/ui/UiShellChromeSmokeTest.java
+  - src/test/java/com/scau/dormrepair/ui/support/ProportionalViewportTest.java
+  - ABCD协作历史记录.md
+- Completed
+  - Switched ProportionalViewport from cover-style cropping to fit-style scaling so small windows keep the full login/workbench UI visible.
+  - Wrapped AppShell module content in a ScrollPane and relaxed sidebar width constraints so narrow windows scroll instead of clipping module content.
+  - Made LoginView responsive between two-column and one-column layouts, and removed fixed feedback/form heights that caused overlap during mode switches.
+  - Added responsive single-column fallback to AbstractWorkbenchModule.createRatioWorkspace(...) so split workspaces stop squeezing into overlapping columns on small widths.
+  - Relaxed fixed heights in evidence preview, student history, charts, and static grid/table cells so long content can wrap and expand without overflowing.
+  - Verified with mvn "-Dmaven.repo.local=.m2\\repository" test (51 tests passed) and mvn "-Dmaven.repo.local=.m2\\repository" javafx:run (JavaFX app launched successfully).
+- Impact / Next
+  - This round only touched adaptive UI/layout behavior and smoke tests; no service, mapper, or database schema changes were made.
+  - Keep excluding local .m2 cache changes from commits.

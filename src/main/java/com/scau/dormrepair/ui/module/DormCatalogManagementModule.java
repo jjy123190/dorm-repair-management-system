@@ -540,16 +540,14 @@ public class DormCatalogManagementModule extends AbstractWorkbenchModule {
     ) {
         Label label = new Label(text == null ? "" : text);
         label.getStyleClass().add(headerCell ? "static-table-header-cell" : "static-table-cell");
-        label.setWrapText(false);
+        label.setWrapText(!headerCell);
         label.setAlignment(Pos.CENTER);
         label.setMaxWidth(Double.MAX_VALUE);
         label.setMinWidth(0);
 
         HBox shell = new HBox(label);
         shell.setAlignment(Pos.CENTER);
-        shell.setPrefHeight(48);
         shell.setMinHeight(48);
-        shell.setMaxHeight(48);
         shell.setMaxWidth(Double.MAX_VALUE);
         shell.setMinWidth(0);
         shell.getStyleClass().add(headerCell ? "selectable-static-grid-header-shell" : "selectable-static-grid-cell-shell");
