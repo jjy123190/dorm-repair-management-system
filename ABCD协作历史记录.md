@@ -1163,3 +1163,18 @@
 - Push result
   - pushed to `origin/main`
   - feature commit: `70a5b40`
+### 2026-04-08 15:33 | A
+- Changed files
+  - src/main/java/com/scau/dormrepair/ui/component/FusionUiFactory.java
+  - src/main/java/com/scau/dormrepair/ui/module/AbstractWorkbenchModule.java
+  - src/main/resources/styles/app.css
+  - src/test/java/com/scau/dormrepair/ui/module/UiModuleCopySmokeTest.java
+  - ABCD协作历史记录.md
+- Completed
+  - Made Fusion primary/ghost buttons respect the disabled state in interaction feedback: disabled buttons no longer keep the hand cursor or clickable surface behavior, reducing false affordance on forms and dialogs.
+  - Upgraded shared empty states with a consistent `当前暂无数据` chip and clearer visual hierarchy, so pages communicate “what happened” before the user reads the longer explanation.
+  - Extended CSS so disabled surface buttons and fusion buttons look visibly inactive instead of merely faded at random component layers.
+  - Verified with `mvn "-Dmaven.repo.local=.m2\\repository" test` (51 tests passed) and `mvn "-Dmaven.repo.local=.m2\\repository" javafx:run` (JavaFX app launched and stayed open until timeout).
+- Impact / Next
+  - This round focused on global affordance consistency across buttons and empty states, not business logic or data access.
+  - Keep local `.m2` cache changes out of git commits.

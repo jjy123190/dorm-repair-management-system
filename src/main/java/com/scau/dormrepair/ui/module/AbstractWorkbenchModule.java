@@ -243,6 +243,9 @@ public abstract class AbstractWorkbenchModule implements WorkbenchModule {
     }
 
     protected Node createEmptyState(String title, String description) {
+        Label chipLabel = new Label("当前暂无数据");
+        chipLabel.getStyleClass().add("empty-state-chip");
+
         Label titleLabel = new Label(title);
         titleLabel.getStyleClass().add("empty-state-title");
 
@@ -250,7 +253,7 @@ public abstract class AbstractWorkbenchModule implements WorkbenchModule {
         descriptionLabel.getStyleClass().add("empty-state-description");
         descriptionLabel.setWrapText(true);
 
-        VBox box = new VBox(8, titleLabel, descriptionLabel);
+        VBox box = new VBox(8, chipLabel, titleLabel, descriptionLabel);
         box.getStyleClass().add("empty-state-box");
         box.setAlignment(Pos.CENTER_LEFT);
         box.setFillWidth(true);

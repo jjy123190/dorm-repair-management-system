@@ -131,7 +131,8 @@ public final class FusionUiFactory {
         private ActionButtonPane(boolean transparent, Runnable action) {
             this.transparent = transparent;
             this.action = action;
-            getNode().setCursor(Cursor.HAND);
+            getNode().disabledProperty().addListener((observable, oldValue, newValue) -> syncInteractiveState());
+            syncInteractiveState();
         }
 
         @Override
@@ -163,11 +164,16 @@ public final class FusionUiFactory {
 
                 @Override
                 protected void onMouseClicked() {
-                    if (action != null) {
+                    if (action != null && !getNode().isDisabled()) {
                         action.run();
                     }
                 }
             };
+        }
+
+        private void syncInteractiveState() {
+            getNode().setCursor(getNode().isDisabled() ? Cursor.DEFAULT : Cursor.HAND);
+            getNode().setMouseTransparent(getNode().isDisabled());
         }
     }
 

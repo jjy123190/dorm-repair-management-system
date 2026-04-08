@@ -121,6 +121,7 @@
     -fx-background-color: rgba(255,255,255,0.62);
     -fx-border-color: rgba(46,46,46,0.08);
     -fx-text-fill: rgba(46,46,46,0.42);
+    -fx-cursor: default;
     -fx-opacity: 1;
 }
 
@@ -630,6 +631,17 @@
 
 .fusion-button-primary {
     -fx-effect: none;
+}
+
+.fusion-button-primary:disabled,
+.fusion-button-ghost:disabled {
+    -fx-opacity: 1;
+    -fx-cursor: default;
+}
+
+.fusion-button-primary:disabled .fusion-button-primary-label,
+.fusion-button-ghost:disabled .fusion-button-ghost-label {
+    -fx-text-fill: rgba(34,50,71,0.42);
 }
 
 .fusion-button-ghost {
@@ -1489,6 +1501,15 @@
     -fx-border-color: rgba(46,46,46,0.08);
     -fx-border-radius: 16px;
     -fx-padding: 16 18 16 18;
+}
+
+.empty-state-chip {
+    -fx-background-color: rgba(167,205,184,0.28);
+    -fx-background-radius: 999px;
+    -fx-padding: 4 10 4 10;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #27415c;
 }
 
 .empty-state-title {
