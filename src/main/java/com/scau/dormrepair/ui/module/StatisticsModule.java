@@ -26,9 +26,11 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.PieChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
+import javafx.scene.control.OverrunStyle;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 public class StatisticsModule extends AbstractWorkbenchModule {
@@ -108,6 +110,8 @@ public class StatisticsModule extends AbstractWorkbenchModule {
         GridPane metricDeck = new GridPane();
         metricDeck.setHgap(16);
         metricDeck.setVgap(16);
+        metricDeck.setMaxWidth(Double.MAX_VALUE);
+        metricDeck.setMinWidth(0);
         metricDeck.getColumnConstraints().addAll(percentColumn(25), percentColumn(25), percentColumn(25), percentColumn(25));
         metricDeck.add(createMetricCard("近六个月报修总数", String.valueOf(totalRequests(monthlyRows)), "按月聚合后的统计结果，包含当前可见月份。"), 0, 0);
         metricDeck.add(createMetricCard("近六个月已完成", String.valueOf(totalCompleted(monthlyRows)), "统计口径与月报表一致，只统计 COMPLETED 记录。"), 1, 0);
@@ -119,14 +123,21 @@ public class StatisticsModule extends AbstractWorkbenchModule {
     private Node createMetricCard(String title, String value, String description) {
         Label titleLabel = new Label(title);
         titleLabel.getStyleClass().add("fusion-card-title");
+        titleLabel.setWrapText(true);
+        titleLabel.setTextOverrun(OverrunStyle.CLIP);
+        titleLabel.setMaxWidth(Double.MAX_VALUE);
         Label valueLabel = new Label(value);
         valueLabel.getStyleClass().addAll("fusion-card-value", "metric-value-dark");
         Label descriptionLabel = new Label(description);
         descriptionLabel.getStyleClass().add("fusion-card-description");
         descriptionLabel.setWrapText(true);
+        descriptionLabel.setTextOverrun(OverrunStyle.CLIP);
+        descriptionLabel.setMaxWidth(Double.MAX_VALUE);
+        descriptionLabel.setMinHeight(Region.USE_PREF_SIZE);
         VBox body = new VBox(8, titleLabel, valueLabel, descriptionLabel);
         body.getStyleClass().add("fusion-card-body");
         body.setFillWidth(true);
+        body.setMinHeight(Region.USE_PREF_SIZE);
         var pane = FusionUiFactory.createCard(body, 0, 0, "dashboard-metric-card", "dashboard-metric-card-highlight");
         pane.getNode().setMaxWidth(Double.MAX_VALUE);
         return pane.getNode();

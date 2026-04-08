@@ -1181,3 +1181,15 @@
 - Push result
   - pushed to `origin/main`
   - feature commit: `c4fbdeb`
+### 2026-04-08 15:42 | A
+- Changed files
+  - src/main/java/com/scau/dormrepair/ui/module/StatisticsModule.java
+  - src/test/java/com/scau/dormrepair/ui/module/UiModuleCopySmokeTest.java
+  - ABCD协作历史记录.md
+- Completed
+  - Fixed the statistics overview metric cards so titles and descriptions now wrap to the card width instead of collapsing into a single truncated line with ellipsis.
+  - Removed the over-aggressive vertical growth and forced tall minimum height from the metric cards, so the statistics overview stays compact while still showing the full text in ordinary non-fullscreen window sizes.
+  - Verified with `mvn "-Dmaven.repo.local=.m2\\repository" test` (51 tests passed) and `mvn "-Dmaven.repo.local=.m2\\repository" javafx:run` (JavaFX app launched and stayed open until timeout).
+- Impact / Next
+  - This round focused on the statistics summary cards only; no service, mapper, or database schema changes were made.
+  - Keep local `.m2` cache changes out of git commits.

@@ -30,6 +30,7 @@ class UiModuleCopySmokeTest {
         String adminSource = readSource("src/main/java/com/scau/dormrepair/ui/module/AdminDispatchModule.java");
         String abstractSource = readSource("src/main/java/com/scau/dormrepair/ui/module/AbstractWorkbenchModule.java");
         String fusionSource = readSource("src/main/java/com/scau/dormrepair/ui/component/FusionUiFactory.java");
+        String statisticsSource = readSource("src/main/java/com/scau/dormrepair/ui/module/StatisticsModule.java");
         String workerSource = readSource("src/main/java/com/scau/dormrepair/ui/module/WorkerProcessingModule.java");
         String dormSource = readSource("src/main/java/com/scau/dormrepair/ui/module/DormCatalogManagementModule.java");
 
@@ -40,6 +41,8 @@ class UiModuleCopySmokeTest {
         assertTrue(adminSource.contains("\u5f53\u524d\u663e\u793a "));
         assertTrue(adminSource.contains("\u70b9\u51fb\u884c\u5373\u53ef\u9009\u4e2d\u5e76\u540c\u6b65\u5de6\u4fa7\u6d3e\u5355\u533a"));
         assertTrue(fusionSource.contains("getNode().setMouseTransparent(getNode().isDisabled())"));
+        assertTrue(statisticsSource.contains("titleLabel.setWrapText(true);"));
+        assertTrue(statisticsSource.contains("descriptionLabel.setTextOverrun(OverrunStyle.CLIP);"));
         assertTrue(workerSource.contains("\u641c\u7d22\u5de5\u5355\u53f7\u3001\u62a5\u4fee\u5355\u53f7\u3001\u62a5\u4fee\u4eba\u6216\u5bbf\u820d\u4f4d\u7f6e"));
         assertTrue(workerSource.contains("\u66f4\u65b0\u5904\u7406\u72b6\u6001"));
         assertTrue(dormSource.contains("\u641c\u7d22\u5bbf\u820d\u533a\u3001\u697c\u680b\u7f16\u53f7\u6216\u697c\u680b\u540d\u79f0"));
