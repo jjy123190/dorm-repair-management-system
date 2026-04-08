@@ -12,9 +12,13 @@ import com.scau.dormrepair.ui.component.FusionUiFactory;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -34,6 +38,8 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 public class StatisticsModule extends AbstractWorkbenchModule {
+
+    private static final DateTimeFormatter MONTH_LABEL_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM");
 
     public StatisticsModule(AppContext appContext) {
         super(appContext);
@@ -62,6 +68,7 @@ public class StatisticsModule extends AbstractWorkbenchModule {
     @Override
     public Parent createView() {
         List<MonthlyRepairSummary> monthlyRows = appContext.statisticsService().listMonthlySummary(6);
+        List<MonthlyRepairSummary> displayMonthlyRows = normalizeMonthlyRows(monthlyRows, 6);
         List<FaultCategorySummary> categoryRows = appContext.statisticsService().listFaultCategorySummary(6);
         List<DormBuildingFaultSummary> dormRows = appContext.statisticsService().listDormBuildingFaultSummary(6, 8);
         List<TimeoutStageSummary> timeoutRows = appContext.statisticsService().listTimeoutStageSummary();
@@ -77,7 +84,7 @@ public class StatisticsModule extends AbstractWorkbenchModule {
         Node charts = createRatioWorkspace(
                 58,
                 42,
-                wrapPanel("近六个月趋势", buildTrendChart(monthlyRows)),
+                wrapPanel("近六个月趋势", buildTrendChart(monthlyRows, displayMonthlyRows)),
                 wrapPanel("故障分类占比", buildCategoryChart(categoryRows))
         );
 
@@ -102,7 +109,7 @@ public class StatisticsModule extends AbstractWorkbenchModule {
                 charts,
                 drillDownTop,
                 drillDownBottom,
-                wrapPanel("近六个月明细", buildSummaryTable(monthlyRows))
+                wrapPanel("近六个月明细", buildSummaryTable(monthlyRows, displayMonthlyRows))
         );
     }
 
@@ -143,8 +150,8 @@ public class StatisticsModule extends AbstractWorkbenchModule {
         return pane.getNode();
     }
 
-    private Node buildTrendChart(List<MonthlyRepairSummary> monthlyRows) {
-        if (monthlyRows == null || monthlyRows.isEmpty()) {
+    private Node buildTrendChart(List<MonthlyRepairSummary> monthlyRows, List<MonthlyRepairSummary> displayMonthlyRows) {
+        if (monthlyRows == null || monthlyRows.isEmpty() || displayMonthlyRows == null || displayMonthlyRows.isEmpty()) {
             return createEmptyState("暂无趋势数据", "近六个月内还没有可用于生成折线图的报修记录。");
         }
         CategoryAxis xAxis = new CategoryAxis();
@@ -153,7 +160,7 @@ public class StatisticsModule extends AbstractWorkbenchModule {
         yAxis.setLabel("工单数量");
 
         LineChart<String, Number> chart = new LineChart<>(xAxis, yAxis);
-        chart.setLegendVisible(true);
+        chart.setLegendVisible(false);
         chart.setCreateSymbols(true);
         chart.setAnimated(false);
         chart.setMinHeight(240);
@@ -166,7 +173,7 @@ public class StatisticsModule extends AbstractWorkbenchModule {
         XYChart.Series<String, Number> completedSeries = new XYChart.Series<>();
         completedSeries.setName("已处理");
 
-        for (MonthlyRepairSummary item : ascendingMonths(monthlyRows)) {
+        for (MonthlyRepairSummary item : displayMonthlyRows) {
             totalSeries.getData().add(new XYChart.Data<>(safeText(item.getMonthLabel()), safeLong(item.getTotalRequests())));
             completedSeries.getData().add(new XYChart.Data<>(safeText(item.getMonthLabel()), safeLong(item.getCompletedRequests())));
         }
@@ -179,7 +186,7 @@ public class StatisticsModule extends AbstractWorkbenchModule {
             return createEmptyState("暂无分类数据", "近六个月内还没有可用于生成分类占比的报修记录。 ");
         }
         PieChart chart = new PieChart();
-        chart.setLegendVisible(true);
+        chart.setLegendVisible(false);
         chart.setLabelsVisible(true);
         chart.setClockwise(true);
         chart.setMinHeight(240);
@@ -193,7 +200,10 @@ public class StatisticsModule extends AbstractWorkbenchModule {
         return chart;
     }
 
-    private Parent buildSummaryTable(List<MonthlyRepairSummary> monthlyRows) {
+    private Parent buildSummaryTable(List<MonthlyRepairSummary> monthlyRows, List<MonthlyRepairSummary> displayMonthlyRows) {
+        if (monthlyRows == null || monthlyRows.isEmpty() || displayMonthlyRows == null || displayMonthlyRows.isEmpty()) {
+            return (Parent) createEmptyState("暂无统计数据", "当前月份范围内还没有可展示的统计结果。");
+        }
         Parent table = (Parent) createStaticDataTableOrEmpty(
                 List.of(
                         staticColumn("月份", 1.08, MonthlyRepairSummary::getMonthLabel),
@@ -201,8 +211,8 @@ public class StatisticsModule extends AbstractWorkbenchModule {
                         staticColumn("已处理", 0.92, item -> String.valueOf(safeLong(item.getCompletedRequests()))),
                         staticColumn("完成率", 1.04, item -> formatRate(item.getCompletionRate()))
                 ),
-                monthlyRows,
-                6,
+                displayMonthlyRows,
+                displayMonthlyRows.size(),
                 "暂无统计数据",
                 "当前月份范围内还没有可展示的统计结果。"
         );
@@ -364,6 +374,36 @@ public class StatisticsModule extends AbstractWorkbenchModule {
         List<MonthlyRepairSummary> ordered = new ArrayList<>(monthlyRows);
         java.util.Collections.reverse(ordered);
         return ordered;
+    }
+
+    private List<MonthlyRepairSummary> normalizeMonthlyRows(List<MonthlyRepairSummary> monthlyRows, int recentMonths) {
+        if (monthlyRows == null || monthlyRows.isEmpty() || recentMonths <= 0) {
+            return List.of();
+        }
+        Map<String, MonthlyRepairSummary> monthlyMap = new HashMap<>();
+        for (MonthlyRepairSummary item : monthlyRows) {
+            if (item == null || item.getMonthLabel() == null || item.getMonthLabel().isBlank()) {
+                continue;
+            }
+            monthlyMap.put(item.getMonthLabel(), item);
+        }
+
+        List<MonthlyRepairSummary> normalized = new ArrayList<>(recentMonths);
+        YearMonth currentMonth = YearMonth.now();
+        for (int offset = recentMonths - 1; offset >= 0; offset--) {
+            String monthLabel = currentMonth.minusMonths(offset).format(MONTH_LABEL_FORMATTER);
+            normalized.add(monthlyMap.getOrDefault(monthLabel, emptyMonthlySummary(monthLabel)));
+        }
+        return normalized;
+    }
+
+    private MonthlyRepairSummary emptyMonthlySummary(String monthLabel) {
+        MonthlyRepairSummary empty = new MonthlyRepairSummary();
+        empty.setMonthLabel(monthLabel);
+        empty.setTotalRequests(0L);
+        empty.setCompletedRequests(0L);
+        empty.setCompletionRate(BigDecimal.ZERO);
+        return empty;
     }
 
     private String averageCompletionRate(List<MonthlyRepairSummary> monthlyRows) {

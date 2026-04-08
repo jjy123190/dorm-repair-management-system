@@ -1213,3 +1213,15 @@
 - Push result
   - pushed to `origin/main`
   - feature commit: `a0d417a`
+### 2026-04-08 16:36 | A
+- Changed files
+  - src/main/java/com/scau/dormrepair/ui/module/StatisticsModule.java
+  - src/test/java/com/scau/dormrepair/ui/module/UiModuleCopySmokeTest.java
+  - ABCD鍗忎綔鍘嗗彶璁板綍.md
+- Completed
+  - Normalized the statistics-month display window to the latest 6 natural months so the trend chart and monthly detail table no longer collapse into a single populated month with large empty space around it.
+  - Hid both chart legends on the statistics page because the current trend and pie charts already expose their meaning through series styling and direct labels; this removes duplicated legend blocks and cleans up the page.
+  - Re-verified with `mvn "-Dmaven.repo.local=.m2\\repository" test` (51 tests passed) plus `mvn "-Dmaven.repo.local=.m2\\repository" javafx:run` (JavaFX app launched and stayed open until timeout).
+- Impact / Next
+  - This round focused on statistics-page presentation quality, not service query logic or schema behavior.
+  - Keep local `.m2` cache changes out of git commits.

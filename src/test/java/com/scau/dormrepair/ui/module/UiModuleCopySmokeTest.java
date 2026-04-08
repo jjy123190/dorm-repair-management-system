@@ -43,6 +43,8 @@ class UiModuleCopySmokeTest {
         assertTrue(adminSource.contains("\u70b9\u51fb\u884c\u5373\u53ef\u9009\u4e2d\u5e76\u540c\u6b65\u5de6\u4fa7\u6d3e\u5355\u533a"));
         assertTrue(dashboardSource.contains("titleLabel.setTextOverrun(OverrunStyle.CLIP);"));
         assertTrue(fusionSource.contains("getNode().setMouseTransparent(getNode().isDisabled())"));
+        assertTrue(statisticsSource.contains("normalizeMonthlyRows(monthlyRows, 6)"));
+        assertTrue(statisticsSource.contains("chart.setLegendVisible(false);"));
         assertTrue(statisticsSource.contains("titleLabel.setWrapText(true);"));
         assertTrue(statisticsSource.contains("descriptionLabel.setTextOverrun(OverrunStyle.CLIP);"));
         assertTrue(workerSource.contains("\u641c\u7d22\u5de5\u5355\u53f7\u3001\u62a5\u4fee\u5355\u53f7\u3001\u62a5\u4fee\u4eba\u6216\u5bbf\u820d\u4f4d\u7f6e"));
@@ -53,6 +55,7 @@ class UiModuleCopySmokeTest {
         assertFalse(abstractSource.contains("COMPACT_WORKSPACE_BREAKPOINT = 1120"));
         assertFalse(adminSource.contains("\u7ee0\uff3c\u60a7\u935b\u6dc3\u9357"));
         assertFalse(dashboardSource.contains("createCard(content, 0, 126"));
+        assertFalse(statisticsSource.contains("chart.setLegendVisible(true);"));
         assertFalse(workerSource.contains("\u7f01\u4da8\u6170\u6fa7\u52d5\u501e"));
         assertFalse(dormSource.contains("\u7009\u80c4\u5797\u942e\u989c\u79ff"));
     }
