@@ -1147,3 +1147,16 @@
 - Push result
   - pushed to `origin/main`
   - feature commit: `21d35e6`
+### 2026-04-08 15:26 | A
+- Changed files
+  - src/main/java/com/scau/dormrepair/ui/module/AdminDispatchModule.java
+  - src/main/resources/styles/app.css
+  - src/test/java/com/scau/dormrepair/ui/module/UiModuleCopySmokeTest.java
+  - ABCD协作历史记录.md
+- Completed
+  - Added compact summary rows to the admin dispatch pending/tracked panels so the page now tells the user how many items are visible and whether clicking a row will sync the dispatch/detail area.
+  - Strengthened selectable static-grid hover/selected feedback and gave the main workbench scroll bar a clearer dedicated visual treatment, making clickable rows and shell scrolling more discoverable.
+  - Verified with `mvn "-Dmaven.repo.local=.m2\\repository" test` (51 tests passed) and `mvn "-Dmaven.repo.local=.m2\\repository" javafx:run` (JavaFX app launched successfully).
+- Impact / Next
+  - This round focused on interaction clarity and visual affordance, not data flow or service logic.
+  - Keep local `.m2` cache changes out of git commits.

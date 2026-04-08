@@ -92,16 +92,19 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
         ObservableList<RecentRepairRequestView> pendingRows = FXCollections.observableArrayList();
         ObjectProperty<RecentRepairRequestView> selectedRequest = new SimpleObjectProperty<>();
         VBox pendingTableContainer = buildTableContainer();
+        Label pendingSummaryLabel = createPanelSummaryLabel();
 
         ObjectProperty<WorkOrderDetailView> trackedDetail = new SimpleObjectProperty<>();
         ObservableList<WorkOrderDetailView> trackedRows = FXCollections.observableArrayList();
         VBox trackedTableContainer = buildTableContainer();
+        Label trackedSummaryLabel = createPanelSummaryLabel();
 
         Runnable applyPendingFilters = () -> applyPendingFilters(
                 pendingRows,
                 keywordField.getText(),
                 faultFilterBox.getValue(),
                 pendingTableContainer,
+                pendingSummaryLabel,
                 selectedRequest
         );
         Runnable refreshPending = () -> reloadPendingRequests(
@@ -109,9 +112,10 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
                 keywordField.getText(),
                 faultFilterBox.getValue(),
                 pendingTableContainer,
+                pendingSummaryLabel,
                 selectedRequest
         );
-        Runnable refreshTracked = () -> reloadTrackedOrders(trackedRows, trackedTableContainer, trackedDetail);
+        Runnable refreshTracked = () -> reloadTrackedOrders(trackedRows, trackedTableContainer, trackedSummaryLabel, trackedDetail);
         Runnable refreshAll = () -> {
             refreshPending.run();
             refreshTracked.run();
@@ -130,8 +134,8 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
 
         VBox rightContent = new VBox(
                 18,
-                buildPendingListPanel(keywordField, faultFilterBox, pendingTableContainer, refreshPending),
-                buildTrackedListPanel(trackedTableContainer, refreshTracked)
+                buildPendingListPanel(keywordField, faultFilterBox, pendingSummaryLabel, pendingTableContainer, refreshPending),
+                buildTrackedListPanel(trackedSummaryLabel, trackedTableContainer, refreshTracked)
         );
         rightContent.setFillWidth(true);
 
@@ -330,7 +334,7 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
         return wrapPanel("工单详情回看", content);
     }
 
-    private Node buildPendingListPanel(TextField keywordField, AppDropdown<FaultFilterOption> faultFilterBox, VBox pendingTableContainer, Runnable refreshPending) {
+    private Node buildPendingListPanel(TextField keywordField, AppDropdown<FaultFilterOption> faultFilterBox, Label pendingSummaryLabel, VBox pendingTableContainer, Runnable refreshPending) {
         Button refreshButton = createFilterActionButton("刷新列表", refreshPending);
         keywordField.setMaxWidth(Double.MAX_VALUE);
         keywordField.setMinWidth(0);
@@ -347,18 +351,21 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
         GridPane.setHgrow(keywordField, Priority.ALWAYS);
         GridPane.setHgrow(faultFilterBox, Priority.ALWAYS);
 
-        VBox content = new VBox(14, filterGrid, pendingTableContainer);
+        VBox content = new VBox(14, filterGrid, createPanelSummaryRow("待派单", pendingSummaryLabel), pendingTableContainer);
         content.setFillWidth(true);
         VBox.setVgrow(pendingTableContainer, Priority.ALWAYS);
         return wrapPanel("待派单列表", content);
     }
 
-    private Node buildTrackedListPanel(VBox trackedTableContainer, Runnable refreshTracked) {
+    private Node buildTrackedListPanel(Label trackedSummaryLabel, VBox trackedTableContainer, Runnable refreshTracked) {
         Button refreshButton = createFilterActionButton("刷新追踪", refreshTracked);
+        HBox summaryRow = createPanelSummaryRow("工单跟踪", trackedSummaryLabel);
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox toolbar = new HBox(12, spacer, refreshButton);
+        HBox toolbar = new HBox(12, summaryRow, spacer, refreshButton);
         toolbar.setAlignment(Pos.CENTER_LEFT);
+        summaryRow.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(summaryRow, Priority.ALWAYS);
 
         VBox content = new VBox(12, toolbar, trackedTableContainer);
         content.setFillWidth(true);
@@ -375,13 +382,31 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
         return container;
     }
 
-    private void reloadPendingRequests(ObservableList<RecentRepairRequestView> sourceRows, String keyword, FaultFilterOption faultFilter, VBox pendingTableContainer, ObjectProperty<RecentRepairRequestView> selectedRequest) {
-        List<RecentRepairRequestView> rows = appContext.repairRequestService().listPendingAssignmentRequests(20);
-        sourceRows.setAll(rows);
-        applyPendingFilters(sourceRows, keyword, faultFilter, pendingTableContainer, selectedRequest);
+    private HBox createPanelSummaryRow(String chipText, Label summaryLabel) {
+        Label chipLabel = new Label(chipText);
+        chipLabel.getStyleClass().add("panel-summary-chip");
+        HBox row = new HBox(10, chipLabel, summaryLabel);
+        row.getStyleClass().add("panel-summary-row");
+        row.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(summaryLabel, Priority.ALWAYS);
+        return row;
     }
 
-    private void applyPendingFilters(ObservableList<RecentRepairRequestView> sourceRows, String keyword, FaultFilterOption faultFilter, VBox pendingTableContainer, ObjectProperty<RecentRepairRequestView> selectedRequest) {
+    private Label createPanelSummaryLabel() {
+        Label label = new Label();
+        label.getStyleClass().add("panel-summary-label");
+        label.setWrapText(true);
+        label.setMaxWidth(Double.MAX_VALUE);
+        return label;
+    }
+
+    private void reloadPendingRequests(ObservableList<RecentRepairRequestView> sourceRows, String keyword, FaultFilterOption faultFilter, VBox pendingTableContainer, Label pendingSummaryLabel, ObjectProperty<RecentRepairRequestView> selectedRequest) {
+        List<RecentRepairRequestView> rows = appContext.repairRequestService().listPendingAssignmentRequests(20);
+        sourceRows.setAll(rows);
+        applyPendingFilters(sourceRows, keyword, faultFilter, pendingTableContainer, pendingSummaryLabel, selectedRequest);
+    }
+
+    private void applyPendingFilters(ObservableList<RecentRepairRequestView> sourceRows, String keyword, FaultFilterOption faultFilter, VBox pendingTableContainer, Label pendingSummaryLabel, ObjectProperty<RecentRepairRequestView> selectedRequest) {
         String normalizedKeyword = normalizeKeyword(keyword);
         FaultCategory targetCategory = faultFilter == null ? null : faultFilter.category();
         Long selectedId = selectedRequest.get() == null ? null : selectedRequest.get().getId();
@@ -394,10 +419,10 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
                 .toList();
         RecentRepairRequestView restoredSelection = selectedId == null ? null : visibleRows.stream().filter(item -> selectedId.equals(item.getId())).findFirst().orElse(null);
         selectedRequest.set(restoredSelection);
-        renderPendingTable(pendingTableContainer, visibleRows, selectedRequest);
+        renderPendingTable(pendingTableContainer, pendingSummaryLabel, visibleRows, selectedRequest);
     }
 
-    private void reloadTrackedOrders(ObservableList<WorkOrderDetailView> sourceRows, VBox trackedTableContainer, ObjectProperty<WorkOrderDetailView> trackedDetail) {
+    private void reloadTrackedOrders(ObservableList<WorkOrderDetailView> sourceRows, VBox trackedTableContainer, Label trackedSummaryLabel, ObjectProperty<WorkOrderDetailView> trackedDetail) {
         Long selectedId = trackedDetail.get() == null ? null : trackedDetail.get().getId();
         List<WorkOrderDetailView> rows = appContext.workOrderService().listAdminTrackedWorkOrders(30);
         sourceRows.setAll(rows);
@@ -406,11 +431,14 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
             restored = rows.stream().filter(item -> selectedId.equals(item.getId())).findFirst().orElse(null);
         }
         trackedDetail.set(restored == null ? null : appContext.workOrderService().getAdminWorkOrderDetail(restored.getId()));
-        renderTrackedTable(trackedTableContainer, rows, trackedDetail);
+        renderTrackedTable(trackedTableContainer, trackedSummaryLabel, rows, trackedDetail);
     }
 
-    private void renderPendingTable(VBox pendingTableContainer, List<RecentRepairRequestView> visibleRows, ObjectProperty<RecentRepairRequestView> selectedRequest) {
+    private void renderPendingTable(VBox pendingTableContainer, Label pendingSummaryLabel, List<RecentRepairRequestView> visibleRows, ObjectProperty<RecentRepairRequestView> selectedRequest) {
         pendingTableContainer.getChildren().clear();
+        pendingSummaryLabel.setText(visibleRows.isEmpty()
+                ? "当前筛选结果 0 条，请调整关键词或故障类别。"
+                : "当前显示 " + visibleRows.size() + " 条待派单报修，点击行即可选中并同步左侧派单区。");
         if (visibleRows.isEmpty()) {
             pendingTableContainer.getChildren().add(createEmptyState("当前没有待派单报修", "有新的待处理报修后，会显示在这里。"));
             return;
@@ -433,7 +461,7 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
             boolean isSelected = rowItem != null && selectedRequest.get() != null && selectedRequest.get().getId().equals(rowItem.getId());
             Runnable clickAction = rowItem == null ? null : () -> {
                 selectedRequest.set(rowItem);
-                renderPendingTable(pendingTableContainer, visibleRows, selectedRequest);
+                renderPendingTable(pendingTableContainer, pendingSummaryLabel, visibleRows, selectedRequest);
             };
             addCell(table, rowIndex, 0, rowItem == null ? "" : safeText(rowItem.getRequestNo()), false, isSelected, false, false, clickAction);
             addCell(table, rowIndex, 1, rowItem == null ? "" : safeText(rowItem.getStudentName()), false, isSelected, false, false, clickAction);
@@ -443,8 +471,11 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
         pendingTableContainer.getChildren().add(table);
     }
 
-    private void renderTrackedTable(VBox trackedTableContainer, List<WorkOrderDetailView> visibleRows, ObjectProperty<WorkOrderDetailView> trackedDetail) {
+    private void renderTrackedTable(VBox trackedTableContainer, Label trackedSummaryLabel, List<WorkOrderDetailView> visibleRows, ObjectProperty<WorkOrderDetailView> trackedDetail) {
         trackedTableContainer.getChildren().clear();
+        trackedSummaryLabel.setText(visibleRows.isEmpty()
+                ? "当前没有可回看的工单跟踪记录。"
+                : "当前跟踪 " + visibleRows.size() + " 条工单，点击行可查看闭环详情。");
         if (visibleRows.isEmpty()) {
             trackedTableContainer.getChildren().add(createEmptyState("当前没有工单追踪记录", "创建工单后，最近工单会显示在这里。"));
             return;
@@ -476,7 +507,7 @@ public class AdminDispatchModule extends AbstractWorkbenchModule {
             boolean isSelected = rowItem != null && selectedId != null && selectedId.equals(rowItem.getId());
             Runnable clickAction = rowItem == null ? null : () -> {
                 trackedDetail.set(appContext.workOrderService().getAdminWorkOrderDetail(rowItem.getId()));
-                renderTrackedTable(trackedTableContainer, orderedRows, trackedDetail);
+                renderTrackedTable(trackedTableContainer, trackedSummaryLabel, orderedRows, trackedDetail);
             };
             addCell(table, rowIndex, 0, rowItem == null ? "" : safeText(rowItem.getWorkOrderNo()), false, isSelected, false, false, clickAction);
             addCell(table, rowIndex, 1, rowItem == null ? "" : safeText(rowItem.getWorkerName()), false, isSelected, false, false, clickAction);
