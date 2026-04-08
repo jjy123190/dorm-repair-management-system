@@ -1098,4 +1098,6 @@
   - Verified with mvn "-Dmaven.repo.local=.m2\\repository" test (51 tests passed) and mvn "-Dmaven.repo.local=.m2\\repository" javafx:run (JavaFX app launched successfully).
 - Impact / Next
   - This round only touched adaptive UI/layout behavior and smoke tests; no service, mapper, or database schema changes were made.
-  - Keep excluding local .m2 cache changes from commits.
+  - Keep excluding local .m2 cache changes from commits.- Push result
+  - pushed to `origin/main`
+  - feature commit: `047b844`
