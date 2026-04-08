@@ -62,6 +62,7 @@ class UiShellChromeSmokeTest {
         assertEquals(1, countSelector(css, ".nav-button"));
         assertEquals(1, countSelector(css, ".nav-button-active"));
         assertFalse(css.contains("-fx-min-height: 820px;"));
+        assertFalse(selectorBlock(css, ".dialog-shell").contains("-fx-cursor: hand;"));
     }
 
     @Test
@@ -82,6 +83,12 @@ class UiShellChromeSmokeTest {
             count++;
         }
         return count;
+    }
+
+    private static String selectorBlock(String css, String selector) {
+        Pattern pattern = Pattern.compile("(?ms)^" + Pattern.quote(selector) + "\\s*\\{(.*?)\\}");
+        Matcher matcher = pattern.matcher(css);
+        return matcher.find() ? matcher.group(1) : "";
     }
 
     private static String readSource(String relativePath) throws IOException {

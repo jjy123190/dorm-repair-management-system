@@ -1244,3 +1244,17 @@
 - Push result
   - pushed to `origin/main`
   - feature commit: `5b50dc2`
+### 2026-04-08 19:00 | A
+- Changed files
+  - src/main/java/com/scau/dormrepair/ui/module/StudentRepairHistoryModule.java
+  - src/main/resources/styles/app.css
+  - src/test/java/com/scau/dormrepair/ui/UiShellChromeSmokeTest.java
+  - src/test/java/com/scau/dormrepair/ui/module/UiModuleCopySmokeTest.java
+  - ABCD协作历史记录.md
+- Completed
+  - Removed the false hand cursor from `.dialog-shell` so shared dialog bodies no longer look like clickable surfaces.
+  - Relaxed `StudentRepairHistoryModule` history/detail scroll panes from fixed `320px` minimum height to `0`, so the split student-history page can shrink naturally in shorter windows.
+  - Added smoke coverage for both regressions and re-verified with `mvn "-Dmaven.repo.local=.m2\\repository" test` (52 tests passed).
+- Impact / Next
+  - This round focused on shell/dialog affordance and student-history split-view flexibility, not service or mapper behavior.
+  - Keep local `.m2` cache changes out of git commits.

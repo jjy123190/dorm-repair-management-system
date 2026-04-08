@@ -91,7 +91,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         ScrollPane historyScroll = new ScrollPane(historyList);
         historyScroll.setFitToWidth(true);
         historyScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        historyScroll.setMinHeight(320);
+        historyScroll.setMinHeight(0);
         historyScroll.getStyleClass().add("student-history-scroll");
         UiMotion.installSmoothScrollPane(historyScroll);
 
@@ -103,7 +103,7 @@ public class StudentRepairHistoryModule extends AbstractWorkbenchModule {
         detailScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         detailScroll.getStyleClass().add("student-detail-scroll");
         detailScroll.setPannable(true);
-        detailScroll.setMinHeight(320);
+        detailScroll.setMinHeight(0);
         UiMotion.installSmoothScrollPane(detailScroll);
 
         HistoryState historyState = new HistoryState(historyList);

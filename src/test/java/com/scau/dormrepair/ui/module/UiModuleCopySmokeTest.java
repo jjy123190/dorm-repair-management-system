@@ -32,6 +32,7 @@ class UiModuleCopySmokeTest {
         String dashboardSource = readSource("src/main/java/com/scau/dormrepair/ui/module/DashboardModule.java");
         String fusionSource = readSource("src/main/java/com/scau/dormrepair/ui/component/FusionUiFactory.java");
         String statisticsSource = readSource("src/main/java/com/scau/dormrepair/ui/module/StatisticsModule.java");
+        String studentHistorySource = readSource("src/main/java/com/scau/dormrepair/ui/module/StudentRepairHistoryModule.java");
         String workerSource = readSource("src/main/java/com/scau/dormrepair/ui/module/WorkerProcessingModule.java");
         String dormSource = readSource("src/main/java/com/scau/dormrepair/ui/module/DormCatalogManagementModule.java");
 
@@ -47,6 +48,8 @@ class UiModuleCopySmokeTest {
         assertTrue(statisticsSource.contains("chart.setLegendVisible(false);"));
         assertTrue(statisticsSource.contains("titleLabel.setWrapText(true);"));
         assertTrue(statisticsSource.contains("descriptionLabel.setTextOverrun(OverrunStyle.CLIP);"));
+        assertTrue(studentHistorySource.contains("historyScroll.setMinHeight(0);"));
+        assertTrue(studentHistorySource.contains("detailScroll.setMinHeight(0);"));
         assertTrue(workerSource.contains("\u641c\u7d22\u5de5\u5355\u53f7\u3001\u62a5\u4fee\u5355\u53f7\u3001\u62a5\u4fee\u4eba\u6216\u5bbf\u820d\u4f4d\u7f6e"));
         assertTrue(workerSource.contains("\u66f4\u65b0\u5904\u7406\u72b6\u6001"));
         assertTrue(dormSource.contains("\u641c\u7d22\u5bbf\u820d\u533a\u3001\u697c\u680b\u7f16\u53f7\u6216\u697c\u680b\u540d\u79f0"));
@@ -56,6 +59,8 @@ class UiModuleCopySmokeTest {
         assertFalse(adminSource.contains("\u7ee0\uff3c\u60a7\u935b\u6dc3\u9357"));
         assertFalse(dashboardSource.contains("createCard(content, 0, 126"));
         assertFalse(statisticsSource.contains("chart.setLegendVisible(true);"));
+        assertFalse(studentHistorySource.contains("historyScroll.setMinHeight(320);"));
+        assertFalse(studentHistorySource.contains("detailScroll.setMinHeight(320);"));
         assertFalse(workerSource.contains("\u7f01\u4da8\u6170\u6fa7\u52d5\u501e"));
         assertFalse(dormSource.contains("\u7009\u80c4\u5797\u942e\u989c\u79ff"));
     }
