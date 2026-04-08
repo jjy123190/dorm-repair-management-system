@@ -59,6 +59,7 @@ class UiShellChromeSmokeTest {
         assertEquals(1, countSelector(css, ".sidebar"));
         assertEquals(1, countSelector(css, ".nav-button"));
         assertEquals(1, countSelector(css, ".nav-button-active"));
+        assertFalse(css.contains("-fx-min-height: 820px;"));
     }
 
     private static int countSelector(String css, String selector) {

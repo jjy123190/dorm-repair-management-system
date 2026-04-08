@@ -1196,3 +1196,17 @@
 - Push result
   - pushed to `origin/main`
   - feature commit: `d2edb24`
+### 2026-04-08 16:21 | A
+- Changed files
+  - src/main/java/com/scau/dormrepair/ui/module/DashboardModule.java
+  - src/main/resources/styles/app.css
+  - src/test/java/com/scau/dormrepair/ui/UiShellChromeSmokeTest.java
+  - src/test/java/com/scau/dormrepair/ui/module/UiModuleCopySmokeTest.java
+  - ABCD鍗忎綔鍘嗗彶璁板綍.md
+- Completed
+  - Fixed the home dashboard metric cards so the title copy now wraps with computed height instead of being constrained by the old fixed `126px` card height.
+  - Removed the legacy `-fx-min-height: 820px` from `.login-shell`, eliminating an unnecessary login-page height floor that could create extra blank space and awkward scrolling on shorter windows.
+  - Added smoke coverage to lock both regressions and re-verified with `mvn "-Dmaven.repo.local=.m2\\repository" test` (51 tests passed) plus `mvn "-Dmaven.repo.local=.m2\\repository" javafx:run` (JavaFX app launched and stayed open until timeout).
+- Impact / Next
+  - This round focused on shared layout rigidity in the dashboard and login shell, not service or mapper behavior.
+  - Keep local `.m2` cache changes out of git commits.

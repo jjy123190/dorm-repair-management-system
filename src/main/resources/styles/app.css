@@ -1262,7 +1262,6 @@
         radial-gradient(center 18% 16%, radius 42%, rgba(46,212,154,0.18), transparent 72%),
         radial-gradient(center 84% 82%, radius 36%, rgba(29,158,117,0.10), transparent 74%),
         linear-gradient(to bottom right, #f9fcfa, #f4f8f5 44%, #eef6f0 100%);
-    -fx-min-height: 820px;
 }
 
 .login-topbar {

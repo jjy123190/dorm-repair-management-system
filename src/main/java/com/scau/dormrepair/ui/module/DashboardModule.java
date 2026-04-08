@@ -19,6 +19,7 @@ import java.util.function.Consumer;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
+import javafx.scene.control.OverrunStyle;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -274,12 +275,15 @@ public class DashboardModule extends AbstractWorkbenchModule {
         Label titleLabel = new Label(title);
         titleLabel.getStyleClass().add("dashboard-mini-title");
         titleLabel.setWrapText(true);
+        titleLabel.setTextOverrun(OverrunStyle.CLIP);
         titleLabel.setMaxWidth(Double.MAX_VALUE);
 
         VBox content = new VBox(10, tagLabel, valueLabel, titleLabel);
         content.getStyleClass().add("dashboard-mini-body");
+        content.setFillWidth(true);
+        content.setMinHeight(Region.USE_PREF_SIZE);
 
-        var pane = FusionUiFactory.createCard(content, 0, 126, styleClassNames.split(" "));
+        var pane = FusionUiFactory.createCard(content, 0, 0, styleClassNames.split(" "));
         pane.getNode().setMaxWidth(Double.MAX_VALUE);
         pane.getNode().setMinWidth(0);
         return pane.getNode();
