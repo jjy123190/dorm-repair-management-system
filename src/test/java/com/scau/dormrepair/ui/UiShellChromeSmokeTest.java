@@ -20,6 +20,7 @@ class UiShellChromeSmokeTest {
 
         assertTrue(source.contains("\\u9000\\u51fa\\u767b\\u5f55"));
         assertTrue(source.contains("new HBox(12, identityChipLabel, profileButton, logoutButton)"));
+        assertTrue(source.contains("UiMotion.installSmoothScrollPane(moduleScrollPane);"));
         assertFalse(source.contains("moduleSummaryLabel"));
         assertFalse(source.contains("header-module-summary"));
     }

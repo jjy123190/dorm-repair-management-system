@@ -28,7 +28,9 @@ import javafx.scene.layout.VBox;
 
 public abstract class AbstractWorkbenchModule implements WorkbenchModule {
 
-    private static final double COMPACT_WORKSPACE_BREAKPOINT = 1120;
+    private static final double COMPACT_WORKSPACE_PRIMARY_COLUMN_MIN_WIDTH = 520;
+    private static final double COMPACT_WORKSPACE_SECONDARY_COLUMN_MIN_WIDTH = 360;
+    private static final double WORKSPACE_GAP = 20;
     private static final double WORKBENCH_MAX_WIDTH = 1720;
     private static final DateTimeFormatter TIMELINE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
@@ -121,7 +123,7 @@ public abstract class AbstractWorkbenchModule implements WorkbenchModule {
         workspace.getChildren().clear();
         workspace.getColumnConstraints().clear();
 
-        if (availableWidth > 0 && availableWidth < COMPACT_WORKSPACE_BREAKPOINT) {
+        if (shouldUseCompactWorkspace(leftPercent, rightPercent, availableWidth)) {
             workspace.getColumnConstraints().add(percentColumn(100));
             workspace.add(leftContent, 0, 0);
             workspace.add(rightContent, 0, 1);
@@ -131,6 +133,25 @@ public abstract class AbstractWorkbenchModule implements WorkbenchModule {
         workspace.getColumnConstraints().addAll(percentColumn(leftPercent), percentColumn(rightPercent));
         workspace.add(leftContent, 0, 0);
         workspace.add(rightContent, 1, 0);
+    }
+
+    private boolean shouldUseCompactWorkspace(double leftPercent, double rightPercent, double availableWidth) {
+        return availableWidth > 0 && availableWidth < resolveCompactWorkspaceBreakpoint(leftPercent, rightPercent);
+    }
+
+    private double resolveCompactWorkspaceBreakpoint(double leftPercent, double rightPercent) {
+        double totalPercent = leftPercent + rightPercent;
+        if (totalPercent <= 0) {
+            return Double.POSITIVE_INFINITY;
+        }
+
+        double leftShare = Math.max(0.01, leftPercent / totalPercent);
+        double rightShare = Math.max(0.01, rightPercent / totalPercent);
+        double leftMinWidth = leftShare >= rightShare ? COMPACT_WORKSPACE_PRIMARY_COLUMN_MIN_WIDTH : COMPACT_WORKSPACE_SECONDARY_COLUMN_MIN_WIDTH;
+        double rightMinWidth = rightShare >= leftShare ? COMPACT_WORKSPACE_PRIMARY_COLUMN_MIN_WIDTH : COMPACT_WORKSPACE_SECONDARY_COLUMN_MIN_WIDTH;
+        double leftBreakpoint = leftMinWidth / leftShare;
+        double rightBreakpoint = rightMinWidth / rightShare;
+        return Math.max(leftBreakpoint, rightBreakpoint) + WORKSPACE_GAP;
     }
 
     protected VBox createFieldBlock(String labelText, Region input) {

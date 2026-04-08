@@ -1119,3 +1119,28 @@
   - Keep local .m2 cache changes out of git commits.- Push result
   - pushed to `origin/main`
   - feature commit: `53cd3db`
+### 2026-04-08 15:06 | A
+- Changed files
+  - src/main/java/com/scau/dormrepair/ui/AppShell.java
+  - src/main/java/com/scau/dormrepair/ui/support/UiMotion.java
+  - src/test/java/com/scau/dormrepair/ui/UiShellChromeSmokeTest.java
+  - ABCD协作历史记录.md
+- Completed
+  - Connected the main AppShell workbench `ScrollPane` to `UiMotion.installSmoothScrollPane(...)` so whole-page workbench scrolling no longer falls back to the native choppy wheel behavior.
+  - Replaced the old stop-and-restart `SmoothScrollTransition` strategy with accumulated scroll targets plus a direct `Timeline` tween on `ScrollPane.vvalueProperty()`, which makes continuous wheel input feel more continuous instead of stuttering on every notch.
+  - Tightened scroll handling so horizontal-dominant gestures are ignored and edge-clamped vertical events are left unconsumed, reducing nested-scroll fighting when an inner panel can no longer scroll.
+  - Verified with `mvn "-Dmaven.repo.local=.m2\\repository" test` (51 tests passed) and `mvn "-Dmaven.repo.local=.m2\\repository" javafx:run` (JavaFX app launched; command timed out because the GUI stayed open).
+- Impact / Next
+  - This round only tuned shell scrolling UX and smoke protection; no service, mapper, or database schema changes were made.
+  - Keep local `.m2` cache changes out of git commits.
+### 2026-04-08 15:08 | A
+- Changed files
+  - src/main/java/com/scau/dormrepair/ui/module/AbstractWorkbenchModule.java
+  - src/test/java/com/scau/dormrepair/ui/module/UiModuleCopySmokeTest.java
+  - ABCD协作历史记录.md
+- Completed
+  - Replaced the old fixed `1120px` shared-workspace breakpoint with a ratio-aware threshold derived from each side's minimum practical width, so admin dispatch and similar dual-column pages keep the right-hand work-order list visible in ordinary non-fullscreen windows instead of prematurely collapsing into a single long column.
+  - Verified again with `mvn "-Dmaven.repo.local=.m2\\repository" test` (51 tests passed) after the breakpoint adjustment.
+- Impact / Next
+  - The shared dual-column fallback is now based on actual column proportions instead of one hardcoded width, which should reduce false single-column collapse across admin/worker/account pages.
+  - Keep local `.m2` cache changes out of git commits.

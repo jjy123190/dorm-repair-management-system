@@ -19,6 +19,7 @@ import com.scau.dormrepair.ui.module.StudentRepairModule;
 import com.scau.dormrepair.ui.module.WorkbenchModule;
 import com.scau.dormrepair.ui.module.WorkerProcessingModule;
 import com.scau.dormrepair.ui.support.UiAlerts;
+import com.scau.dormrepair.ui.support.UiMotion;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -137,6 +138,7 @@ public class AppShell {
         moduleScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         moduleScrollPane.setPannable(true);
         moduleScrollPane.setFocusTraversable(false);
+        UiMotion.installSmoothScrollPane(moduleScrollPane);
 
         workbenchShell.setTop(buildHeader());
         workbenchShell.setCenter(moduleScrollPane);

@@ -5,7 +5,6 @@ import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
-import javafx.animation.Transition;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.geometry.Orientation;
@@ -26,7 +25,6 @@ public final class UiMotion {
     private static final String SMOOTH_SCROLL_BOUND = "codex.smooth.scroll.bound";
     private static final String SMOOTH_SCROLL_TARGET = "codex.smooth.scroll.target";
     private static final String SMOOTH_SCROLL_TIMELINE = "codex.smooth.scroll.timeline";
-    private static final String SMOOTH_SCROLL_TRANSITION = "codex.smooth.scroll.transition";
 
     private UiMotion() {
     }
@@ -92,22 +90,23 @@ public final class UiMotion {
         }
 
         scrollPane.addEventFilter(ScrollEvent.SCROLL, event -> {
-            if (event.getDeltaY() == 0) {
+            if (event.getDeltaY() == 0 || Math.abs(event.getDeltaY()) <= Math.abs(event.getDeltaX())) {
                 return;
             }
 
+            double currentTarget = readTarget(scrollPane);
             double normalizedDelta = resolveNormalizedDelta(scrollPane, event.getDeltaY());
             if (Math.abs(normalizedDelta) < 0.000001) {
                 return;
             }
 
-            SmoothScrollTransition oldTransition = (SmoothScrollTransition) scrollPane.getProperties().get(SMOOTH_SCROLL_TRANSITION);
-            SmoothScrollTransition transition = new SmoothScrollTransition(scrollPane, oldTransition, normalizedDelta);
-            if (oldTransition != null) {
-                oldTransition.stop();
+            double nextTarget = clamp(currentTarget + normalizedDelta, 0.0, 1.0);
+            if (Math.abs(nextTarget - currentTarget) < 0.000001) {
+                return;
             }
-            scrollPane.getProperties().put(SMOOTH_SCROLL_TRANSITION, transition);
-            transition.play();
+
+            writeTarget(scrollPane, nextTarget);
+            playSmoothScroll(scrollPane, nextTarget, event.isInertia() ? 110 : 170);
             event.consume();
         });
 
@@ -128,7 +127,7 @@ public final class UiMotion {
         }
 
         double ratio = -deltaY / scrollableHeight;
-        return clamp(ratio * 1.35, -0.35, 0.35);
+        return clamp(ratio * 1.55, -0.22, 0.22);
     }
 
     private static ScrollBar findVerticalScrollBar(Node scrollHost) {
@@ -164,6 +163,31 @@ public final class UiMotion {
         timeline.play();
     }
 
+    private static void playSmoothScroll(ScrollPane scrollPane, double targetValue, double durationMillis) {
+        Timeline oldTimeline = (Timeline) scrollPane.getProperties().get(SMOOTH_SCROLL_TIMELINE);
+        if (oldTimeline != null) {
+            oldTimeline.stop();
+        }
+
+        Timeline timeline = new Timeline(
+                new KeyFrame(
+                        Duration.ZERO,
+                        new KeyValue(scrollPane.vvalueProperty(), scrollPane.getVvalue(), Interpolator.LINEAR)
+                ),
+                new KeyFrame(
+                        Duration.millis(durationMillis),
+                        new KeyValue(scrollPane.vvalueProperty(), targetValue, Interpolator.SPLINE(0.18, 0.88, 0.22, 1.0))
+                )
+        );
+        timeline.setOnFinished(event -> {
+            scrollPane.getProperties().remove(SMOOTH_SCROLL_TIMELINE);
+            scrollPane.setVvalue(targetValue);
+            writeTarget(scrollPane, targetValue);
+        });
+        scrollPane.getProperties().put(SMOOTH_SCROLL_TIMELINE, timeline);
+        timeline.play();
+    }
+
     private static double readTarget(ScrollBar scrollBar) {
         Object target = scrollBar.getProperties().get(SMOOTH_SCROLL_TARGET);
         if (target instanceof Number number) {
@@ -176,8 +200,17 @@ public final class UiMotion {
         scrollBar.getProperties().put(SMOOTH_SCROLL_TARGET, targetValue);
     }
 
-    private static boolean sameSign(double left, double right) {
-        return (left > 0.0 && right > 0.0) || (left < 0.0 && right < 0.0);
+    private static double readTarget(ScrollPane scrollPane) {
+        Timeline timeline = (Timeline) scrollPane.getProperties().get(SMOOTH_SCROLL_TIMELINE);
+        Object target = scrollPane.getProperties().get(SMOOTH_SCROLL_TARGET);
+        if (timeline != null && timeline.getStatus() == Animation.Status.RUNNING && target instanceof Number number) {
+            return number.doubleValue();
+        }
+        return scrollPane.getVvalue();
+    }
+
+    private static void writeTarget(ScrollPane scrollPane, double targetValue) {
+        scrollPane.getProperties().put(SMOOTH_SCROLL_TARGET, targetValue);
     }
 
     private static double clamp(double value, double min, double max) {
@@ -190,54 +223,4 @@ public final class UiMotion {
         return value;
     }
 
-    private static final class SmoothScrollTransition extends Transition {
-
-        private static final Duration DURATION = Duration.millis(170);
-        private static final double BASE_MODIFIER = 1.0;
-        private static final double MAX_MODIFIER = 4.0;
-
-        private final ScrollPane scrollPane;
-        private final double startValue;
-        private final double targetValue;
-        private final double delta;
-        private final double modifier;
-
-        private SmoothScrollTransition(ScrollPane scrollPane, SmoothScrollTransition oldTransition, double delta) {
-            this.scrollPane = scrollPane;
-            this.startValue = scrollPane.getVvalue();
-            this.delta = delta;
-            this.modifier = resolveModifier(oldTransition, delta);
-            this.targetValue = clamp(startValue + delta * modifier * BASE_MODIFIER, 0.0, 1.0);
-            setCycleDuration(DURATION);
-            setInterpolator(Interpolator.SPLINE(0.20, 0.82, 0.22, 1.0));
-            setOnFinished(event -> {
-                scrollPane.setVvalue(targetValue);
-                scrollPane.getProperties().remove(SMOOTH_SCROLL_TRANSITION);
-            });
-        }
-
-        @Override
-        protected void interpolate(double frac) {
-            double value = getInterpolator().interpolate(startValue, targetValue, frac);
-            scrollPane.setVvalue(value);
-        }
-
-        @Override
-        public void play() {
-            super.play();
-            if (modifier > 1.0) {
-                jumpTo(getCycleDuration().multiply(0.10));
-            }
-        }
-
-        private static double resolveModifier(SmoothScrollTransition oldTransition, double delta) {
-            if (oldTransition == null || oldTransition.getStatus() != Animation.Status.RUNNING) {
-                return 1.0;
-            }
-            if (!sameSign(delta, oldTransition.delta)) {
-                return 1.0;
-            }
-            return Math.min(MAX_MODIFIER, oldTransition.modifier + 0.65);
-        }
-    }
 }

@@ -28,16 +28,19 @@ class UiModuleCopySmokeTest {
     @Test
     void shouldKeepKeyPromptsReadableInSourceFiles() throws IOException {
         String adminSource = readSource("src/main/java/com/scau/dormrepair/ui/module/AdminDispatchModule.java");
+        String abstractSource = readSource("src/main/java/com/scau/dormrepair/ui/module/AbstractWorkbenchModule.java");
         String workerSource = readSource("src/main/java/com/scau/dormrepair/ui/module/WorkerProcessingModule.java");
         String dormSource = readSource("src/main/java/com/scau/dormrepair/ui/module/DormCatalogManagementModule.java");
 
         assertTrue(adminSource.contains("\u641c\u7d22\u62a5\u4fee\u5355\u53f7\u3001\u5b66\u751f\u6216\u5bbf\u820d\u4f4d\u7f6e"));
+        assertTrue(abstractSource.contains("resolveCompactWorkspaceBreakpoint"));
         assertTrue(adminSource.contains("\u521b\u5efa\u5de5\u5355"));
         assertTrue(workerSource.contains("\u641c\u7d22\u5de5\u5355\u53f7\u3001\u62a5\u4fee\u5355\u53f7\u3001\u62a5\u4fee\u4eba\u6216\u5bbf\u820d\u4f4d\u7f6e"));
         assertTrue(workerSource.contains("\u66f4\u65b0\u5904\u7406\u72b6\u6001"));
         assertTrue(dormSource.contains("\u641c\u7d22\u5bbf\u820d\u533a\u3001\u697c\u680b\u7f16\u53f7\u6216\u697c\u680b\u540d\u79f0"));
         assertTrue(dormSource.contains("\u4fdd\u5b58\u697c\u680b"));
 
+        assertFalse(abstractSource.contains("COMPACT_WORKSPACE_BREAKPOINT = 1120"));
         assertFalse(adminSource.contains("\u7ee0\uff3c\u60a7\u935b\u6dc3\u9357"));
         assertFalse(workerSource.contains("\u7f01\u4da8\u6170\u6fa7\u52d5\u501e"));
         assertFalse(dormSource.contains("\u7009\u80c4\u5797\u942e\u989c\u79ff"));
