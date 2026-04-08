@@ -386,8 +386,10 @@ public class AppShell {
         VBox body = new VBox(18, chipLabel, titleLabel, formBox, actionRow);
         body.getStyleClass().addAll("dialog-shell", "dialog-shell-info");
         body.setPadding(new Insets(24, 26, 24, 26));
-        body.setPrefWidth(440);
-        body.setMaxWidth(440);
+        Window owner = resolveOwner();
+        double dialogWidth = resolveDialogWidth(owner, 440, 340);
+        body.setPrefWidth(dialogWidth);
+        body.setMaxWidth(dialogWidth);
 
         Scene scene = new Scene(body);
         scene.setFill(Color.TRANSPARENT);
@@ -407,7 +409,6 @@ public class AppShell {
         stageRef[0] = dialog;
         dialog.setResizable(false);
         dialog.initModality(Modality.WINDOW_MODAL);
-        Window owner = resolveOwner();
         if (owner != null) {
             dialog.initOwner(owner);
         }
@@ -454,6 +455,14 @@ public class AppShell {
                         .filter(Window::isShowing)
                         .findFirst()
                         .orElse(null));
+    }
+
+    private static double resolveDialogWidth(Window owner, double preferredWidth, double minWidth) {
+        if (owner == null) {
+            return preferredWidth;
+        }
+        double availableWidth = Math.max(minWidth, owner.getWidth() - 72);
+        return Math.max(minWidth, Math.min(preferredWidth, availableWidth));
     }
 
     private void updateWindowTitle() {

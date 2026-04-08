@@ -76,8 +76,9 @@ public final class UiAlerts {
         VBox body = new VBox(18, chipLabel, titleLabel, contentLabel, actionRow);
         body.getStyleClass().addAll("dialog-shell", "dialog-shell-info");
         body.setPadding(new Insets(24, 26, 24, 26));
-        body.setPrefWidth(420);
-        body.setMaxWidth(420);
+        double confirmDialogWidth = resolveDialogWidth(owner, 420, 320);
+        body.setPrefWidth(confirmDialogWidth);
+        body.setMaxWidth(confirmDialogWidth);
 
         Scene scene = new Scene(body);
         scene.setFill(Color.TRANSPARENT);
@@ -154,8 +155,9 @@ public final class UiAlerts {
         VBox body = new VBox(18, chipLabel, titleLabel, contentLabel, actionRow);
         body.getStyleClass().addAll("dialog-shell", tone.shellStyleClass);
         body.setPadding(new Insets(24, 26, 24, 26));
-        body.setPrefWidth(380);
-        body.setMaxWidth(380);
+        double dialogWidth = resolveDialogWidth(owner, 380, 300);
+        body.setPrefWidth(dialogWidth);
+        body.setMaxWidth(dialogWidth);
 
         Scene scene = new Scene(body);
         scene.setFill(Color.TRANSPARENT);
@@ -203,6 +205,14 @@ public final class UiAlerts {
                         .filter(Window::isShowing)
                         .findFirst()
                         .orElse(null));
+    }
+
+    private static double resolveDialogWidth(Window owner, double preferredWidth, double minWidth) {
+        if (owner == null) {
+            return preferredWidth;
+        }
+        double availableWidth = Math.max(minWidth, owner.getWidth() - 72);
+        return Math.max(minWidth, Math.min(preferredWidth, availableWidth));
     }
 
     private enum AlertTone {

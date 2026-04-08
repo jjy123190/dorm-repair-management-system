@@ -1228,3 +1228,16 @@
 - Push result
   - pushed to `origin/main`
   - feature commit: `f60a3c8`
+### 2026-04-08 16:51 | A
+- Changed files
+  - src/main/java/com/scau/dormrepair/ui/AppShell.java
+  - src/main/java/com/scau/dormrepair/ui/support/UiAlerts.java
+  - src/test/java/com/scau/dormrepair/ui/UiShellChromeSmokeTest.java
+  - ABCD鍗忎綔鍘嗗彶璁板綍.md
+- Completed
+  - Made shared info/confirm dialogs and the in-shell password-change dialog clamp to the current owner window width instead of always forcing `380/420/440` fixed widths.
+  - Added shell smoke coverage so these dialogs stay responsive and do not regress back to hard-coded widths.
+  - Re-verified with `mvn "-Dmaven.repo.local=.m2\\repository" test` (52 tests passed) and `mvn "-Dmaven.repo.local=.m2\\repository" javafx:run` (Maven reported `BUILD SUCCESS`; the known Windows tail noise remained unchanged).
+- Impact / Next
+  - This round focused on shared dialog responsiveness, not module business logic.
+  - Keep local `.m2` cache changes out of git commits.

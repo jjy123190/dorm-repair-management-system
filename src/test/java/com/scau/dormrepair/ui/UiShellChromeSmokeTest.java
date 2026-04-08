@@ -21,8 +21,10 @@ class UiShellChromeSmokeTest {
         assertTrue(source.contains("\\u9000\\u51fa\\u767b\\u5f55"));
         assertTrue(source.contains("new HBox(12, identityChipLabel, profileButton, logoutButton)"));
         assertTrue(source.contains("UiMotion.installSmoothScrollPane(moduleScrollPane);"));
+        assertTrue(source.contains("resolveDialogWidth(owner, 440, 340)"));
         assertFalse(source.contains("moduleSummaryLabel"));
         assertFalse(source.contains("header-module-summary"));
+        assertFalse(source.contains("body.setPrefWidth(440);"));
     }
 
     @Test
@@ -60,6 +62,16 @@ class UiShellChromeSmokeTest {
         assertEquals(1, countSelector(css, ".nav-button"));
         assertEquals(1, countSelector(css, ".nav-button-active"));
         assertFalse(css.contains("-fx-min-height: 820px;"));
+    }
+
+    @Test
+    void shouldKeepDialogsResponsiveInSource() throws IOException {
+        String source = readSource("src/main/java/com/scau/dormrepair/ui/support/UiAlerts.java");
+
+        assertTrue(source.contains("resolveDialogWidth(owner, 420, 320)"));
+        assertTrue(source.contains("resolveDialogWidth(owner, 380, 300)"));
+        assertFalse(source.contains("body.setPrefWidth(420);"));
+        assertFalse(source.contains("body.setPrefWidth(380);"));
     }
 
     private static int countSelector(String css, String selector) {
