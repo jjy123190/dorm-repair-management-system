@@ -11,6 +11,7 @@
 
 - [MySQL最小表设计](./database/MySQL最小表设计.md)
 - [MySQL DDL 草案](../sql/mysql/01_init_schema_v1.sql)
+- [MySQL 演示数据脚本](../sql/mysql/02_seed_demo_data.sql)
 
 ## 课程交付
 

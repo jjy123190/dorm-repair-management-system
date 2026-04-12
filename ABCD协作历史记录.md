@@ -745,3 +745,25 @@
 - Push 结果
   - 本轮待 commit + push
 
+### 2026-04-12 15:10 | D
+- 改动文件
+  - `sql/mysql/02_seed_demo_data.sql`
+  - `src/test/java/com/scau/dormrepair/common/DemoDataSqlSeedTest.java`
+  - `README.md`
+  - `docs/README.md`
+  - `docs/database/MySQL最小表设计.md`
+  - `docs/architecture/JavaFX与MyBatis交接说明.md`
+  - `AGENTS.md`
+  - `项目协作根基.md`
+  - `ABCD协作历史记录.md`
+- 完成内容
+  - 补齐可重复执行的 MySQL 演示数据脚本，固定保留账号、房间、报修单、工单和评价样例，方便直接演示学生、管理员、维修员三条主链
+  - 演示数据按当前日期自动生成“本月已完成 / 处理中 / 已派单 / 已提交 / 已取消 + 上月已完成”组合，首页概览和月度统计可以直接出数
+  - 新增 `DemoDataSqlSeedTest`，把 `DemoAccountDirectory` 和演示数据脚本里的稳定账号口径锁定到同一套保留 ID
+  - 同步更新 README、数据库文档、交接说明和协作规则，让组里后续按 `01_init_schema_v1.sql -> 02_seed_demo_data.sql` 就能直接起演示库
+- 影响提醒 / 下一步
+  - 这轮只动 D 区 SQL、测试和文档，没有改 A / B / C 主链业务实现
+  - 演示数据脚本只刷新保留 ID，不会清空整库；如果后面要接真实鉴权，记得把登录页稳定账号入口和 `user_accounts` 正式打通
+- Push 结果
+  - 本轮待 commit + push
+

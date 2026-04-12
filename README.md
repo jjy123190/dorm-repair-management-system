@@ -38,11 +38,19 @@
 
 ### 1. 数据库准备
 
-先确认本机 MySQL 能用 `root / 123456` 连接，然后执行：
+先确认本机 MySQL 能用 `root / 123456` 连接，然后依次执行：
 
 ```sql
 source sql/mysql/01_init_schema_v1.sql;
+source sql/mysql/02_seed_demo_data.sql;
 ```
+
+第二个脚本会刷新一组保留的演示数据，和当前登录页里的稳定账号保持一致，方便直接演示：
+
+- `1001 张三`、`1002 李晓雨`、`1003 相逢的`
+- `2001 李老师`、`2002 陈老师`
+- `3001 王师傅`、`3002 周师傅`、`3003 陈师傅`
+- 当前月会自动准备“已提交 / 已派单 / 处理中 / 已完成 / 已取消”几种典型状态，首页和月度统计可以直接出数
 
 ### 2. 编译
 
@@ -77,6 +85,7 @@ mvn test
 - 起步待办：`docs/architecture/起步问题与待办.md`
 - 数据库设计：`docs/database/MySQL最小表设计.md`
 - MySQL DDL：`sql/mysql/01_init_schema_v1.sql`
+- 演示数据：`sql/mysql/02_seed_demo_data.sql`
 - 老师资料：`docs/teacher-materials/README.md`
 
 ## 协作前提

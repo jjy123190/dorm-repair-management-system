@@ -22,6 +22,7 @@
 - 包分类号：[docs/architecture/软件包分层与分类号.md](docs/architecture/软件包分层与分类号.md)
 - MySQL 最小表设计：[docs/database/MySQL最小表设计.md](docs/database/MySQL最小表设计.md)
 - MySQL DDL 草案：[sql/mysql/01_init_schema_v1.sql](sql/mysql/01_init_schema_v1.sql)
+- MySQL 演示数据：[sql/mysql/02_seed_demo_data.sql](sql/mysql/02_seed_demo_data.sql)
 - 老师资料索引：[docs/teacher-materials/README.md](docs/teacher-materials/README.md)
 
 ## 3. 协作启动规则
@@ -76,7 +77,7 @@
 - 宿舍基础信息维护界面未落地
 - 用户管理界面未落地
 - 图表化统计和导出未落地
-- 初始化测试数据脚本未补
+- 初始化测试数据脚本已补在 `sql/mysql/02_seed_demo_data.sql`
 
 ## 8. 旧方案说明
 
